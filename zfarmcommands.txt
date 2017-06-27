@@ -1,0 +1,24 @@
+Commands for FARM
+
+ssh ehellwig@agri.cse.ucdavis.edu
+
+
+sbatch -p med test.sh
+sbatch -p serial --mem=16384 --mail-type=ALL --mail-user=echellwig@ucdavis.edu optim_linear.sh
+sbatch -p serial --mem=20480 --mail-type=ALL --mail-user=echellwig@ucdavis.edu HourlyTemp.sh
+
+sbatch --cpus-per-task=12 --mem=5120 --array=1-12 --job-name=GDD --time=1-1 --mail-user=echellwig@ucdavis.edu --partition med farm_length.sh TTTtempsGDD.R
+
+sbatch  --cpus-per-task=8 --mem=20480 --array=1-12 --job-name=thermal --time=1-12 --mail-user=echellwig@ucdavis.edu --partition med farm_length.sh daylengthhr.R
+
+
+sbatch  --partition med --cpus-per-task=7 --mem=20480 --array=1-12 --job-name=gddsfull --mail-user=echellwig@ucdavis.edu optim_crossval.sh optim_gddsimple_crossval.R
+
+sbatch  --cpus-per-task=8 --mem=20480 --job-name=anderson --mail-user=echellwig@ucdavis.edu --partition serial optim_anderson.sh 
+
+How to install phenoclim on the cluster:
+1. Create binary for most recent version of your package 
+2. Upload it to farm using FileZilla. You do not have to put it in the R folder
+3. Remove current version of phenoclim installed there (and associated binaries)
+4. Run the command “module load R”
+5. Run the command “R CMD INSTALL phenoclim_X.Y.Z.tgz -l ~/R”

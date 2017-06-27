@@ -1,0 +1,4 @@
+To Do
+- rewrite the partial optim scripts to use DEoptim
+- check steps 5,6 to see why the parameters are all weird for the partial models
+- check steps 5,6 to see why the rmse values for Ashley are messed up
