@@ -14,3 +14,8 @@ checkpacks(pkgs)
 
 cl <- read.csv(file.path(drivepath,'data/clean/croploc.csv'), stringsAsFactors=FALSE)
 
+########################Prunes###################################
+praw1 <- read.csv(file.path(importpath,'french1988.csv'),
+                  stringsAsFactors=FALSE)
+pdat2 <- as.data.frame(t(read.csv(file.path(importpath,'NSVPrune.csv'),
+                                            stringsAsFactors=FALSE)))
