@@ -1,4 +1,4 @@
-library(lubridate)
+#requires the lubridate package to use some of the functions
 
 fit <- function(a, b, dat) {
 	f <- a + b*dat
