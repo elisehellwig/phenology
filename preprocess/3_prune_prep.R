@@ -10,12 +10,13 @@ checkpacks(pkgs)
 
 
 #This script cleans prune data for further processing and analysis.
+options(stringsAsFactors = FALSE)
 
-
-cl <- read.csv(file.path(drivepath,'data/clean/croploc.csv'), stringsAsFactors=FALSE)
+cl <- read.csv(file.path(drivepath,'data/clean/croploc.csv'))
 
 ########################Prunes###################################
 praw1 <- read.csv(file.path(importpath,'french1988.csv'),
                   stringsAsFactors=FALSE)
-pdat2 <- as.data.frame(t(read.csv(file.path(importpath,'NSVPrune.csv'),
-                                            stringsAsFactors=FALSE)))
+praw2 <- as.data.frame(t(read.csv(file.path(importpath,'NSVPrune.csv'),
+                                            stringsAsFactors=FALSE)),
+                       strings)
