@@ -36,7 +36,9 @@ vars <- c('French','Gerren','Imperial','General')
 p2 <- reform(praw2, vars)
 
 p2$Date <- as.Date(paste(p2$date, p2$year, sep='/'), format='%m/%d/%Y')
-p2$day <- yday(p2$Date)
+p2$day <- yday(p2$Date) # gives the day of the year (julian day)
+
+
 
 
 
