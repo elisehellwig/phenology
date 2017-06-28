@@ -39,20 +39,8 @@ cultivars2 <- c('Joranolo', 'Ne_Plus_Ultra', 'IXL', 'Peerless', 'Nonpareil', 'Dr
 
 #transposing the data (except for the first column which is just the cultivar
     #names)
-araw2t <- as.data.frame(t(araw2[,-1]), stringsAsFactors=FALSE)
 
-#giving the columns their appropriate names
-names(araw2t) <- c('year', cultivars2)
-vnames <- names(araw2)[-1] #extracting the names of the phenological events
-
-#removing the numbers at the end of the phenological event names
-namesplit <- strsplit(vnames, '[.]') 
-araw2t$event <- sapply(seq_along(namesplit), function(i) namesplit[[i]][1])
-
-araw2t$year <- as.integer(araw2t$year)
-
-adat2 <- melt(araw2t, id.vars = c('year','event'), measure.vars = cultivars2,
-             variable.name = 'cultivar', value.name = 'date')
+adat2 <- reform(araw2, cultivars2)
 
 #converting the date into a 'Date' class vector
 adat2$Date <- as.Date(paste(adat2$date, adat2$year, sep='/'), 
