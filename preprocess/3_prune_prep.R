@@ -16,4 +16,21 @@ cl <- read.csv(file.path(drivepath,'data/clean/croploc.csv'))
 
 ########################Prunes###################################
 praw1 <- read.csv(file.path(importpath,'french1988.csv'))
-praw2 <- as.data.frame(t(read.csv(file.path(importpath,'NSVPrune.csv'))))
+praw2 <- read.csv(file.path(importpath,'NSVPrune.csv'))
+
+####################Praw2#############################
+
+
+
+
+
+####################Praw2#############################
+vars <- c('French','Gerren','Imperial','General')
+
+p2 <- reform(praw2, vars)
+
+p2$Date <- as.Date(paste(p2$date, p2$year, sep='/'), format='%m/%d/%Y')
+p2$day <- yday(p2$Date)
+
+
+
