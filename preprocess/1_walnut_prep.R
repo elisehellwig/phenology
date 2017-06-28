@@ -11,17 +11,15 @@ checkpacks(pkgs)
 
 #This script cleans up prune walnut and almond data for further processing and analysis.
 
+options(stringsAsFactors = FALSE)
 
-cl <- read.csv(file.path(drivepath,'data/clean/croploc.csv'), stringsAsFactors=FALSE)
+cl <- read.csv(file.path(drivepath,'data/clean/croploc.csv'))
 
 
 ########################Walnuts###################################
-wraw1 <- read.csv(file.path(importpath, 'walnut1954.csv'), 
-                  stringsAsFactors=FALSE)
-wraw2 <- read.csv(file.path(importpath,'walnutpope2.csv'), 
-                  stringsAsFactors=FALSE)
-wraw3 <- read.csv(file.path(importpath,'walnutbloompope.csv'), 
-                  stringsAsFactors=FALSE)
+wraw1 <- read.csv(file.path(importpath, 'walnut1954.csv'))
+wraw2 <- read.csv(file.path(importpath,'walnutpope2.csv'))
+wraw3 <- read.csv(file.path(importpath,'walnutbloompope.csv'))
 
 wcols <- c('CULT', 'YR','LOCATE','LFDA','HARV')
 
@@ -84,8 +82,4 @@ wcults <- w[w$cultivar %in% cults, ]
 write.csv(wcults, 
           file=file.path(drivepath, 'data/walnutdata/walnutclean.csv'), 
           row.names=FALSE)
-
-#########################################################################
-#########################################################################
-###Almonds####
 

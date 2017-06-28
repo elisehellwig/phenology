@@ -8,22 +8,20 @@ source('functions/preprocessfunctions.R')
 pkgs <- c('reshape2','lubridate','dismo')
 checkpacks(pkgs)
 
+options(stringsAsFactors = FALSE)
 
 #This script cleans almond data for further processing and analysis.
 
 
-cl <- read.csv(file.path(drivepath,'data/clean/croploc.csv'), stringsAsFactors=FALSE)
+cl <- read.csv(file.path(drivepath,'data/clean/croploc.csv'))
 
 
 ########################Almonds###################################
 
 #importing data from 3 different sources
-araw1 <- read.csv(file.path(importpath, 'AlmondChicoModestoBloom.csv'),
-                  stringsAsFactors = FALSE)
-araw2 <- read.csv(file.path(importpath, 'NSVAlmond.csv'), 
-                  stringsAsFactors = FALSE)
-araw3 <-  read.csv(file.path(importpath, 'RAVTHullsplitandBloom.csv'), 
-                   stringsAsFactors = FALSE)
+araw1 <- read.csv(file.path(importpath, 'AlmondChicoModestoBloom.csv'))
+araw2 <- read.csv(file.path(importpath, 'NSVAlmond.csv'))
+araw3 <-  read.csv(file.path(importpath, 'RAVTHullsplitandBloom.csv'))
 
 
 #########extracting useful columns (araw1)#####################
@@ -97,5 +95,6 @@ a3 <- a3[,c('cultivar', 'loc','year','day', 'event')]
 
 a <- rbind(adat1, adat2, a3)
 
-write.csv(a, file.path(drivepath,'data/historydata/almondclean.csv'))
+write.csv(a, file.path(drivepath,'data/historydata/almondclean.csv'),
+          row.names = FALSE)
 
