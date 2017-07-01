@@ -28,7 +28,7 @@ p1melt <- melt(praw1, id.vars=c('cultivar','loc','year'),
                 
 p1melt$Date <- as.Date(p1melt$date, format="%m/%d/%y")
 p1melt$day <- yday(p1melt$Date)
-
+p1melt$event <- as.character(p1melt$event)
 
 ####################Praw2#############################
 vars <- c('French','Gerren','Imperial','General')
@@ -37,6 +37,20 @@ p2 <- reform(praw2, vars)
 
 p2$Date <- as.Date(paste(p2$date, p2$year, sep='/'), format='%m/%d/%Y')
 p2$day <- yday(p2$Date) # gives the day of the year (julian day)
+p2$year <- as.integer(p2$year)
+p2$cultivar <- as.character(p2$cultivar)
+p2$loc <- 'NSacValley'
+
+
+#####################################
+#put it together
+voi <- c('cultivar','year','loc','event','day')
+
+p <- rbind(p1melt[,voi], p2[,voi])
+
+write.csv(p, file.path(drivepath,'data/historydata/pruneclean.csv'),
+          row.names = FALSE)
+
 
 
 
