@@ -15,7 +15,7 @@ options(stringsAsFactors = FALSE)
 
 cl <- read.csv(file.path(drivepath,'data/clean/croploc.csv'))
 
-
+voi <- c('cultivar','year','loc','event','day')
 ########################Almonds###################################
 
 #importing data from 3 different sources
@@ -30,6 +30,7 @@ adat1 <- araw1[,c('Cultivar', 'Location', 'Year', 'JD')]
 names(adat1) <- c('cultivar', 'loc','year','day')
 adat1$event <- "flowering"
 
+adat1 <- adat1[,voi]
 
 #########restucturing the NSV Almond data (araw2)#####################
 
@@ -52,14 +53,14 @@ adat2 <- adat2[complete.cases(adat2),]
 
 adat2$loc <- 'NSacValley'
 
-adat2 <- adat2[, c('cultivar', 'loc','year','day', 'event')]
+adat2 <- adat2[, voi]
 
 #########Extracting the useful columns (araw3)#####################
 
-voi <- c('Year','Location','X','Hull.Split.Start','Hull.Split.End',
+voi3 <- c('Year','Location','X','Hull.Split.Start','Hull.Split.End',
          'X10..bloom', 'X90..bloom')
 
-adat3 <- araw3[,voi]
+adat3 <- araw3[,voi3]
 
 names(adat3) <- c('year', 'loc', 'cultivar', 'hstart', 'hend', 'flower10',
                'flower90')
@@ -78,8 +79,9 @@ a3 <- adat3[-zerorows, ]
 a3$Date <- as.Date(paste(a3$date, a3$year, sep='-'), format='%d-%b-%Y')
 a3$day <- yday(a3$Date)
 
-a3 <- a3[,c('cultivar', 'loc','year','day', 'event')]
+a3 <- a3[,voi]
 
+##################Putting it all together#####################
 
 a <- rbind(adat1, adat2, a3)
 
