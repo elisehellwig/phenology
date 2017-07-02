@@ -54,6 +54,10 @@ ghncd_download <- function(stations,
     dt$date <- as.Date(paste(dt$year, dt$month, dt$day, sep='-'))
     dt$jd <- yday(dt$date)
     
+    dt$tmax <- dt$tmax/10
+    dt$tmin <- dt$tmin/10
+    
+    return(dt)
 }
 
 
