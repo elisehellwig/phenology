@@ -52,8 +52,7 @@ ghncd_download <- function(stations,
     dt <- merge(dailyt, meta)
     
     dt$date <- as.Date(paste(dt$year, dt$month, dt$day, sep='-'))
-    dt$jd <- yday(dt$date)
-    
+
     dt$tmax <- dt$tmax/10
     dt$tmin <- dt$tmin/10
     
@@ -61,16 +60,33 @@ ghncd_download <- function(stations,
 }
 
 
+modelMissing <- function(pr, pmiss, sr, smiss) {
+    
+    overlap <- lapply(sr, function(x) {
+        odate <- as.Date(interset(x[,'date'], pr[,'date']))
+        
+        x2 <-cbind(x[x$date %in% odate, ], pr[pr$date %in% odate, ])
+        
+        names(x2) <- c(paste0(names(x),'s'), paste0(names(x),'p'))
+        
+    })
+    
+    
+    
+    
+}
 
 
 
 
 
-tempclean <- function(years, data, primary, secondary, hourly=FALSE,
+
+tempclean <- function(data, primary, secondary, years=NA, hourly=FALSE,
                       dateform ='%Y%m%d', na_val=-9999) {
     #columns should be in the order location, date, temp/tmin, (tmax)
     require(lubridate)
-    
+    #requires you to load preprocess functions before running this specifically
+        #for the missingDates function
     
     if (hourly) {
         names(data) <- c('loc', 'date', 'temp')
@@ -78,40 +94,51 @@ tempclean <- function(years, data, primary, secondary, hourly=FALSE,
         
     } else {
         names(data) <- c('loc', 'date','tmax', 'tmin')
-        data[data$tmin==na_val, 'tmin'] <- NA
-        data[data$tmax==na_val, 'tmax'] <- NA
+        #data[data$tmin==na_val, 'tmin'] <- NA
+        #data[data$tmax==na_val, 'tmax'] <- NA
         
     }
     
     
-    data <- data[data$year %in% years, ]
+    if (!is.na(years[1])) {
+        data <- data[data$year %in% years, ]
+    }
     
     
     if (!is.Date(data$date)) {
         data$date <- as.Date(data$date, format=dateform)
     }
     
-    data$year <- year(data$date)
-    data$month <- month(data$date)
+    #data$year <- year(data$date)
+    #data$month <- month(data$date)
     
     pri <- data[data$loc==primary, ]
     
     
     if (length(secondary<1)) {
         stop('You must have at least one secondary location.')
-    } else if (length(secondary)==1) {
-        sec <- data[data$loc==secondary, ]
         
-    } else {
-        sec <- lapply(secondary, function(sloc) {
+    }  else {
+        sec <- lapply(secondary, function(sname) {
             data[data$loc==sname, ]
         })
     }
     
     primaryNAs <- union(which(is.na(pri$tmin)), which(is.na(pri$tmax)))
+    prir <- pri[-primaryNAs, ]
     
-    secondaryNAs <- lapply()
+    primissing <- as.Date(missingDates(prir), origin="1970-01-01")
     
+    secr <- lapply(sec, function(d) {
+        nas <- union(which(is.na(d[,'tmin'])), which(is.na(d[,'tmax'])))
+        d[-nas,]
+    })
+
+    
+    secmissing <- lapply(secr, function(dr) {
+        as.Date(missingDates(dr), origin="1970-01-01")
+    })
+
     
     
     
