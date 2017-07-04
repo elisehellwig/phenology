@@ -65,6 +65,66 @@ timeSeriesCheck <- function(x, years, limits=NA, hours=FALSE) {
     
 }
 
+missingDates <- function(df, limits=NA, hourly=FALSE) {
+    require(dplyr)
+    
+    
+    if (!('date' %in% names(df))) {
+        stop("There must be a column called 'date' in your data.frame. ")
+        
+    } else if (class(df[1,'date'])!='Date'){
+            stop("The input data frame must have a column called date that has the class 'Date'. ")
+        
+         }
+    
+    
+    if (is.na(limits[1])) {
+        start <- min(df[,'date'], na.rm = TRUE)
+        end <- max(df[,'date'], na.rm = TRUE)
+    } else if (class(limits[1])=='Date' & length(limits)==2) {
+        start <- limits[1]
+        end <- limits[2]
+        
+    } else {
+        stop("The argument limits must be NA or a vector of length 2 and the class Date")
+    }
+    
+    
+    alldates <- seq(start, end, by='days')
+    
+    if (hourly) {
+        
+        alldatetimes <- as.data.frame(expand.grid(alldates, 1:24))
+        missing <- anti_join(alldatetimes, df[,c('date','hour')])
+        
+        
+    } else {
+        missing <- setdiff(alldates, df[,'date'])
+        
+    }
+    
+    if (hourly) {
+        if (dim(missing)[1]==0) {
+            return(TRUE)
+        } else {
+            return(missing)
+        }
+
+    } else {
+        
+        if (length(missing)==0) {
+         return(TRUE) 
+        
+        } else {
+            return(missing)
+        }
+    }
+
+}
+
+
+
+
 
 daylength <- function(jul, lat=38.5, ret='') {
     #from extractTemp.py: Cesaraccio et al (2001) "An improved model for determining degree-day values..."
