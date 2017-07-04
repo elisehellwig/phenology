@@ -95,7 +95,7 @@ tempclean <- function(data, primary, secondary, years=NA, hourly=FALSE,
         data[data$temp==na_val, 'temp'] <- NA
         
     } else {
-        names(data) <- c('loc', 'date','tmax', 'tmin')
+        names(data) <- c('loc', 'year' ,'date','tmax', 'tmin')
         #data[data$tmin==na_val, 'tmin'] <- NA
         #data[data$tmax==na_val, 'tmax'] <- NA
         
