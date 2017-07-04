@@ -1,5 +1,6 @@
 
 ghcnd_reshape <- function(df, vars=c('TMAX','TMIN'), valuename='VALUE') {
+    require(reshape2)
     
     valcols <- grep('VALUE', names(df))
     
@@ -29,6 +30,7 @@ ghncd_download <- function(stations,
                            APItoken='LtpGDhfftKEwCGGgOeOsfBRCsRawIMaN') {
     require(plyr)
     require(lubridate)
+    require(rnoaa)
     
     stnids <- paste0('GHCND:', stations)
     
