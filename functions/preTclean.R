@@ -1,5 +1,5 @@
 
-ghcnd_reshape <- function(df, vars=c('TMAX','TMIN'), valuename='VALUE') {
+ghcnd_reshape <- function(df, vars=c('TMIN','TMAX'), valuename='VALUE') {
     require(reshape2)
     
     valcols <- grep('VALUE', names(df))
@@ -19,7 +19,7 @@ ghcnd_reshape <- function(df, vars=c('TMAX','TMIN'), valuename='VALUE') {
     dfcast <- dcast(dfmelt, id + year + month + day ~ element,
                     value.var = 'temp')
     
-    names(dfcast)[5:6] <- c('tmin','tmax')
+    names(dfcast)[5:6] <- c('tmax','tmin')
     
     return(dfcast)
     
@@ -57,6 +57,8 @@ ghncd_download <- function(stations,
     
     dt$tmax <- dt$tmax/10
     dt$tmin <- dt$tmin/10
+    
+    
     
     return(dt)
 }
