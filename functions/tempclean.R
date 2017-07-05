@@ -62,19 +62,37 @@ ghncd_download <- function(stations,
 }
 
 
+
+overlap <- function(prd, srd) {
+    odate <- as.Date(intersect(srd[,'date'], prd[,'date']), origin="1970-01-01")
+    
+    x <- cbind(prd[prd$date %in% odate, ], 
+               srd[srd$date %in% odate, c('tmin','tmax')])
+    
+    names(x) <- c(names(prd), paste0("S", c('tmin','tmax')))
+    
+    return(x)
+}
+
+
+
 modelMissing <- function(pr, pmiss, sr, smiss) {
     
-    overlap <- lapply(sr, function(x) {
-        odate <- as.Date(interset(x[,'date'], pr[,'date']))
-        
-        x2 <-cbind(x[x$date %in% odate, ], pr[pr$date %in% odate, ])
-        
-        names(x2) <- c(paste0(names(x),'s'), paste0(names(x),'p'))
-        
-    })
+    olp <- overlap(pr, sr)
+    
+    tminmod <- lm(tmin ~ Stmin, data=olp)
+    tmaxmod <- lm(tmax ~ Stmax, data=olp)
+    
+    sfound <- as.Date(setdiff(pmiss, smiss), origin='1970-01-01')
+    
+    ndat <- sr[sr$date %in% sfound, c('date','tmin','tmax')]
+    names(ndat)[2:3] <- c('Stmin','Stmax')
     
     
+    ndat$Ptmin <- predict(tminmod, newdata=ndat)
+    ndat$Ptmax <- predict(tmaxmod, newdata=ndat)
     
+    return(ndat)
     
 }
 
@@ -95,7 +113,7 @@ tempclean <- function(data, primary, secondary, years=NA, hourly=FALSE,
         data[data$temp==na_val, 'temp'] <- NA
         
     } else {
-        names(data) <- c('loc', 'year' ,'date','tmax', 'tmin')
+        names(data) <- c('loc', 'year' ,'date','tmin', 'tmax')
         #data[data$tmin==na_val, 'tmin'] <- NA
         #data[data$tmax==na_val, 'tmax'] <- NA
         
@@ -142,6 +160,23 @@ tempclean <- function(data, primary, secondary, years=NA, hourly=FALSE,
     })
 
     
+    mm <- lapply(seq_along(secr), function(i) {
+        modelMissing(prir, primissing, secr[[i]], secmissing[[i]])
+    })
+    
+    for (i in seq_along(mm)) {
+        names(mm[[i]])[-1] <- paste0(names(mm[[i]])[-1], i)
+        
+    }
+    
+    mdat <- mm[[1]]
+    for (i in 1:(length(mm)-1) ) {
+        print(i+1)
+        mdat <- merge(mdat,mm[[i+1]], by='date', all=TRUE)
+    }
+    
+    Stmincols <- c(1, grep('Stmin', names(mdat)))
+    Stmaxcols <- c(1, grep('Stmax', names(mdat)))
     
     
     
