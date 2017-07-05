@@ -50,6 +50,13 @@ ghncd_download <- function(stations,
         ghcnd_reshape(dt)
     })
     
+    switchrows <- which(dailyt$tmax < dailyt$tmin)
+    switchdf <- data.frame(tmin=dailyt[switchrows,'tmax'],
+                           tmax=dailyt[switchrows, 'tmin'])
+    dailyt[switchrows, 'tmin'] <- switchdf$tmin
+    dailyt[switchrows, 'tmax'] <- switchdf$tmax
+    
+    
     
     dt <- merge(dailyt, meta)
     
