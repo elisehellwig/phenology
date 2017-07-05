@@ -1,4 +1,5 @@
-
+source('functions/preTclean.R')
+source('functions/preprocessfunctions.R')
 
 
 
@@ -7,7 +8,6 @@ tempclean <- function(data, primary, secondary, years=NA, hourly=FALSE,
     #columns should be in the order location, date, temp/tmin, (tmax)
     require(lubridate)
     require(plyr)
-    source('preTclean.R')
     #requires you to load preprocess functions before running this specifically
         #for the missingDates function
     
@@ -29,16 +29,15 @@ tempclean <- function(data, primary, secondary, years=NA, hourly=FALSE,
     
     
     if (!is.Date(data$date)) {
-        data$date <- as.Date(data$date, format=dateform)
+        data$date <- as.Date(data$date, format=dateform, origin='1970-01-01')
     }
     
     #data$year <- year(data$date)
     #data$month <- month(data$date)
     
     pri <- data[data$loc==primary, ]
-    
-    
-    if (length(secondary<1)) {
+
+    if (length(secondary)<1) {
         stop('You must have at least one secondary location.')
         
     }  else {
@@ -76,7 +75,6 @@ tempclean <- function(data, primary, secondary, years=NA, hourly=FALSE,
     
     mdat <- mm[[1]]
     for (i in 1:(length(mm)-1) ) {
-        print(i+1)
         mdat <- merge(mdat,mm[[i+1]], by='date', all=TRUE)
     }
     
