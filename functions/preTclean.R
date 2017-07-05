@@ -96,5 +96,14 @@ modelMissing <- function(pr, pmiss, sr, smiss) {
     
 }
 
-
+splitcols <- function(df, name, extracols='date') {
+    
+    colnums <- grep(name, names(df))
+    colvars <- c(extracols, names(df)[colnums])
+    
+    splitdf <- df[, colvars]
+    
+    return(splitdf)
+    
+}
 
