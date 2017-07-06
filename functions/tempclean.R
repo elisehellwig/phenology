@@ -72,11 +72,15 @@ tempclean <- function(data, primary, secondary, years=NA, hourly=FALSE,
         mm0[[i]]
     })
     
-    
     mdat <- mm[[1]]
-    for (i in 1:(length(mm)-1) ) {
-        mdat <- merge(mdat,mm[[i+1]], by='date', all=TRUE)
-    }
+    if (length(mm)>1) {
+        
+        for (i in 1:(length(mm)-1) ) {
+            mdat <- merge(mdat,mm[[i+1]], by='date', all=TRUE)
+        } 
+        
+    } 
+    
     
     stmin <- splitcols(mdat, 'Stmin', 'date')
     stmin$avg <- apply(stmin[,-1], 1, mean, na.rm=TRUE)
