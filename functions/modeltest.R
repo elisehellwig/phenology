@@ -1,6 +1,6 @@
 source('functions/preTclean.R')
 
-modeltest <- function(primaryid, secondaryids, 
+modeleval <- function(primaryid, secondaryids, 
                       APItoken='LtpGDhfftKEwCGGgOeOsfBRCsRawIMaN') {
     require(plyr)
     
