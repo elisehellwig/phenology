@@ -1,6 +1,8 @@
 source('functions/preTclean.R')
 
-modeltest <- function(primaryid, secondaryids, APItoken=) {
+modeltest <- function(primaryid, secondaryids, type, 
+                      APItoken='LtpGDhfftKEwCGGgOeOsfBRCsRawIMaN') {
+    require(plyr)
     
     focal <- ghcnd(stationid=primaryid, token=APItoken)
     
@@ -15,13 +17,33 @@ modeltest <- function(primaryid, secondaryids, APItoken=) {
         ghcnd_reshape(gdf)
     })
     
-    switchf <- which(fdf$tmax < fdf$tmin)
-    switchfdf <- data.frame(tmin=fdf[switchf,'tmax'],
-                           tmax=fdf[switchf, 'tmin'])
-    fdf[switchf, 'tmin'] <- switchfdf$tmin
-    fdf[switchf, 'tmax'] <- switchfdf$tmax
+    fdf <- switchMinMax(fdf)
+    adf <- switchMinMax(adf)
     
-    adf
     
+    moddf <- lapply(adf, function(d) {
+        overlap(fdf, d)
+    })
+    
+    if (type=='tmin') {
+        mods <- lapply(moddf, function(d) {
+            lm(tmin ~ Stmin, data=d)
+        })
+    } else if (type=='tmax') {
+        mods <- lapply(moddf, function(d) {
+            lm(tmax ~ Stmax, data=d)
+        })
+    } else {
+        stop('type must be tmin or tmax')
+    }
+    
+    result <- ldply(seq_along(mods), function(i) {
+        m <- mods[[i]]
+        data.frame(id=secondaryids[i],
+                   obs=length(m$residuals),
+                   r2=summary(m)$adj.r.squared)
+    })   
+   
+    return(result)
     
 }
