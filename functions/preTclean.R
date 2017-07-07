@@ -1,4 +1,10 @@
 
+switchMinMax <- function(x, vars=c('tmin','tmax')) {
+    
+}
+
+
+
 ghcnd_reshape <- function(df, vars=c('TMIN','TMAX'), valuename='VALUE') {
     require(reshape2)
     
