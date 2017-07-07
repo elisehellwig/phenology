@@ -79,21 +79,32 @@ tempclean <- function(data, primary, secondary, years=NA, hourly=FALSE,
             mdat <- merge(mdat,mm[[i+1]], by='date', all=TRUE)
         } 
         
-    } 
-    
-    
-    stmin <- splitcols(mdat, 'Stmin', 'date')
-    stmin$avg <- apply(stmin[,-1], 1, mean, na.rm=TRUE)
-    
-    stmax <- splitcols(mdat, 'Stmax','date')
-    stmax$avg <- apply(stmax[,-1], 1, mean, na.rm=TRUE)
-    
-    rdata <- data.frame(loc=primary,
-                        date=as.Date(stmin[,'date'], origin='1970-01-01'),
-                        year=year(as.Date(stmin[,'date'], origin='1970-01-01')),
-                        tmin=stmin$avg,
-                        tmax=stmax$avg)
-    
+        stmin <- splitcols(mdat, 'Stmin', 'date')
+        stmin$avg <- apply(stmin[,-1], 1, mean, na.rm=TRUE)
+        
+        stmax <- splitcols(mdat, 'Stmax','date')
+        stmax$avg <- apply(stmax[,-1], 1, mean, na.rm=TRUE)
+        
+        tempdate <- as.Date(stmin[,'date'], origin='1970-01-01')
+        
+        rdata <- data.frame(loc=primary,
+                            date=tempdate,
+                            year=year(tempdate),
+                            tmin=stmin$avg,
+                            tmax=stmax$avg)
+        
+        
+        
+        
+    } else {
+        tempdate <- as.Date(mdat$date, origin='1970-01-01')
+        
+        rdata <- data.frame(loc=primary,
+                            date=tempdate,
+                            year=year(tempdate),
+                            tmin=mdat$Stmin1,
+                            tmax=mdat$Stmax1)
+    }
     
     prir2 <- rbind(prir, rdata)
     
