@@ -1,7 +1,8 @@
 source('functions/preTclean.R')
 
-modeleval <- function(primaryid, secondaryids, 
-                      APItoken='LtpGDhfftKEwCGGgOeOsfBRCsRawIMaN') {
+modeleval <- function(primaryid, secondaryids, weights=FALSE,
+                      APItoken='LtpGDhfftKEwCGGgOeOsfBRCsRawIMaN', 
+                      threshold=0.8, thresholdcolumn='minR2') {
     require(plyr)
     
     focal <- ghcnd(stationid=primaryid, token=APItoken)
@@ -54,6 +55,16 @@ modeleval <- function(primaryid, secondaryids,
                    maxR2=summary(MaxMods[[i]])$adj.r.squared)
     })   
    
+    if (weights) {
+        
+        qualitymods <- which(result[,thresholdcolumn] > threshold)
+        result <- result[qualitymods,]
+        
+        result$minWeights <- result$minR2/sum(result$minR2)
+        result$maxWeights <- result$maxR2/sum(result$maxR2)
+        
+    }
+    
     return(result)
     
 }
