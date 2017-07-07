@@ -1,6 +1,6 @@
 source('functions/preTclean.R')
 
-modeltest <- function(primaryid, secondaryids, type, 
+modeltest <- function(primaryid, secondaryids, 
                       APItoken='LtpGDhfftKEwCGGgOeOsfBRCsRawIMaN') {
     require(plyr)
     
@@ -29,30 +29,29 @@ modeltest <- function(primaryid, secondaryids, type,
     })
     
     fdf <- switchMinMax(fdf)
-    adf <- switchMinMax(adf)
+    fdf <- formatDates(fdf)
     
+    adf <- switchMinMax(adf)
+    adf <- formatDates(adf)
     
     moddf <- lapply(adf, function(d) {
         overlap(fdf, d)
     })
     
-    if (type=='tmin') {
-        mods <- lapply(moddf, function(d) {
-            lm(tmin ~ Stmin, data=d)
-        })
-    } else if (type=='tmax') {
-        mods <- lapply(moddf, function(d) {
-            lm(tmax ~ Stmax, data=d)
-        })
-    } else {
-        stop('type must be tmin or tmax')
-    }
     
-    result <- ldply(seq_along(mods), function(i) {
-        m <- mods[[i]]
+    MinMods <- lapply(moddf, function(d) {
+        lm(tmin ~ Stmin, data=d)
+    })
+
+    MaxMods <- lapply(moddf, function(d) {
+        lm(tmax ~ Stmax, data=d)
+    })
+    
+    result <- ldply(seq_along(MinMods), function(i) {
         data.frame(id=secondaryids[i],
-                   obs=length(m$residuals),
-                   r2=summary(m)$adj.r.squared)
+                   obs=length(MinMods[[i]]$residuals),
+                   minR2=summary(MinMods[[i]])$adj.r.squared,
+                   maxR2=summary(MaxMods[[i]])$adj.r.squared)
     })   
    
     return(result)
