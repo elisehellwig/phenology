@@ -5,7 +5,7 @@ switchMinMax <- function(x, vars=c('tmin','tmax')) {
     if (is.data.frame(x)) {
         
         switchrows <- which(x[,vars[1]] > x[,vars[2]])
-        swichdf <- data.frame(a=x[switchrows, vars[2]],
+        switchdf <- data.frame(a=x[switchrows, vars[2]],
                               b=x[switchrows, vars[1]])
         x[switchrows, vars[1]] <- switchdf$a
         x[switchrows, vars[2]] <- switchdf$b
@@ -13,7 +13,7 @@ switchMinMax <- function(x, vars=c('tmin','tmax')) {
     } else if (is.list(x)) {
         
         xclass <- sapply(x, function(v) class(v))
-        testclass <- rep('data.frame')
+        testclass <- rep('data.frame', length(x))
         
         
         if (identical(xclass, testclass)) {
@@ -21,7 +21,7 @@ switchMinMax <- function(x, vars=c('tmin','tmax')) {
             for (i in seq_along(x)) {
                 xdf <- x[[i]]
                 switchrows <- which(xdf[,vars[1]] > xdf[,vars[2]])
-                swichdf <- data.frame(a=xdf[switchrows, vars[2]],
+                switchdf <- data.frame(a=xdf[switchrows, vars[2]],
                                       b=xdf[switchrows, vars[1]])
                 xdf[switchrows, vars[1]] <- switchdf$a
                 xdf[switchrows, vars[2]] <- switchdf$b
@@ -43,9 +43,54 @@ switchMinMax <- function(x, vars=c('tmin','tmax')) {
 }
 
 
+formatDates <- function(x, yearname='year', monthname='month', dayname='day') {
+    
+    
+    
+    if (is.data.frame(x)) {
+        
+        x$date <- as.Date(paste(x[,yearname], x[,monthname], x[,dayname],
+                                sep='-'))
+        
+        NArows <- which(is.na(x$date))
+        x <- x[-NArows,]
+        
+        
+        
+    } else if (is.list(x)) {
+        
+        xclass <- sapply(x, function(v) class(v))
+        testclass <- rep('data.frame', length(x))
+        
+        
+        if (identical(xclass, testclass)) {
+            
+            x <- lapply(x, function(d) {
+                d$date <- as.Date(paste(d[,yearname], d[,monthname], 
+                                        d[,dayname], sep='-'))
+                NArows <- which(is.na(d$date))
+                d <- d[-NArows,]
+                
+                d
+            })
+            
+        } else {
+            stop('x must be a list of data.frames')
+        }
+        
+    } else {
+        stop('x must be a list or a data.frame')
+    }
+    
+    return(x)
+    
+}
+
 
 ghcnd_reshape <- function(df, vars=c('TMIN','TMAX'), valuename='VALUE') {
     require(reshape2)
+    
+    #print(head(df))
     
     valcols <- grep('VALUE', names(df))
     
@@ -60,7 +105,7 @@ ghcnd_reshape <- function(df, vars=c('TMIN','TMAX'), valuename='VALUE') {
     dfmelt$day <- gsub(valuename, '', dfmelt$day)
     dfmelt$day <- as.integer(dfmelt$day)
     
-    
+   # print(head(dfmelt))
     dfcast <- dcast(dfmelt, id + year + month + day ~ element,
                     value.var = 'temp')
     
