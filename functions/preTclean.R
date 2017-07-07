@@ -1,5 +1,44 @@
 
 switchMinMax <- function(x, vars=c('tmin','tmax')) {
+    #note the first one in the vars vector must be the smaller one
+    
+    if (is.data.frame(x)) {
+        
+        switchrows <- which(x[,vars[1]] > x[,vars[2]])
+        swichdf <- data.frame(a=x[switchrows, vars[2]],
+                              b=x[switchrows, vars[1]])
+        x[switchrows, vars[1]] <- switchdf$a
+        x[switchrows, vars[2]] <- switchdf$b
+        
+    } else if (is.list(x)) {
+        
+        xclass <- sapply(x, function(v) class(v))
+        testclass <- rep('data.frame')
+        
+        
+        if (identical(xclass, testclass)) {
+            
+            for (i in seq_along(x)) {
+                xdf <- x[[i]]
+                switchrows <- which(xdf[,vars[1]] > xdf[,vars[2]])
+                swichdf <- data.frame(a=xdf[switchrows, vars[2]],
+                                      b=xdf[switchrows, vars[1]])
+                xdf[switchrows, vars[1]] <- switchdf$a
+                xdf[switchrows, vars[2]] <- switchdf$b
+                
+                x[[i]] <- xdf
+            } 
+            
+            
+        } else {
+            stop('x must be a list of data.frames')
+        }
+        
+    } else {
+        stop('x must be a list or a data.frame')
+    }
+    
+    return(x)
     
 }
 
@@ -56,11 +95,7 @@ ghncd_download <- function(stations,
         ghcnd_reshape(dt)
     })
     
-    switchrows <- which(dailyt$tmax < dailyt$tmin)
-    switchdf <- data.frame(tmin=dailyt[switchrows,'tmax'],
-                           tmax=dailyt[switchrows, 'tmin'])
-    dailyt[switchrows, 'tmin'] <- switchdf$tmin
-    dailyt[switchrows, 'tmax'] <- switchdf$tmax
+    dailyt <- switchMinMax(dailyt)
     
     
     
