@@ -4,21 +4,34 @@ modeltest <- function(primaryid, secondaryids, type,
                       APItoken='LtpGDhfftKEwCGGgOeOsfBRCsRawIMaN') {
     require(plyr)
     
-    focal <- ghcnd(stationid=primaryid, token=APItoken)
+    focal <- ghcnd(stationid=primaryid, token=EH_APItoken)
     
-    fdf <- ghncd_reshape(focal)
+    fdf <- ghcnd_reshape(focal)
     
     
     aux <- lapply(secondaryids, function(sid) {
-        ghcnd(stationid=sid, token=APItoken)
+        ghcnd(stationid=sid, token=EH_APItoken)
     })
     
-    adf <- lapply(aux, function(gdf) {
+    keepstation <- sapply(aux, function(tble) {
+        if ( ('TMIN' %in% tble$element) & ('TMAX' %in% tble$element)) {
+            TRUE
+        } else {
+            FALSE
+        }
+    })
+    
+    auxkeep <- aux[keepstation]
+    
+    
+    adf <- lapply(auxkeep, function(gdf) {
         ghcnd_reshape(gdf)
     })
     
     fdf <- switchMinMax(fdf)
     adf <- switchMinMax(adf)
+    
+    
     
     
     moddf <- lapply(adf, function(d) {
