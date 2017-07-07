@@ -11,18 +11,22 @@ modeleval <- function(primaryid, secondaryids, weights=FALSE,
     
     
     aux <- lapply(secondaryids, function(sid) {
-        ghcnd(stationid=sid, token=APItoken)
+        as.data.frame(ghcnd(stationid=sid, token=APItoken))
     })
     
     keepstation <- sapply(aux, function(tble) {
-        if ( ('TMIN' %in% tble$element) & ('TMAX' %in% tble$element)) {
+        #print(unique(tble$element))
+        
+        elements <- unique(tble[,'element'])
+        if ( ('TMIN' %in% elements) & ('TMAX' %in% elements)) {
             TRUE
         } else {
             FALSE
         }
     })
     
-    auxkeep <- aux[keepstation]
+   
+    auxkeep <- aux[which(keepstation)]
     
     
     adf <- lapply(auxkeep, function(gdf) {
@@ -49,7 +53,7 @@ modeleval <- function(primaryid, secondaryids, weights=FALSE,
     })
     
     result <- ldply(seq_along(MinMods), function(i) {
-        data.frame(id=secondaryids[i],
+        data.frame(id=adf[[i]]$id[1],
                    obs=length(MinMods[[i]]$residuals),
                    minR2=summary(MinMods[[i]])$adj.r.squared,
                    maxR2=summary(MaxMods[[i]])$adj.r.squared)
