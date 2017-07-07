@@ -4,13 +4,13 @@ modeleval <- function(primaryid, secondaryids,
                       APItoken='LtpGDhfftKEwCGGgOeOsfBRCsRawIMaN') {
     require(plyr)
     
-    focal <- ghcnd(stationid=primaryid, token=EH_APItoken)
+    focal <- ghcnd(stationid=primaryid, token=APItoken)
     
     fdf <- ghcnd_reshape(focal)
     
     
     aux <- lapply(secondaryids, function(sid) {
-        ghcnd(stationid=sid, token=EH_APItoken)
+        ghcnd(stationid=sid, token=APItoken)
     })
     
     keepstation <- sapply(aux, function(tble) {
