@@ -32,8 +32,6 @@ modeltest <- function(primaryid, secondaryids, type,
     adf <- switchMinMax(adf)
     
     
-    
-    
     moddf <- lapply(adf, function(d) {
         overlap(fdf, d)
     })
