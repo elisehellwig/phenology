@@ -2,12 +2,21 @@ source('functions/preTclean.R')
 
 modeleval <- function(primaryid, secondaryids, weights=FALSE,
                       APItoken='LtpGDhfftKEwCGGgOeOsfBRCsRawIMaN', 
-                      threshold=0.8, thresholdcolumn='minR2') {
+                      threshold=0.8, thresholdcolumn='minR2', focaldf=NA) {
     require(plyr)
     
-    focal <- ghcnd(stationid=primaryid, token=APItoken)
+    if (is.na(primaryid)) {
+        fdf <- focaldf
+    } else {
+        focal <- ghcnd(stationid=primaryid, token=APItoken)
+        fdf <- ghcnd_reshape(focal)
+        
+        fdf <- formatDates(fdf)
+        
+        fdf$tmin <- fdf$tmin/10
+        fdf$tmax <- fdf$tmax/10
+    }
     
-    fdf <- ghcnd_reshape(focal)
     
     
     aux <- lapply(secondaryids, function(sid) {
@@ -34,10 +43,14 @@ modeleval <- function(primaryid, secondaryids, weights=FALSE,
     })
     
     fdf <- switchMinMax(fdf)
-    fdf <- formatDates(fdf)
     
     adf <- switchMinMax(adf)
     adf <- formatDates(adf)
+    adf <- lapply(adf, function(d) {
+        d[,'tmin'] <-  d[,'tmin']/10
+        d[,'tmax'] <-  d[,'tmax']/10
+        d
+    })
     
     moddf <- lapply(adf, function(d) {
         overlap(fdf, d)
