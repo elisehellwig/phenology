@@ -3,13 +3,18 @@ drivepath <- '/Users/echellwig/Drive/Phenology'
 library(lubridate)
 library(reshape2)
 library(rnoaa)
+library(plyr)
 library(dplyr)
 library(parallel)
 source('functions/generalfunctions.R')
 source('functions/preprocessfunctions.R')
 source('functions/tempclean.R')
 source('functions/preTclean.R')
+source('functions/modeltest.R')
 
+parlierCIMIS <- read.csv(file.path(drivepath,
+                                   'data/historydata/parlierdaily.csv'),
+                         stringsAsFactors = FALSE)
 
 #This script imports climate date from CIMIS and NOAA (NCDC) and cleans it up for further processing and analysis.
 #This script focuses on min and max temperatures.
@@ -21,27 +26,65 @@ yrs <- 1920:2017
 ghcndstns <- readRDS(file.path(drivepath, 
                                'data/historydata/ghcndstationmetadata.RDS'))
 
-cll <- data.frame(id=c('USC00041715','USC00042294'),
-                  latitude=c(39.699513, 38.538698),
-                  longitude=c(-121.812008,-121.761336 ) )
+cll <- data.frame(id=c('USC00041715','USC00042294', 'USC00046476'),
+                  latitude=c(39.699513, 38.538698, 36.602002),
+                  longitude=c(-121.812008,-121.761336,-119.50816) )
 
-APItoken='LtpGDhfftKEwCGGgOeOsfBRCsRawIMaN'
+EH_APItoken='LtpGDhfftKEwCGGgOeOsfBRCsRawIMaN'
 #############################################################
-##############Data Import/Prep###############################
+# #############Data Import/Prep###############################
 
 #find closest locations
-
 nearby <- meteo_nearby_stations(cll, radius=100)
-nearbychico <- as.data.frame(nearby[[1]])
 
-cs <- lapply( nearbychico$id[1:35], function(stn) {
-    ncdc_stations(stationid = paste0('GHCND:',stn), limit=50, token=APItoken)
+
+########chico####
+nearbychico <- as.data.frame(nearby[[1]])
+cres <- modeleval(nearbychico$id[1], nearbychico$id[2:35])
+
+cs <- ldply( cres$id, function(stn) {
+    ncdc_stations(stationid = paste0('GHCND:',stn), limit=50, 
+                  token=EH_APItoken)$data[,c('id', 'name', 'mindate','maxdate')]
 })
 
-#####
-##NOte: write a function that runs linear models for a whole bunch of stations 
-    #and then extracts the adjusted R squared and use that to calculate a
-    #weighted mean.
+cs$id <- sapply(cs$id, function(ch) {
+  strsplit(ch, ':')[[1]][2]  
+})
+
+chicoAuxInfo <- merge(cs, cres, by='id')
+chicoAuxInfo <- chicoAuxInfo[chicoAuxInfo$minR2>0.75, ]
+
+chicoAuxIDs <- chicoAuxInfo$id
+
+########Davis####
+
+nearbydavis <- as.data.frame(nearby[[2]])
+dres <- modeleval(nearbydavis$id[1], nearbydavis$id[1:41])
+
+ds <- ldply( dres$id, function(stn) {
+    ncdc_stations(stationid = paste0('GHCND:',stn), limit=50, 
+                  token=EH_APItoken)$data[,c('id', 'name', 'mindate','maxdate')]
+})
+
+ds$id <- sapply(ds$id, function(ch) {
+    strsplit(ch, ':')[[1]][2]  
+})
+
+davisAuxInfo <- merge(ds, dres, by='id')
+davisAuxInfo <- davisAuxInfo[davisAuxInfo$minR2>0.78, ]
+
+davisAuxIDs <- davisoAuxInfo$id
+
+########Parlier####
+parcim <- parlierCIMIS[,c(1, 6,8,4)]
+names(parcim) <- c('id','tmin','tmax','date')
+parcim$date <- as.Date(parcim$date, format='%m/%d/%Y')
+
+nearbypar <- as.data.frame(nearby[[3]])
+pres <- modeleval(primaryid = NA, secondaryids = nearbypar$id[1:45],
+                  focaldf=parcim)
+
+
 
 
 
