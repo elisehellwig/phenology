@@ -49,13 +49,10 @@ cs <- ldply( cres$id, function(stn) {
                   token=EH_APItoken)$data[,c('id', 'name', 'mindate','maxdate')]
 })
 
-cs$id <- sapply(cs$id, function(ch) {
-  strsplit(ch, ':')[[1]][2]  
-})
+cs$id <- sub("GHCND:", '', cs$id)
 
-chicoAuxInfo <- merge(cs, cres, by='id')
+chicoAuxInfo <- metatemptable(cs, cres)
 chicoAuxInfo <- chicoAuxInfo[chicoAuxInfo$minR2>0.75, ]
-
 chicoAuxIDs <- chicoAuxInfo$id
 
 ########Davis####
@@ -72,10 +69,9 @@ ds$id <- sapply(ds$id, function(ch) {
     strsplit(ch, ':')[[1]][2]  
 })
 
-davisAuxInfo <- merge(ds, dres, by='id')
+davisAuxInfo <- metatemptable(ds, dres)
 davisAuxInfo <- davisAuxInfo[davisAuxInfo$minR2>0.78, ]
-
-davisAuxIDs <- davisoAuxInfo$id
+davisAuxIDs <- davisAuxInfo$id
 
 ########Parlier####
 parcim <- parlierCIMIS[,c(1, 6,8,4)]
@@ -84,19 +80,25 @@ parcim$date <- as.Date(parcim$date, format='%m/%d/%Y')
 
 nearbypar <- as.data.frame(nearby[[3]])
 
-ps <- ldply( nearbypar$id[1:40], function(stn) {
-    ncdc_stations(stationid = paste0('GHCND:',stn), limit=50, 
+ps <- ldply( nearbypar$id, function(stn) {
+    ncdc_stations(stationid = paste0('GHCND:',stn), limit=(dim(nearbypar)[1]+5), 
                   token=EH_APItoken)$data[,c('id', 'name', 'mindate','maxdate')]
 })
 
+ps$maxdate <- as.Date(ps$maxdate)
+earlyrows <- which(ps$maxdate < as.Date('1985-01-01'))
+pslate <- ps[-earlyrows,]
+pslate$id <- sub("GHCND:", "", pslate$id)
 
-pres <- modeleval(primaryid = NA, secondaryids = nearbypar$id[1:45],
+pres <- modeleval(primaryid = NA, secondaryids = pslate$id[1:45],
                   focaldf=parcim)
 
-
-
-
-
+parlierInfo <- metatemptable(pslate, pres)
+parlierInfo <- parlierInfo[parlierInfo$minR2>78, ]
+parlierIDs <- parlierInfo$id
+################################################################
+################################################################
+################################################################
 ## Davis
 davstations <- c('USC00042294','USC00049742','USC00049781','USW00023232',
                  'USC00049200')
