@@ -25,7 +25,7 @@ yrs <- 1920:2017
 #                             'data/historydata/ghcndstationmetadata.RDS'))
 ghcndstns <- readRDS(file.path(drivepath, 
                                'data/historydata/ghcndstationmetadata.RDS'))
-nearby <- saveRDS(file.path(drivepath, 'data/historydata/nearbystations.RDS'))
+nearby <- readRDS(file.path(drivepath, 'data/historydata/nearbystations.RDS'))
 
 cll <- data.frame(id=c('USC00041715','USC00042294', 'USC00046476'),
                   latitude=c(39.699513, 38.538698, 36.602002),
@@ -83,6 +83,13 @@ names(parcim) <- c('id','tmin','tmax','date')
 parcim$date <- as.Date(parcim$date, format='%m/%d/%Y')
 
 nearbypar <- as.data.frame(nearby[[3]])
+
+ps <- ldply( nearbypar$id[1:40], function(stn) {
+    ncdc_stations(stationid = paste0('GHCND:',stn), limit=50, 
+                  token=EH_APItoken)$data[,c('id', 'name', 'mindate','maxdate')]
+})
+
+
 pres <- modeleval(primaryid = NA, secondaryids = nearbypar$id[1:45],
                   focaldf=parcim)
 
