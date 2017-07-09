@@ -162,9 +162,9 @@ overlap <- function(prd, srd) {
     odate <- as.Date(intersect(srd[,'date'], prd[,'date']), origin="1970-01-01")
     
     x <- cbind(prd[prd$date %in% odate, ], 
-               srd[srd$date %in% odate, c('tmin','tmax')])
+               srd[srd$date %in% odate, c('id','tmin','tmax')])
     
-    names(x) <- c(names(prd), paste0("S", c('tmin','tmax')))
+    names(x) <- c(names(prd), paste0("S", c('id','tmin','tmax')))
     
     return(x)
 }
@@ -201,5 +201,39 @@ splitcols <- function(df, name, extracols='date') {
     return(splitdf)
     
 }
+
+
+metatemptable <- function(x1, x2, mergecol='id', roundcols=c('minR2','maxR2'), 
+                          nmecol='name', finalcols=c('id','name','mindate',
+                                                     'minR2','maxR2','range')) {
+    
+    x <- merge(x1, x2, by=mergecol)
+    datecols <- grep('date', names(x), ignore.case = TRUE)
+    
+    for (i in datecols) {
+        x[,i] <- as.Date(x[,i])
+    }
+    
+    for (rc in roundcols) {
+        x[,rc] <- round(x[,rc], 3)
+    }
+    
+    x[,nmecol] <- sapply( x[,nmecol], function(str) {
+        strsplit(str, ',')[[1]][1]
+    })
+    
+    x$range <- as.integer(x[,'maxdate'] - x[,'mindate'])
+    x$range <- ceiling(x$range/365)
+    
+    return(x[,finalcols])
+}
+ 
+
+
+
+
+
+
+
 
 
