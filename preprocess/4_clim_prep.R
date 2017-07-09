@@ -25,6 +25,7 @@ yrs <- 1920:2017
 #                             'data/historydata/ghcndstationmetadata.RDS'))
 ghcndstns <- readRDS(file.path(drivepath, 
                                'data/historydata/ghcndstationmetadata.RDS'))
+nearby <- saveRDS(file.path(drivepath, 'data/historydata/nearbystations.RDS'))
 
 cll <- data.frame(id=c('USC00041715','USC00042294', 'USC00046476'),
                   latitude=c(39.699513, 38.538698, 36.602002),
@@ -35,8 +36,9 @@ EH_APItoken='LtpGDhfftKEwCGGgOeOsfBRCsRawIMaN'
 # #############Data Import/Prep###############################
 
 #find closest locations
-nearby <- meteo_nearby_stations(cll, radius=100)
+#nearby <- meteo_nearby_stations(cll, radius=100)
 
+#saveRDS(nearby,file.path(drivepath, 'data/historydata/nearbystations.RDS'))
 
 ########chico####
 nearbychico <- as.data.frame(nearby[[1]])
