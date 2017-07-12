@@ -52,13 +52,15 @@ modeleval <- function(primaryid, secondaryids, weights=FALSE,
         d
     })
     
+    
     moddf <- lapply(adf, function(d) {
         overlap(fdf, d)
     })
     
-    
-    MinMods <- lapply(moddf, function(d) {
-        lm(tmin ~ Stmin, data=d)
+    MinMods <- lapply(seq_along(moddf), function(i) {
+        #print(i)
+        #print(str(moddf[[i]]))
+        lm(tmin ~ Stmin, data=moddf[[i]])
     })
 
     MaxMods <- lapply(moddf, function(d) {
