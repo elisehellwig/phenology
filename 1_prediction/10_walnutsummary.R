@@ -3,8 +3,10 @@ datapath <- file.path(drivepath, 'data/walnutdata/')
 resultspath <- file.path(drivepath,'Results/')
 library(plyr)
 
+options(stringsAsFactors = FALSE)
 
-w <- read.csv(file.path(datapath,'walnutclean.csv'), stringsAsFactors = FALSE)
+ms <- read.csv(file.path(resultspath, 'walnutpaper/modelsummary.csv'))
+w <- read.csv(file.path(datapath,'walnutclean.csv'))
 vars <- sort(unique(w$cultivar))
 
 
@@ -40,5 +42,26 @@ table1 <- data.frame(cultivar=vars,
                      slnum=mu[[3]])
 
 write.csv(table1, file.path(resultspath,'walnutpaper/phenotable1.csv'),
+          row.names = FALSE)
+
+
+##########################################################
+
+l1 <- which(ms$complexity=='full' & ms$type=='DT')
+
+mte <- expand.grid(c('full','simplified'), c('DT','TTT'))
+names(mte) <- c('complex','type')
+
+mte$rmse <- sapply(1:nrow(mte), function(i) {
+    mtrows <- which(ms$complexity==mte[i,'complex'] & ms$type==mte[i,'type'])
+    mean(ms[mtrows, 'rmse'])
+})
+
+
+mte$rmsediff <- c(rep(mte$rmse[2] - mte$rmse[1], 2),
+                  rep(mte$rmse[4] - mte$rmse[3], 2))
+mte$avgdiff <- round(mean(mte$rmsediff),2)
+
+write.csv(mte, file.path(resultspath,'walnutpaper/comparecomplexityrmse.csv'),
           row.names = FALSE)
 
