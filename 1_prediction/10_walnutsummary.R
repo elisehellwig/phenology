@@ -14,21 +14,7 @@ vars <- sort(unique(w$cultivar))
 
 vardf <- lapply(vars, function(cv) w[w$cultivar==cv, ])
 
-table1 <- data.frame(cultivar=vars,
-                     tslength=sapply(vardf, function(df) dim(df)[1]),
-                     leafout=round(sapply(vardf, function(df) {
-                         mean(df[,'event1'])}
-                         )),
-                     harvest=round(sapply(vardf, function(df) {
-                         mean(df[,'event2'])
-                         }))
-                     )
-
-write.csv(table1, file.path(resultspath,'walnutpaper/phenotable1.csv'),
-          row.names = FALSE)
-
-
-#################
+datayrs <- sapply(vardf, function(df) dim(df)[1])
 
 mu <- ldply(vardf, function(df) {
     round(apply(df[,c('event1','event2','length1')], 2, mean))
@@ -43,14 +29,16 @@ third <- ldply(vardf, function(df) {
 })
 
 stringlist <- lapply(1:3, function(i) {
-    paste0(mu[,i], " (", first[,i], ", ", third[,i],')')
+    paste0(mu[,i], "      (", first[,i], ", ", third[,i],')')
 })
 
-table3 <- data.frame(cultivar=vars,
+table1 <- data.frame(cultivar=vars,
+                     datayears=datayrs,
                      leafout=stringlist[[1]],
                      harvest=stringlist[[2]],
-                     seasonlength=stringlist[[3]])
+                     seasonlength=stringlist[[3]],
+                     slnum=mu[[3]])
 
-write.csv(table3, file.path(resultspath,'walnutpaper/phenotable3.csv'),
+write.csv(table1, file.path(resultspath,'walnutpaper/phenotable1.csv'),
           row.names = FALSE)
 
