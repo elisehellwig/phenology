@@ -1,4 +1,4 @@
-
+ 
 switchMinMax <- function(x, vars=c('tmin','tmax')) {
     #note the first one in the vars vector must be the smaller one
     
