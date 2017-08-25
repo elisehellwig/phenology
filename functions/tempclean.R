@@ -10,7 +10,7 @@ tempclean <- function(data, primary, secondary, years=NA, hourly=FALSE,
     require(plyr)
     #requires you to load preprocess functions before running this specifically
         #for the missingDates function
-    
+
     if (hourly) {
         names(data) <- c('loc', 'date', 'temp')
         data[data$temp==na_val, 'temp'] <- NA
@@ -21,7 +21,6 @@ tempclean <- function(data, primary, secondary, years=NA, hourly=FALSE,
         #data[data$tmax==na_val, 'tmax'] <- NA
         
     }
-    
     
     if (!is.na(years[1])) {
         data <- data[data$year %in% years, ]
@@ -45,7 +44,7 @@ tempclean <- function(data, primary, secondary, years=NA, hourly=FALSE,
             data[data$loc==sname, ]
         })
     }
-    
+
     primaryNAs <- union(which(is.na(pri$tmin)), which(is.na(pri$tmax)))
     prir <- pri[-primaryNAs, ]
     
@@ -56,16 +55,13 @@ tempclean <- function(data, primary, secondary, years=NA, hourly=FALSE,
         d[-nas,]
     })
 
-    
     secmissing <- lapply(secr, function(dr) {
         as.Date(missingDates(dr), origin="1970-01-01")
     })
 
-    
     mm0 <- lapply(seq_along(secr), function(i) {
         modelMissing(prir, primissing, secr[[i]], secmissing[[i]])
     })
-    
     
     mm <- lapply(seq_along(mm0), function(i) {
         names(mm0[[i]])[-1] <- paste0(names(mm0[[i]])[-1], i)
@@ -105,7 +101,6 @@ tempclean <- function(data, primary, secondary, years=NA, hourly=FALSE,
                             tmin=mdat$Stmin1,
                             tmax=mdat$Stmax1)
     }
-    
     prir2 <- rbind(prir, rdata)
     
     primissing2 <- missingDates(prir2)
