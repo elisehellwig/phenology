@@ -12,6 +12,8 @@ source('functions/tempclean.R')
 source('functions/preTclean.R')
 source('functions/modeltest.R')
 
+options(stringsAsFactors = FALSE)
+
 parlierCIMIS <- read.csv(file.path(drivepath,
                                    'data/historydata/parlierdaily.csv'),
                          stringsAsFactors = FALSE)
@@ -106,16 +108,12 @@ dav <- ghncd_download(davstations)
 dateNA <- which(is.na(dav$date))
 dav2 <- dav[-dateNA, vars]
 
-
 Davprime <- davstations[1]
 Davsecnd<- davstations[-1]
 
 
-davisdaily <- tempclean(data=dav2, 
-                        primary=prime, 
-                        secondary=secnd,
-                        years=yrs, 
-                        dateform="%Y-%m-%d")
+davisdaily <- tempclean(data=dav2, primary=Davprime, secondary=Davsecnd,
+                        years=yrs, dateform="%Y-%m-%d")
 
 
 ###Chico
