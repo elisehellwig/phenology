@@ -159,12 +159,22 @@ ghncd_download <- function(stations,
 
 
 overlap <- function(prd, srd) {
+    
+    vnames <- names(prd) 
+    if ('id' %in% vnames) {
+        voi <- c('id','tmin','tmax')
+    } else if ('loc' %in% vnames) {
+        voi <- c('loc','tmin','tmax')
+    } else {
+        stop('The location variable name must be id or loc.')
+    }
+
     odate <- as.Date(intersect(srd[,'date'], prd[,'date']), origin="1970-01-01")
     
     x <- cbind(prd[prd$date %in% odate, ], 
-               srd[srd$date %in% odate, c('id','tmin','tmax')])
+               srd[srd$date %in% odate, voi])
     
-    names(x) <- c(names(prd), paste0("S", c('id','tmin','tmax')))
+    names(x) <- c(names(prd), paste0("S", voi))
     
     return(x)
 }
@@ -172,6 +182,9 @@ overlap <- function(prd, srd) {
 
 
 modelMissing <- function(pr, pmiss, sr, smiss) {
+    
+    print(str(pr))
+    print(str(sr))
     
     olp <- overlap(pr, sr)
     
