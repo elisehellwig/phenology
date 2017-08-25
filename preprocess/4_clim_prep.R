@@ -94,14 +94,13 @@ pres <- modeleval(primaryid = NA, secondaryids = pslate$id[1:45],
                   focaldf=parcim)
 
 parlierInfo <- metatemptable(pslate, pres)
-parlierInfo <- parlierInfo[parlierInfo$minR2>78, ]
+parlierInfo <- parlierInfo[parlierInfo$minR2>0.78, ]
 parlierIDs <- parlierInfo$id
 ################################################################
 ################################################################
 ################################################################
 ## Davis
-davstations <- c('USC00042294','USC00049742','USC00049781','USW00023232',
-                 'USC00049200')
+davstations <- c(cll[2,'id'], davisAuxIDs)
 
 dav <- ghncd_download(davstations)
 dateNA <- which(is.na(dav$date))
