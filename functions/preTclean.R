@@ -183,8 +183,8 @@ overlap <- function(prd, srd) {
 
 modelMissing <- function(pr, pmiss, sr, smiss) {
     
-    print(str(pr))
-    print(str(sr))
+    #print(str(pr))
+    #print(str(sr))
     
     olp <- overlap(pr, sr)
     
