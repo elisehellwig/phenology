@@ -19,10 +19,30 @@ m <- read.csv(file.path(datapath, 'monthlytemperatures.csv'))
 ###########################################################################
 ###########################################################################
 
+vars <- c('date', 'year', 'month', 'nmonth', 'tmin', 'tmax','Minimum', 
+          'Maximum')
+indexvars <- c('date','year','month','nmonth')
+
+m1 <- m[m$nearest=='Davis', vars]
+m2 <- m1[m1$month %in% 3:10, ]
+names(m2 )
 
 
+monthly <- m2[, c(indexvars,'tmin','tmax')]
+names(monthly) <- c('date','year','month','name', 'Min','Max')
+fiveyear <- m2[, c(indexvars, 'Minimum','Maximum')]
+names(fiveyear) <- c('date','year','month','name', 'Min','Max')
+indexvars <- c('date','year','month','name')
 
+mm <- melt(monthly, id.vars = indexvars, variable.name = 'variable',
+           value.name = 'monthly')
+mfy <- melt(fiveyear, id.vars = indexvars, variable.name = 'variable',
+            value.name = 'fiveyear')
 
+mmall <- merge(mm, mfy, by=c(indexvars,'variable'))
+
+write.csv(mmall, file.path(datapath, 'davismonthlytemps.csv'), 
+          row.names = FALSE)
 
 
 
