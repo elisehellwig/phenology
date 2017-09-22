@@ -24,8 +24,7 @@ vars <- c('date', 'year', 'month', 'nmonth', 'tmin', 'tmax','Minimum',
 indexvars <- c('date','year','month','nmonth')
 
 m1 <- m[m$nearest=='Davis', vars]
-m2 <- m1[m1$month %in% 3:10, ]
-names(m2 )
+m2 <- m1[m1$month %in% 2:10, ]
 
 
 monthly <- m2[, c(indexvars,'tmin','tmax')]

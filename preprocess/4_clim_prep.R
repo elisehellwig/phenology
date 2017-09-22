@@ -6,11 +6,7 @@ library(rnoaa)
 library(plyr)
 library(dplyr)
 library(parallel)
-source('functions/generalfunctions.R')
-source('functions/preprocessfunctions.R')
-source('functions/tempclean.R')
-source('functions/preTclean.R')
-source('functions/modeltest.R')
+library(ScrapeClim)
 
 options(stringsAsFactors = FALSE)
 
@@ -21,7 +17,7 @@ parlierCIMIS <- read.csv(file.path(drivepath,
 #This script imports climate date from CIMIS and NOAA (NCDC) and cleans it up for further processing and analysis.
 #This script focuses on min and max temperatures.
 vars <- c('id','year','date','tmin','tmax')
-yrs <- 1920:2017
+yrs <- 1916:2016
 # ghcndstns <- ghcnd_stations()
 #saveRDS(ghcndstns, file.path(drivepath, 
 #                             'data/historydata/ghcndstationmetadata.RDS'))
@@ -38,7 +34,7 @@ EH_APItoken='LtpGDhfftKEwCGGgOeOsfBRCsRawIMaN'
 # #############Data Import/Prep###############################
 
 #find closest locations
-#nearby <- meteo_nearby_stations(cll, radius=100)
+nearby <- meteo_nearby_stations(cll, radius=100)
 
 #saveRDS(nearby,file.path(drivepath, 'data/historydata/nearbystations.RDS'))
 
@@ -63,7 +59,7 @@ nearbydavis <- as.data.frame(nearby[[2]])
 dres <- modeleval(nearbydavis$id[1], nearbydavis$id[1:41])
 
 ds <- ldply( dres$id, function(stn) {
-    ncdc_stations(stationid = paste0('GHCND:',stn), limit=50, 
+    ncdc_stations(stationid = paste0('GHCND:', stn), limit=50, 
                   token=EH_APItoken)$data[,c('id', 'name', 'mindate','maxdate')]
 })
 
@@ -104,7 +100,7 @@ parlierIDs <- parlierInfo$id
 ## Davis
 davstations <- c(cll[2,'id'], davisAuxIDs)
 
-dav <- ghncd_download(davstations)
+dav <- ghncd_download(davstations, EH_APItoken)
 dateNA <- which(is.na(dav$date))
 dav2 <- dav[-dateNA, vars]
 
@@ -114,12 +110,14 @@ Davsecnd<- davstations[-1]
 
 davisdaily <- tempclean(data=dav2, primary=Davprime, secondary=Davsecnd,
                         years=yrs, dateform="%Y-%m-%d")
+davisdaily <- unique(davisdaily)
 
+saveRDS(davisdaily, file.path(drivepath, 'data/historydata/Davis1916.RDS'))
 
 ###Chico
 
 #chico, orland
-chicostations <- c('USC00041715', 'USC00046506')
+chicostations <- c(cll[1,'id'], chicoAuxIDs)
 
 chico <- ghncd_download(chicostations)
 chicoNA <- which(is.na(chico$date))
@@ -141,6 +139,23 @@ names(cd) <- c('loc','date', 'tmax', 'tmin')
 
 cd$date <- as.Date(cd$date, format='%m/%d/%Y')
 cd <- cd[-which(is.na(cd$tmin) | is.na(cd$tmax)),]
+
+###Parlier#######
+
+parlierstations <- c(cll[3,'id'], parlierAuxIDs)
+
+parlier <- ghncd_download(parlierstations)
+parlierNA <- which(is.na(parlier$date))
+parlier2 <- parlier[-parlieroNA, vars]
+
+parlierprime <- parlierstations[1]
+parliersecond <- parlierstations[-1]
+
+parlierdaily <- tempclean(parlier2, parlierprime, parliersecond, yrs, 
+                        dateform="%Y-%m-%d")
+
+
+
 
 #############################################################
 ##############location conversion model######################
