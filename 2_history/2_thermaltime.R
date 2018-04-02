@@ -6,6 +6,8 @@ library(phenoclim)
 source('functions/thermaltimesupport.R')
 
 davd <- readRDS(file.path(datapath, 'Davis1916.RDS'))
+davh <- readRDS(file.path(datapath, 'Davis1916hr.RDS'))
+
 w <- read.csv(file.path(datapath, 'walnutclean.csv'))
 yrs <- 1916:2016
     
@@ -29,3 +31,15 @@ tsp <- thermalsum(pars=Tb, wpext, davtl, 'DT','gddsimple',DT, 1)
 
 thermaldf <- data.frame(year=yrs,
                         DT=tsp)
+
+
+Tbh <- 10.6
+TTT <- 5344
+
+wa <- w[w$cultivar=='Ashley', c('year','event1','event2','length1')]
+waext <- extendphenology(wa, 1916, 2016)
+davtl <- extracttemplist(davh, yrs, 'linear')[[2]]
+
+tttashly <- data.frame(year=yrs,
+                       TTT=thermalsum(pars=Tbh, waext, davtl, 'TTT',
+                                     'linear', TTT, 1))
