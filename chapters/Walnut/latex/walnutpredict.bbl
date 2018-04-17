@@ -1,0 +1,46 @@
+\begin{thebibliography}{}
+
+\bibitem[Anderson et~al., 1985]{anderson1985}
+Anderson, J.~L., Richardson, E.~A., and Kesner, C.~D. (1985).
+\newblock Validation of chill unit and flower bud phenology models
+  for'{Montmorency}'sour cherry.
+\newblock In {\em I {International} {Symposium} on {Computer} {Modelling} in
+  {Fruit} {Research} and {Orchard} {Management} 184}, pages 71--78.
+
+\bibitem[{\u C}repin{\u s}ek et~al., 2006]{crepinsek2006}
+{\u C}repin{\u s}ek, Z., Kajfe{\u z}-Bogataj, L., and Bergant, K. (2006).
+\newblock Modelling of weather variability effect on fitophenology.
+\newblock {\em Ecological Modelling}, 194(1):256--265.
+
+\bibitem[DeBuse et~al., 2008]{debuse2008}
+DeBuse, C., Lopez, G., and DeJong, T. (2008).
+\newblock Using {Spring} {Weather} {Data} to {Predict} {Harvest} {Date}
+  for'{Improved} {French}'{Prune}.
+\newblock In {\em {IX} {International} {Symposium} on {Plum} and {Prune}
+  {Genetics}, {Breeding} and {Pomology} 874}, pages 107--112.
+
+\bibitem[Marra et~al., 2001]{marra2001}
+Marra, F.~P., Inglese, P., DeJong, T.~M., and Johnson, R.~S. (2001).
+\newblock Thermal time requirement and harvest time forecast for peach
+  cultivars with different fruit development periods.
+\newblock In {\em V {International} {Peach} {Symposium} 592}, pages 523--529.
+
+\bibitem[Mimoun and DeJong, 1998]{mimoun1998}
+Mimoun, B. and DeJong, T.~M. (1998).
+\newblock Using the relation between growing degree hours and harvest date to
+  estimate run-times for peach: a tree growth and yield simulation model.
+\newblock In {\em V {International} {Symposium} on {Computer} {Modelling} in
+  {Fruit} {Research} and {Orchard} {Management} 499}, pages 107--114.
+
+\bibitem[Ruml et~al., 2011]{ruml2011}
+Ruml, M., Milatović, D., Vulić, T., and Vuković, A. (2011).
+\newblock Predicting apricot phenology using meteorological data.
+\newblock {\em International journal of biometeorology}, 55(5):723--732.
+
+\bibitem[Yang et~al., 1995]{yang995}
+Yang, S., Logan, J., and Coffey, D.~L. (1995).
+\newblock Mathematical formulae for calculating the base temperature for
+  growing degree days.
+\newblock {\em Agricultural and Forest Meteorology}, 74(1):61--74.
+
+\end{thebibliography}

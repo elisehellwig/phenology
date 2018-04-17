@@ -1,0 +1,201 @@
+\begin{thebibliography}{24}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Anderson et~al.(1985)Anderson, Richardson, and Kesner]{anderson1985}
+J.~L. Anderson, E.~A. Richardson, and C.~D. Kesner.
+\newblock Validation of chill unit and flower bud phenology models
+  for'{Montmorency}'sour cherry.
+\newblock In \emph{I {International} {Symposium} on {Computer} {Modelling} in
+  {Fruit} {Research} and {Orchard} {Management} 184}, pages 71--78, 1985.
+\newblock URL \url{http://www.actahort.org/books/184/184_7.htm}.
+
+\bibitem[Ardia et~al.(2015)Ardia, Mullen, Peterson, and Ulrich]{ardia2015}
+David Ardia, Katharine~M. Mullen, Brian~G. Peterson, and Joshua Ulrich.
+\newblock \emph{{DEoptim}: {Differential} {Evolution} in {R}}.
+\newblock 2015.
+\newblock URL \url{http://CRAN.R-project.org/package=DEoptim}.
+\newblock version 2.2-3.
+
+\bibitem[Bertin(2005)]{bertin2005}
+N.~Bertin.
+\newblock Analysis of the tomato fruit growth response to temperature and plant
+  fruit load in relation to cell division, cell expansion and {DNA}
+  endoreduplication.
+\newblock \emph{Annals of botany}, 95\penalty0 (3):\penalty0 439--447, 2005.
+\newblock URL \url{http://aob.oxfordjournals.org/content/95/3/439.short}.
+
+\bibitem[{California Department of Water Resources}(2015)]{cimis}
+{California Department of Water Resources}.
+\newblock {CIMIS} {Weather} {Observation} {Data}, 2015.
+\newblock URL \url{http://www.cimis.water.ca.gov/}.
+
+\bibitem[Cesaraccio et~al.(2001)Cesaraccio, Spano, Duce, and
+  Snyder]{cesaraccio2001}
+C.~Cesaraccio, D.~Spano, P.~Duce, and R.~L. Snyder.
+\newblock An improved model for determining degree-day values from daily
+  temperature data.
+\newblock \emph{International Journal of Biometeorology}, 45\penalty0
+  (4):\penalty0 161--169, November 2001.
+\newblock ISSN 0020-7128, 1432-1254.
+\newblock \doi{10.1007/s004840100104}.
+\newblock URL \url{https://link.springer.com/article/10.1007/s004840100104}.
+
+\bibitem[Day et~al.(2007)Day, Lopez, and DeJong]{day2007}
+K.~Day, G.~Lopez, and T.~DeJong.
+\newblock Using growing degree hours accumulated thirty days after bloom to
+  predict peach and nectarine harvest date.
+\newblock In \emph{{VIII} {International} {Symposium} on {Modelling} in {Fruit}
+  {Research} and {Orchard} {Management} 803}, pages 163--167, 2007.
+\newblock URL \url{http://www.actahort.org/books/803/803_20.htm}.
+
+\bibitem[DeBuse et~al.(2008)DeBuse, Lopez, and DeJong]{debuse2008}
+C.~DeBuse, G.~Lopez, and T.~DeJong.
+\newblock Using {Spring} {Weather} {Data} to {Predict} {Harvest} {Date}
+  for'{Improved} {French}'{Prune}.
+\newblock In \emph{{IX} {International} {Symposium} on {Plum} and {Prune}
+  {Genetics}, {Breeding} and {Pomology} 874}, pages 107--112, 2008.
+\newblock URL \url{http://www.actahort.org/books/874/874_13.htm}.
+
+\bibitem[Goldhamer and Viveros(2000)]{goldhamer2000}
+David~A. Goldhamer and Mario Viveros.
+\newblock Effects of preharvest irrigation cutoff durations and postharvest
+  water deprivation on almond tree performance.
+\newblock \emph{Irrigation Science}, 19\penalty0 (3):\penalty0 125--131, 2000.
+\newblock \doi{10.1007/s002710000013}.
+
+\bibitem[Marra et~al.(2001)Marra, Inglese, DeJong, and Johnson]{marra2001}
+F.~P. Marra, P.~Inglese, T.~M. DeJong, and R.~S. Johnson.
+\newblock Thermal time requirement and harvest time forecast for peach
+  cultivars with different fruit development periods.
+\newblock In \emph{V {International} {Peach} {Symposium} 592}, pages 523--529,
+  2001.
+\newblock URL \url{http://www.actahort.org/books/592/592_70.htm}.
+
+\bibitem[McMaster and Wilhelm(1997)]{mcmaster1997}
+Gregory~S. McMaster and W.~W. Wilhelm.
+\newblock Growing degree-days: one equation, two interpretations.
+\newblock \emph{Agricultural and Forest Meteorology}, 87\penalty0 (4):\penalty0
+  291--300, 1997.
+\newblock URL
+  \url{http://www.sciencedirect.com/science/article/pii/S0168192397000270}.
+
+\bibitem[Menne et~al.(2015)Menne, Durre, Korzeniewski, McNeal, Thomas, Yin,
+  Anthony, Ray, Vose, Gleason, and Houston]{menne2015}
+MJ~Menne, I~Durre, B~Korzeniewski, S~McNeal, K~Thomas, X~Yin, S~Anthony, R~Ray,
+  RS~Vose, BE~Gleason, and TG~Houston.
+\newblock Global {Historical} {Climatology} {Network} - {Daily}
+  ({GHCN}-{Daily}), {Version} 3.22, 2015.
+\newblock URL \url{http://doi.org/10.7289/V5D21VHZ}.
+
+\bibitem[Mimoun and DeJong(1998)]{mimoun1998}
+Ben~M. Mimoun and T.~M. DeJong.
+\newblock Using the relation between growing degree hours and harvest date to
+  estimate run-times for peach: a tree growth and yield simulation model.
+\newblock In \emph{V {International} {Symposium} on {Computer} {Modelling} in
+  {Fruit} {Research} and {Orchard} {Management} 499}, pages 107--114, 1998.
+\newblock URL \url{http://www.actahort.org/books/499/499_10.htm}.
+
+\bibitem[Price et~al.(2006)Price, Storn, and Lampinen]{price2006}
+Kenneth~V. Price, Rainer~M. Storn, and Jouni~A. Lampinen.
+\newblock \emph{Differential {Evolution} - {A} {Practical} {Approach} to
+  {Global} {Optimization}}.
+\newblock Natural {Computing}. Springer-Verlag, January 2006.
+\newblock ISBN 540209506.
+
+\bibitem[{R Core Team}(2017)]{r2017}
+{R Core Team}.
+\newblock \emph{R: {A} {Language} and {Environment} for {Statistical}
+  {Computing}}.
+\newblock R Foundation for Statistical Computing, Vienna, Austria, 2017.
+\newblock URL \url{https://www.R-project.org/}.
+
+\bibitem[Ramos(1997)]{ramos1997}
+David~E. Ramos.
+\newblock \emph{Walnut production manual}, volume 3373.
+\newblock UCANR Publications, 1997.
+\newblock URL
+  \url{https://books.google.com/books?hl=en&lr=&id=yKawaOt88A0C&oi=fnd&pg=PP7&dq=Walnut+production+manual&ots=bvzJNjZWKv&sig=PFaXdavMNYLWNcOoemC7g6HqFZY}.
+
+\bibitem[Richardson et~al.(1975)Richardson, Seeley, Walker, Anderson, and
+  Ashcroft]{richardson1975}
+E.~A. Richardson, S.~D. Seeley, D.~R. Walker, J.~L. Anderson, and G.~L.
+  Ashcroft.
+\newblock Pheno-climatography of spring peach bud development [{Cold} damage].
+\newblock \emph{HortScience}, 1975.
+\newblock URL
+  \url{http://agris.fao.org/agris-search/search.do?recordID=US19760051429}.
+
+\bibitem[Ruml et~al.(2011)Ruml, Milatović, Vulić, and Vuković]{ruml2011}
+Mirjana Ruml, Dragan Milatović, Todor Vulić, and Ana Vuković.
+\newblock Predicting apricot phenology using meteorological data.
+\newblock \emph{International journal of biometeorology}, 55\penalty0
+  (5):\penalty0 723--732, 2011.
+\newblock URL \url{http://link.springer.com/article/10.1007/s00484-010-0387-0}.
+
+\bibitem[Sibbett et~al.(1974)Sibbett, Hendricks, Carnill, Olson, Jeter, Ramos,
+  Martin, Davis, and {others}]{sibbett1974}
+G.~Sibbett, L.~Hendricks, G.~Carnill, W.~Olson, R.~Jeter, D.~Ramos, G.~Martin,
+  C.~Davis, and {others}.
+\newblock Walnut quality and value maximized by harvest management.
+\newblock \emph{California Agriculture}, 28\penalty0 (7):\penalty0 15--17,
+  1974.
+\newblock URL
+  \url{http://calag.ucanr.edu/archive/?article=ca.v028n07p15&sharebar=share}.
+
+\bibitem[Snyder et~al.(1999)Snyder, Spano, Cesaraccio, and Duce]{snyder1999}
+R.~L. Snyder, Donatella Spano, Carla Cesaraccio, and Pierpaolo Duce.
+\newblock Determining degree-day thresholds from field observations.
+\newblock \emph{International Journal of Biometeorology}, 42\penalty0
+  (4):\penalty0 177--182, 1999.
+\newblock URL \url{http://link.springer.com/article/10.1007/s004840050102}.
+
+\bibitem[Tombesi et~al.(2010)Tombesi, Scalia, Connell, Lampinen, and
+  DeJong]{tombesi2010}
+S.~Tombesi, R.~Scalia, J.~Connell, B.~Lampinen, and T.~M. DeJong.
+\newblock Fruit development in almond is influenced by early {Spring}
+  temperatures in {California}.
+\newblock \emph{The Journal of Horticultural Science and Biotechnology},
+  85\penalty0 (4):\penalty0 317--322, 2010.
+\newblock URL
+  \url{http://www.tandfonline.com/doi/abs/10.1080/14620316.2010.11512674}.
+
+\bibitem[Warrington et~al.(1999)Warrington, Fulton, Halligan, and
+  De~Silva]{warrington1999}
+I.~J. Warrington, T.~A. Fulton, E.~A. Halligan, and H.~N. De~Silva.
+\newblock Apple fruit growth and maturity are affected by early season
+  temperatures.
+\newblock \emph{Journal of the American Society for Horticultural Science},
+  124\penalty0 (5):\penalty0 468--477, 1999.
+\newblock URL
+  \url{http://journal.ashspublications.org/content/124/5/468.short}.
+
+\bibitem[Yang et~al.(1995)Yang, Logan, and Coffey]{yang1995}
+Senshan Yang, Joanne Logan, and David~L. Coffey.
+\newblock Mathematical formulae for calculating the base temperature for
+  growing degree days.
+\newblock \emph{Agricultural and Forest Meteorology}, 74\penalty0 (1):\penalty0
+  61--74, 1995.
+\newblock URL
+  \url{http://www.sciencedirect.com/science/article/pii/016819239402185M}.
+
+\bibitem[Zalom and Goodell(1983)]{zalom1983}
+Frank~G. Zalom and Peter~B. Goodell.
+\newblock \emph{Degree days: the calculation and use of heat units in pest
+  management}.
+\newblock University of California, Division of Agriculture and Natural
+  Resources, 1983.
+
+\bibitem[Zhang et~al.(2006)Zhang, Tanabe, Wang, Tamura, Yoshida, and
+  Matsumoto]{zhang2006}
+Caixi Zhang, Kenji Tanabe, Shiping Wang, Fumio Tamura, Akira Yoshida, and
+  Kazuhiro Matsumoto.
+\newblock The impact of cell division and cell enlargement on the evolution of
+  fruit size in {Pyrus} pyrifolia.
+\newblock \emph{Annals of Botany}, 98\penalty0 (3):\penalty0 537--543, 2006.
+\newblock URL \url{https://aob.oxfordjournals.org/content/98/3/537.full}.
+
+\end{thebibliography}

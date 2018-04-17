@@ -1,0 +1,127 @@
+\documentclass{amsart}
+\usepackage{amsmath,amssymb,amsthm} % math stuff
+\usepackage{graphicx,float,enumerate,fancyhdr} % general use
+\usepackage{natbib, lineno} % formatting for submission to an article
+
+\renewcommand{\baselinestretch}{1.5} 
+
+\setcitestyle{round}
+
+
+\newcommand{\al}{\alpha}
+\newcommand{\be}{\beta}
+\newcommand{\ga}{\gamma}
+\newcommand{\de}{\delta}
+\newcommand{\la}{\lambda}
+\newcommand{\eps}{\upvarepsilon}
+\newcommand{\spa}{\hspace{0.1cm}}
+\newcommand{\lan}{\langle}
+\newcommand{\ra}{\rangle}
+\newcommand{\ls}{\mathscr{l}}
+\newcommand{\bfj}{\textbf{J}}
+\newcommand{\bfjs}{\textbf{J$^*$}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title{Optimal prediction of walnut harvest dates using thermal time model}
+\author{E. Hellwig, K. Pope, and R. Hijmans}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+\linenumbers
+\maketitle
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section*{Introduction}
+
+
+In highly complicated systems, like the biochemical system of fruit development and maturation, our knowledge of the system is insufficient to develop useful mechanistic models. Instead we rely on statistical models that are informed by our understanding of the biology \citep{crepinsek2006}. Many studies across species and location have found that air temperatures in the early season strongly correlate with the length of time that it takes the fruit to mature \citep{debuse2008, marra2001, mimoun1998, ruml2011, schaber2003, tombesi2010}. Consequently, statistical models that relate thermal time accumulation in the first 30 - 90 days after bloom are now widely used to predict season lengths in a variety of crops (citations).
+
+There are three steps in specifying these statistical models: (1) selection of thermal time model functional form, (2) selection of cardinal temperatures for calculating thermal time, and (3) selection of thermal time accumulation length. While these methods have been extensively applied to flowering and harvest prediction for a variety of fruit and nut crops over the past 15 years \citep{mimoun1998,marra2001,debuse2008,ruml2011}, no attempts have been made to systematically optimize this process.
+
+
+%%%Discussion of thermal time model functional forms
+
+% Three types of functional forms, 1 parameter, 2 parameter, and 3+ parameter
+
+Models of thermal time accumulation can be classified by the number of parameters they have.  Models with more parameters generally more flexible, and may more closely reflect reality. However, they are computationally more intensive to fit and there is a higher risk of overfitting. Models with one or two parameters do not mimic our understanding of the biology as closely, but they are much less prone to overfitting. It is important to remember that the model with the best fit is not necessarily the model that most closely reflects reality.
+
+The simplest model of thermal time accumulation includes just one parameter \citet{yang995}.
+
+\[ GDH = T - T_b\]
+
+where $GDH$ is the growing degree hours accumulated, $T$ is the current temperature and $T_b$ is the base temperature. A slightly more complicated model includes two parameters. This allows it to flatten off as temperature increases. 
+
+\[ GDH = \begin{cases} 
+      0 & T\leq T_b \\
+      T - T_b & T_b\leq T\leq T_o \\
+      T_o & T_o\leq T 
+   \end{cases}
+\]
+
+where $T_o$ is the optimal temperature. This model still neglects the deleterious effects of very high temperatures.  The simplest model that includes these effects is the three parameter triangle model from (citation?), where $T_b$, $T_o$, and $T_c$ are the base, optimal and critical temperatures respectively.
+
+\[ GDH = \begin{cases} 
+      0 & T\leq T_b \\
+      T - T_b & T_b \leq T \leq T_o \\
+     \frac{(T_c - T) (T_o - T_b)}{T_c - T_o} & T_o\leq T \leq T_c \\
+      0 & T_c \leq T
+   \end{cases}\]
+
+
+The most widely used model of thermal time accumulation is another three parameter model from \citet{anderson1985}.
+
+\[ GDH = \begin{cases} 
+      0 & T\leq T_b \\
+      \frac{T_o-T_a}{2} \left[1+\cos\left(\pi + \pi \cdot \frac{T-T_b}{T_o-T_b}\right) \right] & T_b\leq T\leq T_o \\
+     (T_o-T_a) \left[1+\cos\left(\frac{\pi}{2} + \frac{\pi}{2} \cdot \frac{T-T_o}{T_c-T_o}\right) \right] & T_o\leq T \leq T_c \\
+      0 & T_c \leq T
+   \end{cases}\]
+
+
+
+The most complicated model used in the literature is beta model from \citet{marra2001}.
+
+\[GDH = T_o \cdot \frac{}{}\]
+
+
+
+Normally in statistical analysis 
+
+
+
+
+Biology tells us that trees will stop fruit development if temperatures get too low or too high. So many potential functional forms include a critical 
+
+
+\section*{Materials and methods}
+
+
+\subsection*{Data}
+
+
+%Walnut data
+This study utilized walnut phenology data from the University of California at Davis Walnut Breeding Program (citation) in concert with temperature data from NCDC and CIMIS weather stations in Davis, Winters, and Woodland (citation). Leaf out dates (LD) and Harvest readiness dates (HRD) were collected by ____ for a group of thirteen walnut varieties over between 25 and 60 years depending on variety (Table 1). Leaf out date was selected as the key spring phenological because, unlike many tree crops, female walnut buds are grouped with the vegentative buds instead of with the male buds \citep{ramos1997}. Walnut trees are considered leafed out when 50\% of the mixed vegetative and female buds were open. and are considered ready to harvest when ___. Average leaf-out dates ranged from ___ to ___ (Table 1)
+
+
+A time series of minimum and maximum temperatures for Davis, California was assembled using the NCDC and CIMIS data from Davis as well as the NCDC data from Winters and Woodland. Whenever possible, Davis temperature data was used. However, due to technical difficulties or maintenance, there were several gaps in the combined NCDC CIMIS time series. To fill these, linear models that related temperatures in woodland and winters to Davis were used to create predictions for the missing days, which were then averaged.
+
+
+
+
+
+\subsection*{Statistical methods}
+
+
+\bibliographystyle{apalike}  
+\bibliography{walnutpredict6-6-16.bib}
+
+\end{document}
+
+
+
+

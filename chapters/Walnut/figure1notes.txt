@@ -1,0 +1,8 @@
+
+Day Threshold
+ - Threshold (lambda) units: days
+ - We count: thermal time units to tell us when the season is over
+
+ Thermal Time Threshold
+ - Threshold units: Thermal time units
+ - We count: days to tell us when the season is over.

@@ -1,0 +1,696 @@
+---
+title: "A comparison of phenology models for harvest readiness in walnuts"
+author: |
+  | Elise Hellwig^1^, Katherine Pope^2^, Robert J. Hijmans^1^
+  | 1. University of California, Davis
+  | 2. Cooperative Extension, University of California
+header-includes:
+- \usepackage{booktabs}
+- \usepackage{array}
+- \usepackage{morefloats}
+output:
+  pdf_document:
+    fig_caption: yes
+    citation_package: natbib
+  html_document:
+    fig_caption: yes
+  word_document:
+    fig_caption: yes
+bibliography: walnutpredictbib10-10-16.bib
+---
+
+```{r setup,  include=FALSE, cache=FALSE, echo=FALSE}
+
+knitr::opts_chunk$set(echo = FALSE)
+
+
+library(knitr)
+library(ggplot2)
+library(plyr)
+library(reshape2)
+library(RColorBrewer)
+library(phenoclim)
+library(xtable)
+library(tables)
+
+```
+
+
+
+``` {r env_setup, echo=FALSE, cache=FALSE}
+
+
+#setwd('~/Drive/Phenology/walnutpaper')
+
+datapath <- '../data/walnutdata/'
+resultspath <- '../Results/'
+
+dmt <- read.csv(file.path(datapath, 'davismonthlytemps.csv'))
+dmt$name <- factor(dmt$name, levels(dmt$name)[c(3,6,1,7,5,4,2,9,8)])
+
+w <- read.csv(file.path(datapath,'walnutclean.csv'), stringsAsFactors = FALSE)
+w$length1 <- w$event2 - w$event1
+
+#data
+table1 <- read.csv(file.path(resultspath, 'walnutpaper/phenotable1.csv'))
+mte <- read.csv(file.path(resultspath,'walnutpaper/comparecomplexityrmse.csv'))
+
+#model summary
+ms <- read.csv(file.path(resultspath, 'walnutpaper/modelsummary.csv'))
+#length summary
+lens <- read.csv(file.path(resultspath, 'walnutpaper/lengthsummary.csv'))
+vardat <- read.csv(file.path(resultspath, 'walnutpaper/variances.csv'))
+#rmse <- read.csv(file.path(resultspath,'methodRMSEs.csv')) #from step 5
+#ct <- read.csv(file.path(resultspath,'cardinaltemps/cardinaltemperatures.csv')) #from 4b
+ffc <- read.csv(file.path(resultspath,'walnutpaper/formcomparison.csv')) #from step 6
+
+gddTT <- readRDS(file.path(resultspath, 'walnutpaper/surface/DTgdd.RDS'))
+gddHT <- readRDS(file.path(resultspath, 'walnutpaper/surface/TTTgdd.RDS'))
+linearTT <- readRDS(file.path(resultspath, 'walnutpaper/surface/DTlinear.RDS'))
+
+flat <- readRDS(file.path(resultspath, 'walnutpaper/surface/DTflat.RDS'))
+tri <- readRDS(file.path(resultspath, 'walnutpaper/surface/DTtriangle.RDS'))
+
+
+levels(ms$form) <- c('Anderson', 'Asymcur', 'Ensemble','Plateau', 'MinMax',
+                     'LinearDay', 'LinearHour', 'None', 'Triangle')
+
+ms$form <- factor(ms$form, levels(ms$form)[c(5:6,7,4,9,2,1,3,8)])
+ms <- ms[-which(ms$form=='Ensemble'), ]
+ms <- droplevels(ms)
+
+levels(ms$type) <- c('Time Threshold', 'Heat Threshold')
+levels(ms$complexity) <- c('Full', 'Simplified')
+fullrows <- which(ms$complexity=='Full')
+msf <- ms[fullrows,]
+
+
+levels(lens$form) <- c('Anderson', 'Asymcur', 'Plateau', 'MinMax', 'LinearDay',
+                       'LinearHour', 'Triangle')
+lens$form <- factor(lens$form, levels(lens$form)[c(4:5,6,3,7,2,1)])
+
+levels(ffc$form) <- c('Anderson', 'Asymcur', 'Plateau', 'Linear', 'Triangle')
+ffc$form <- factor(ffc$form, levels(ffc$form)[c(4,3,5,2,1)])
+
+
+
+
+
+vars <- sort(unique(w$cultivar))
+methodcolors <- c("#F8766D", "#00BF7D", "#00B0F6", "#E76BF3", "#D89000", '#9590FF')
+methodcolors2 <- c(methodcolors, "#504A4E")
+freqcolors <- c('#ffff00',"#FF0000", '#0000ff')
+typecolors <- c("#7B3294", "#008837")
+hforms <- c('LinearHour', 'Plateau', 'Triangle','Asymcur')
+dforms <- c('MinMax', 'LinearDay')
+
+
+
+```
+
+
+
+
+# Introduction
+
+Phenology models are used in research and farm operations to predict the timing of plant life stages, such as emergence, flowering, and maturity. For example, phenology models estimate development rates for crop growth models that simulate the effect of varieties, management, and the environment on growth and production. In addition to their use in research, farmers use in-season phenological model predictions in tactical decision-making to prepare for the logistics associated with flowering and harvest, such as pesticide application and equipment rental for harvest. 
+
+While both temperature and photoperiod can drive plant development, here we focus on temperature driven phenology models. Temperature based models use thermal time, instead of chronological time, to measure plant development. Thermal time is also commonly referred to as a "heat sum". Thermal time summarizes how plants' rates of development change based on the ambient temperature surrounding the plant.
+
+In these models, thresholds are used to predict when a plant reaches a particular phenological stage, like flowering. We distinguish between two broad types of models based on the unit of this threshold value: heat threshold (HT) and time threshold (TT) models. 
+
+HT models use thresholds in thermal units. The thresholds are used to determine the thermal time required to complete the developmental stage. When the heatsum threshold is reached, the model reports the number of days it took to reach that threshold. In the base model, this day count is exactly the stage length. While this type of model is useful in research, it provides little in the way of predictive value for farm management. We can develop an extended version of the model if we use the number of days it takes to reach the heat threshold is used to predict the stage length, but do not require it to be the stage length itself. Because the extended model can produce predictions earlier in the season it may be more useful for in season decision-making.
+
+The threshold for TT models is in time units, most commonly days. The base time threshold model is quite simple. Since the threshold is the length of the stage, and the threshold is in days, the base TT model simply constitutes the mean stage length value. This 'model' is almost never used in on a year to year basis. However, farmers use mean season length estimates from agricultural companies and extension offices to ensure crosspollination between tree cultivars and varieties that will mature within the local growing season. Because of this, we will use it as a worst-case scenario for stage length prediction. 
+
+If we extend the TT model, the resulting model is a mirror image of the extended HT model. The model counts the number of thermal units accumulated before the number of days, set by the threshold, have past. Next, the model uses the number of thermal units accumulated this way to predict the length of the stage, in days. This approach is commonly used in fruit and nut phenology models to make in season predictions for farm orchard management. The use of TT models is supported by findings that temperature regime during the first 30 to 60 days after flowering has much larger effects on fruit development than conditions during the rest of the maturation period [@mimoun1998; @day2007; @debuse2008; @tombesi2010; @ruml2011]
+
+One key component of both model types is the method or converting temperature data into thermal time. This is typically done by using temperature thresholds called cardinal temperatures. The models in this paper use base ($T_b$), optimal ($T_o$), and critical temperatures ($T_c$). Thermal time is zero below the base temperature and above the critical temperature. For Mediterranean fruit and nut trees, a typical value for $T_b$ is 4$^\circ$C and for $T_c$ is 36$^\circ$C. Thermal time is highest at the optimum temperature, which may be around 25$^\circ$C for tree crops [@richardson1975]. Growth chamber experiments with different temperature treatments can determine cardinal temperature values. However, this work is expensive and is rarely done.
+
+While some effort has been made to compare different TT phenological models [e.g. @marra2001; @tombesi2010], the performance of TT and HT models have not been compared. In this paper, compare the predictive power of 8 TT and 14 HT phenology models for predicting harvest readiness in walnuts. We use optimization methods to estimate both the amount of thermal time accumulation and the cardinal temperatures used to calculate thermal time. The resulting models can be used for in season walnut harvest date prediction.
+
+# Phenology model types
+
+## Heatsum Threshold (HT) Model
+
+The base HT model assumes that the model threshold represents the total amount of thermal time, the heatsum, the plant in question requires to complete a particular developmental stage. We call this value $\Lambda_j$, where $j$ is the development stage. Then the number of days required to accumulate $\Lambda_j$ thermal time is $x_i(\Lambda_j)$, for a given year or growing season $i$. The stage length, in days, is $y_i$, this means that
+
+\begin{equation}
+y_{ij} = x_i(\Lambda_j) + \varepsilon_i
+\end{equation}
+
+where $\varepsilon_i$ is the associated error term. We refer to equation (1) as the base model, because it contains the fewest possible elements while still remaining an HT model. This is due to the assumption that the heatsum represents the total amount of thermal time the plant needs to accumulate to complete a given growth stage. If we relax that assumption and allow the plant to reach the threshold prior to the end of the development stage, we observe two complications.
+
+First, because the heatsum threshold is not necessarily the total amount of thermal time necessary for the plant to complete the stage, the number of days to accumulate the thermal time will be lower than than the stage length. Let $\lambda_j$ be the heatsum threshold in the case where the heatsum threshold does not necessarily equal the total thermal time necessary for the plant to complete the stage. Then $x_i(\lambda_j)$, is the number of days necessary to accumulate $\lambda_j$ thermal time units. If
+
+\[\frac{\lambda_j}{\Lambda_j} < 1\]
+
+then $x_i(\lambda_j)$ will be less than the total stage length, $y_ij$. To compensate for this we will need to include a conversion factor, $\beta_{j\lambda}$, to convert days taken to reach the model threshold to days in the stage. In principle, $$\beta_{j\lambda}$$ should equal $\frac{\Lambda_j}{\lambda_j}$. However, because of the difficulty in estimating $\Lambda_j$, $\beta_j$ is estimated numerically using ordinary least squares regression. 
+
+Second, if the heatsum threshold is zero, the plant will reach the threshold immediately, causing $x_i$ to be zero as well. This would make the stage length zero, regardless of how large the conversion factor $\beta_{j\lambda}$ is. To compensate for this we include a second parameter, $\alpha_{j\lambda}$, the stage length if the plant reaches the threshold before completing a day of the stage. While this is biologically impossible, it is necessary to consider mathematically because of the way the model is
+
+If we add these two parameters to equation (1) we get the ordinary linear model (equation 2), giving the extended HT model its name. 
+
+\begin{equation} 
+y_{ij} = \alpha_{j\lambda} + \beta_{j\lambda} \cdot x_i(\lambda_j) + \varepsilon_i
+\end{equation}
+
+
+In fact, we can consider equation (1) one of the most basic types of linear model, where $\alpha_j = 0$ and $\beta_j=1$. Consequently, we refer to the HT model that uses equation (1) as the base HT model. 
+
+
+## Time Threshold (TT) Model
+
+In the TT model, the threshold is measured in time, not thermal time. If we assume that the time threshold is the total number of days needed for the plant to complete the stage, temperature and thus thermal time becomes irrelevant. In the base TT model, the stage length is exactly the time threshold (equation 3). 
+
+
+\begin{equation}
+y_{ij} = \Lambda_j + \varepsilon_i
+\end{equation}
+ 
+ where $y_{ij}$ is the stage length, $\Lambda_j$ is time threshold, and $\varepsilon_i$ is the error term. This is equivalent to the most basic linear model with an intercept but no predictor variables, which is also equivalent to the grand mean. This means we can write the base TT model as
+ 
+ 
+\begin{equation*}
+y_{ij} = \overline{y_j} + \varepsilon_i
+\end{equation*}
+
+
+
+The extended TT model has essentially the same structure as equation (2). The only thing that differs is the interpretations of the variables. The variable $\lambda_j$ is the threshold in days, instead of thermal time units, and $x_i(\lambda_j)$ is the amount of thermal time accumulated in $\lambda_j$ days. Like before, $y_{ij}$ is the length, in days, of stage $j$. Then, $\alpha_j(\lambda_j)$ is the predicted stage length if $x_i$ is zero. In this case that would mean the trees did not experience any thermal time accumulation during the first $\lambda_j$ days of stage $j$. and $\beta_j(\lambda_j)$ is the change in stage length due to accumulating one additional thermal time unit during the first $\lambda_j$ days of the stage.
+
+
+# Materials and Methods
+
+There are four steps in specifying a phenology model for in season prediction of harvest readiness or another growth stage: (1) selection of the type of model including whether the base or extended form is used; (2) selection of the function used to derive thermal time from temperature (see below); (3) estimating the cardinal temperature and thermal time accumulation parameters; and (4) fitting of a statistical model that predicts the length in days ($y$) of growth stage of interest from time or thermal time accumulation. 
+
+
+## Thermal time computation functions
+
+We evaluated five functions for calculating thermal time. While there are additional functions [@marra2001], these five capture a variety of assumptions about tree responses to temperature and are computationally viable options for model fitting on most computers. The simplest "Linear" thermal time function has just one parameter [@yang1995].
+
+
+\[\text{Linear TT} = \begin{cases} 
+      0 & T\leq T_b \\
+      T - T_b & T_b \leq T
+   \end{cases}\]
+
+where *TT* is the thermal time accumulated, *T* is the average temperature for the chosen time period (day or hour), and $T_b$ is the base temperature. We evaluated the Linear function for both hourly and daily temperatures (LinearHour and LinearDay).
+
+
+The "Plateau" function is a slightly more complicated function that includes two parameters.
+
+\[\text{Plateau TT} = \begin{cases} 
+      0 & T\leq T_b \\
+      T - T_b & T_b\leq T\leq T_o \\
+      T_o & T_o\leq T 
+   \end{cases}\]
+
+where $T_o$ is the optimal temperature. The Plateau model caps thermal time at $T_o$, but still neglects a potential slowdown in development at very high temperatures. 
+
+
+One function that accounts for this is the three parameter triangle function from, where $T_b$, $T_o$, and $T_c$ are the base, optimal and critical temperatures respectively.
+
+\[\text{Triangle TT} = \begin{cases} 
+      0 & T\leq T_b \\
+      T - T_b & T_b \leq T \leq T_o \\
+     \frac{(T_c - T) (T_o - T_b)}{T_c - T_o} & T_o\leq T \leq T_c \\
+      0 & T_c \leq T
+   \end{cases}\]
+
+
+A widely used function in tree crop phenology is another three parameter model, called the Asymcur model, from [@anderson1985].
+
+\[\text{Asymcur TT} = \begin{cases} 
+      0 & T\leq T_b \\
+      \frac{T_o-T_a}{2} \left[1+\cos\left(\pi + \pi \cdot \frac{T-T_b}{T_o-T_b}\right) \right] & T_b\leq T\leq T_o \\
+     (T_o-T_a) \left[1+\cos\left(\frac{\pi}{2} + \frac{\pi}{2} \cdot \frac{T-T_o}{T_c-T_o}\right) \right] & T_o\leq T \leq T_c \\
+      0 & T_c \leq T
+   \end{cases}\]
+
+
+As this function is almost always used with the cardinal temperatures reported by @anderson1985, we use these as well to have a basis of comparison to other studies ($T_b=4$, $T_o=25$, $T_c=36$). We refer to the Asymur function with cardinal temperatures from @anderson1985 as the Anderson function.
+
+
+One thermal time function uses daily minimum and maximum temperatures data to calculate thermal time accumulation. The widely used Growing Degree Day (GDD) function has only one parameter, the base temperature $T_b$ [@zalom1983; @mcmaster1997].
+
+
+\[\text{MinMax TT} = \begin{cases} 
+      0 & T_{max}\leq T_b \\
+     \frac{(T_{max}-T_b)^2}{2(T_{max} - T_{min})} & T_{min} \leq T_b \leq T_{max}\\
+      T - T_{avg} & T_{min} \geq T_b\\ 
+   \end{cases}\]
+
+Where $T_{avg}$ is the mean of the daily minimum and maximum daily temperature and $T_b$ is the base cardinal temperature. $T_{avg}$ is sometimes replaced with the minimum daily temperature ($T_{min}$) or the maximum daily temperature ( $T_{max}$) [@ruml2011]. A simpler GDD function is sometimes used as well [@snyder1999].  While there are other models used in the literature [@marra2001], these five capture a variety of assumptions about tree responses to temperature, and are all computationally feasible. 
+
+
+```{r functional_forms, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Visual representations of thermal time functions. For all of the functions $T_b=4$&deg;C, $T_o=25$&deg;C, and $T_c=36$&deg;C.", width = 4, height=4}
+
+tvec <- 1:40
+
+ff <- data.frame(temp=tvec,
+                 Linear=linear(tvec, 4, sum=FALSE),
+                 Plateau=flat(tvec, 4, 25, sum=FALSE),
+                 Triangle=triangle(tvec, 4, 25, 36, sum=FALSE), 
+                 Asymcur=asymcur(tvec, 4, 25, 36, sum=FALSE))
+
+ffm <- melt(ff, id.var=1, variable.name='model', value.name = 'gdh')
+levels(ffm)[1] <- 'Linear'
+
+ffplot <- ggplot(data=ffm) + geom_line(aes(x=temp, y=gdh, color=model)) + facet_wrap(~model) + scale_color_manual(values=methodcolors[1:4])
+ffplot <- ffplot + theme_bw(12) + scale_color_discrete(name='Functional form')
+ffplot <- ffplot + labs(x='Temperature (C)', 
+                        y='Thermal time accumulation (GDH)')
+ffplot
+```
+
+
+
+
+## Data
+
+```{r table1_walnutsummary, echo=FALSE}
+
+table1r <- table1[,-6]
+
+
+kable(table1[,c(1,2,5,3,4)], col.names=c('Cultivar', 'Years with data',
+                                    'Season Length','Leaf Out','Harvest'),
+      caption='Walnut phenology data summary. Leaf-out and harvest are given in day of the year, and season length is given in days. The mean value for each measure is displayed, with the first and third quartile values in parentheses to the right. All data is from the UC Davis Walnut Breeding Program.', 
+      row.names=FALSE, align='c')
+
+```
+
+
+
+We used walnut phenology data from the University of California at Davis Walnut Breeding Program. Leaf out dates (LD) and Harvest readiness dates (HRD) were collected by Charles Leslie, Gale McGranahan and the members of the Walnut Improvement Program for a group of twelve walnut varieties over `r min(table1$datayears)` to `r max(table1$datayears)` years depending on variety (Table 1).
+
+
+We used temperature data from NCDC and CIMIS weather stations in Davis, and nearby Winters and Woodland [@menne2015; @cimis] Whenever possible, Davis temperature data was used. However, there were several gaps in the combined NCDC CIMIS time series. To fill these, linear models that related temperatures in Woodland and Winters to Davis were used to create predictions for the missing days, which were then averaged.
+
+
+
+
+```{r model_combos}
+
+models <- c('HT', 'HT','TT')
+forms <- c('LinearHour', 'Plateau','Triangle','Asymcur','LinearDay', 'MinMax')
+seasons <- c('Full', 'Simplified', 'Full')
+
+combos <- data.frame(model=rep(models, each=length(forms)),
+                     season=rep(seasons, each=length(forms)),
+                     ttf=rep(forms, length(models)),
+                     stringsAsFactors = FALSE)
+
+combos <- rbind(combos, c('TT', 'Simplified','NA'))
+
+```
+
+
+## Statistical methods
+
+All statistical analysis was conducted using the *R* environment for statistical computing [@r2017]. We used the following model and thermal time function combinations:
+
+```{r combo_table, echo=FALSE}
+
+kable(combos, col.names = c('Model', 'Type','Thermal Time Function'),
+      caption = 'Model and thermal time function combinations investigated in this study. TT - Day Threshold, HT - Thermal Time Threshold.', align='c')
+
+```
+
+
+Parameter optimizations of both cardinal temperatures and threshold values were conducted using the using the DEoptim implementation [@ardia2015] of a Differential Evolution optimization method detailed in [@price2006]. The value minimized was the root mean squared error (RMSE) of the ordinary linear model relating thermal time or days accumulated to season length. 
+
+We chose to use the RMSE as our measure of error for several reasons. First, unlike the Mean Squared Error (MSE), the units of the RMSE are the same as the units of the dependent variable, which is useful for interpretation. Additionally the RMSE weights large errors greater than smaller ones. This is important because, when predicting harvest dates, models become useless if they can produce very large errors. Finally, the RMSE is continuous, which is important for optimizing parameter values. 
+
+\begin{equation} 
+RMSE = \sqrt{\frac{\Sigma_{i=1}^n (\hat{y_i} - y_i)^2}{n}}
+\end{equation}
+
+This optimization was conducted for each model, thermal time function, and cultivar combination. Five-fold cross-validation was used to estimate the accuracy of phenology models for out of sample data. Errors from these optimized models were compared based on the type of model and the function used to estimate thermal time. The model with the lowest cross-validated RMSE for each cultivar was selected and used to create a model to predict walnut season length in the Davis area.
+
+In order to understand these models more fully, we created optimization landscapes of the model parameters. First, we selected a range of thermal time and day thresholds ranging from one to the maximum possible number allowed by the model. We then optimized cardinal temperatures for each of these thresholds and compared the accompanying RMSE values. This was done for all possible combinations of model, thermal time function, and cultivar.
+
+Next, both the TT and HT models were evaluated using the LinearDay thermal time function, and error values recorded for every possible value of threshold and base temperature. This was repeated with the Flat and Triangle thermal time functions as well. All of these used the extended model type when evaluating the linear regression. We also calculated the variance in the predicted season lengths for all possible time and heatsum threshold values to further explore why the optimal threshold parameter values took on the values they did.
+
+# Results
+
+Walnut trees in Davis rarely experience temperatures below 0 &deg;C during periods of fruit set and maturation. However temperatures in excess of 40 &deg;C are not uncommon (Figure 2). Additionally, while maximum temperature vary widely between months (18&deg;C in March and 34&deg;C in July), the minimum temperatures stay more stable (6&deg;C in March and 13&deg;C in July) This means that the trees are exposed to a much greater range of temperatures in the summer than they do in the spring or fall.
+
+Average leaf-out dates ranged from March 18 to April 16, and walnuts reached maturity between September 12th and October 18th. Mean season lengths ran from `r min(table1$slnum)` days to `r max(table1$slnum)` days (Table 1). 
+
+
+
+```{r temptrends, cache=TRUE, fig.cap='Average minimum and maximum monthly temperatures in Davis during the months relevant to walnut maturation, and the years included in the UC Davis Walnut Breeding Program dataset. The monthly averages were calculated using the temperature time series developed for this paper.'}
+
+mtplot <- ggplot(data=dmt)
+mtplot <- mtplot + geom_line(aes(x=year, y=monthly, color=variable,
+                                 group=variable))
+mtplot <- mtplot + facet_wrap(~name) + theme_bw()
+mtplot <- mtplot +ylab(expression('Average Monthly Temperature ('*~degree*'C)'))
+mtplot <- mtplot + xlab('Year')
+mtplot <- mtplot + scale_color_manual(values=c('#d7191c','#2c7bb6'), 
+                                    labels=c('Minimum','Maximum'),
+                                    name='Variable')
+mtplot
+```
+
+
+
+## Model Comparison
+
+The extended models were more accurate than base models (RMSE `r mte$avgdiff[1]` days fewer), regardless of model type (Figure 3, Table 3). Specifically, they better captured the variance in the season lengths from the original data than the base models did (Figure 4). For both the TT and HT models, variance in predicted season length was much lower than variance in actual season length. Additionally, that variance decreased the later in the season the predictions were made. Because base models predict season length at the end of the season, the predicted season variance was generally at its lowest. This meant the discrepancy between the variance in predicted and observed season length was at its greatest.
+
+
+```{r compare_methods_complexity, cache=FALSE, echo=FALSE, fig.width=5.5, fig.height=4, fig.cap='A comparison of model accuracy of by type. RMSE distributions reflect differences in error values between cultivars.'}    
+
+modsimpleplot <- ggplot(data=ms) + geom_boxplot(aes(x=type, y=rmse,            color=complexity))
+modsimpleplot <- modsimpleplot + labs(x='Model', y='RMSE (days)') + theme_bw(10)
+modsimpleplot <- modsimpleplot + scale_colour_discrete(name="Type")
+
+modsimpleplot
+
+```
+
+
+
+
+```{r fit_variance, echo=FALSE, warning=FALSE, include=TRUE, fig.cap='Variances in predicted season length values with both day and thermal threshold models using linear thermal time accumulation for Payne walnuts. The vertical lines mark optimal day threshold value of 63 days or 35% through the season, and the optimal thermal time threshold value of 9335 degree hours or 11% through the season. The horizontal line marks the variance (77.2) in the season lengths of the original data.', fig.width=5, fig.height=3}
+
+
+constants <- data.frame(Model=c('Day Threshold model', 
+                                'Thermal Time Threshold model',
+                                'Original Data'),
+                        Threshold=c(63/180, 9335/84100, NA))
+samplevar <- data.frame(Model=c('Original Data'),
+                        Variance=var(w[w$cultivar=='Payne','length1']))
+
+
+dtplot <- ggplot(data = vardat[vardat$Variable=='fit', ]) + ylim(c(0,80))
+dtplot <- dtplot + geom_line(aes(x=Threshold, y=Variance, color=Model))
+dtplot <- dtplot + labs(x='Threshold (Fraction of season)',
+                        y='Season length variance')
+dtplot <- dtplot + geom_vline(aes(xintercept=Threshold, color=Model),
+                              data=constants)
+dtplot <- dtplot + geom_hline(aes(yintercept=Variance, color=Model),
+                              data=samplevar)
+dtplot <- dtplot + theme_bw(10) # + scale_y_continuous(expand = c(0, 0))
+
+
+dtplot
+
+```
+
+
+
+
+Many extended HT and TT models had RMSE values below 6, though that performance was cultivar dependent (Figure 5). The HT model paired with the LinearHour thermal time function had a very compact distribution of RMSE values, and the LinearDay and Asymcur functions also had error distributions with low variance. However, the LinearHour function only had an average performance when predicting season length for 'Chandler', the most commonly planted walnut cultivar. Chandler was the only cultivar best predicted by a base model. However, the difference between that and the extended model was minimal, only 0.06 days (Figure 5, Table 3, S1). 
+
+
+```{r ff_model_cultivar, echo=FALSE, cache=FALSE, fig.cap='A comparison of RMSE values for full models by thermal time function and cultivar.'}
+
+fullrows <- which(ms$complexity=='Full')
+
+msf <- ms[fullrows,]
+
+ff1plot <- ggplot(data=msf) + geom_line(aes(x=form, y=rmse, color=cultivar, group=cultivar)) + facet_wrap(~type)
+
+ff1plot <- ff1plot + labs(x='Thermal Time Function', y='RMSE (days)') + theme_bw(10)
+ff1plot <- ff1plot + theme(axis.ticks.x=element_blank(),
+                           axis.text.x = element_text(angle = 90, hjust = 1))
+ff1plot <- ff1plot + scale_colour_discrete(name="Cultivar")
+
+ff1plot
+
+
+```
+
+
+
+
+```{r table2_optimal_mods, cache=FALSE, echo=FALSE}
+
+optmods2 <- ldply(vars, function(v) {
+    d <- ms[ms$cultivar==v,]
+    wm <- which.min(d$rmse)
+    d[wm,c(1,3,2,4,5,9)]
+    
+})
+optmods2[is.na(optmods2)] <- ''
+optmods2 <- optmods2[, c('cultivar','type','complexity','form','rmse')]
+
+
+kable(optmods2, digits=2, col.names=c('Cultivar','Model', 'Type', 'Function',
+                                      'RMSE'), 
+      caption='Optimal model by cultivar. RMSE determined by 5-fold crossvalidation.', row.names=FALSE, align='c')
+
+```
+
+
+## Optimization evaluation
+
+
+ <!--TT models accumulate thermal time for a certain number of days and then use the thermal time accumulated to predict the season length. For TT models, the number of days is the model threshold. HT models count how many days it takes to accumulate a certain amount of thermal time. For HT models, the amount of thermal time is the model threshold. -->
+
+### Model threshold and base temperature 
+
+Of all the parameters, the RMSE responded most to changes in threshold value. This is reflected in the fact that the base models, which essentially set the accumulation length or threshold to be constant, tended to have much higher RMSE values than the extended models (Figure 3). The majority of cultivars had a clear optimum time thresholds that was not affected by thermal time function (Figure 6). Most time threshold values were around 50 days after leaf out. Additionally, the more flexible functions, like the triangle function, tended to have lower, but more variable, RMSE values. Many of the HT models did have an optimum threshold or threshold range early on in the season. However, these error minima were generally wider, and less marked than their TT counterparts (Figure 7). 
+
+
+
+``` {r length_comparison_TT, cache=FALSE, echo=FALSE, fig.cap="A comparison of the accuracy, assessed using RMSE, of all possible day threshold parameter values for the Day Threshold Model by cultivar and function."}
+
+
+lensTT <- lens[lens$type=='DT', ]
+
+ldtplot <- ggplot(data=lensTT) + geom_line(aes(x=length, y=rmse, color=form))
+ldtplot <- ldtplot + facet_wrap(~cultivar)
+ldtplot <- ldtplot + labs(x='Time Threshold (Days)', y='RMSE (Days)')
+ldtplot <- ldtplot + scale_color_discrete(name='Function')
+
+ldtplot
+
+```
+
+
+
+
+
+
+``` {r length_comparison_HT_GDH, cache=TRUE, echo=FALSE, fig.cap="Comparison of accuracy of thermal time threshold parameter values by cultivar and function."}
+#only need to go up to 20000 GDH
+# add mean TT accumulation for comparions
+lensHT <- lens[lens$type=='TTT', ]
+
+lHTplot <- ggplot(data=lensHT) + geom_line(aes(x=frac, y=rmse, color=form))
+lHTplot <- lHTplot + facet_wrap(~cultivar)
+lHTplot <- lHTplot + labs(x='Heatsum Threshold (Fraction of Stage GDH)', 
+                            y='RMSE (Days)')
+lHTplot <- lHTplot + scale_color_discrete(name='Cultivar')
+
+lHTplot
+
+```
+
+
+
+Of the cardinal temperatures, the base temperature influenced model fit the most, regardless of cultivar or thermal time function (Figures 8-9). Additionally, comparing parameter optimization across functions showed that the threshold parameter as well as the base temperature were frequently quite close together across functional forms. On the other hand, the optimal and critical cardinal temperatures tended to vary widely (Table S1).
+
+
+```{r surface_plot_gdd_TT, echo=FALSE, cache=TRUE, fig.cap="The RMSE optimization surface for the day threshold and base temperature parameters of Day Threshold model using the MinMax function. Results are separated by cultivar."}
+
+gddTTidreasonable <- which(gddTT$base <= 50 & gddTT$base >= -5)
+
+gddTTr <- gddTT[gddTTidreasonable, ]
+
+#scale_fill_gradientn()
+hplot <- ggplot(data=gddTTr) + geom_tile(aes(x=base, y=length, fill=rmse,
+                                          color=rmse))
+hplot <- hplot + scale_fill_gradientn('RMSE',colours = rev(freqcolors)) 
+hplot <- hplot + scale_color_gradientn('RMSE',colours = rev(freqcolors)) 
+hplot <- hplot + facet_wrap(~cultivar) + theme_classic(10)
+hplot <- hplot + labs(x=expression(paste('Base temperature (',~degree,'C)',
+                                         sep='')), 
+                      y='Day threshold (day of the year)')
+
+hplot
+
+```
+
+
+The relationship between threshold value, base temperature, and RMSE value is similar between the TT and HT models (Figure 8-9). However, for HT models, not all combinations of model threshold and base temperature produce models where a tree can reach the heatsum threshold. Because of this, changes in RMSE values for HT models based on changes to model threshold or base temperature are never entirely independent of each other (Figure 9). 
+
+
+```{r surface_gdd_HT, echo=FALSE, cache=TRUE, fig.cap="The RMSE optimization surface of the thermal time threshold and base temperature parameters in the Thermal Time Threshold model using the MinMax function. Results separated by cultivar. Grey indicates an invalid model."}
+
+HTid <- which(gddHT$base>=-5)
+
+#scale_fill_gradientn()
+gdd2plot <- ggplot(gddHT[HTid,]) + geom_tile(aes(x=base, y=length, fill=rmse,
+                                          color=rmse))
+gdd2plot <- gdd2plot + facet_wrap(~cultivar)
+gdd2plot <- gdd2plot + scale_fill_gradientn('RMSE',colours = rev(freqcolors)) 
+gdd2plot <- gdd2plot + scale_color_gradientn('RMSE',colours = rev(freqcolors)) 
+gdd2plot <- gdd2plot + theme_classic() + labs(x='Base Temperature (&deg; C)', 
+                      y='Thermal Time Threshold (growing degree days)')
+
+gdd2plot
+
+```
+
+
+### Optimal and critical temperatures
+
+For models with optimal and critical temperatures, it is clear that as long as those cardinal temperatures are above some "reasonable value", approximately 15&deg;C to 25&deg;C for the optimal temperatures and 40&deg;C for critical temperatures, they had very little effect on RMSE (Figures S1-S2). This is in stark contrast to the threshold and base temperature parameters which very frequently had a narrow range of optimal values.
+
+These cardinal temperatures varied widely between cultivars, as well as between models of the same cultivar (Figures 10-11, Table S1). Additionally, many cultivars had cardinal temperatures that were estimated to be within a degree of each other making the visual depiction of them flat (For example, Chandler Asymcur). This is not biologically plausible, though it may tell us something about tree development. This problem is also less pronounced in the HT models (Figure 11). 
+
+
+
+
+
+
+
+```{r compare_functionalforms_TTfull, cache=TRUE, echo=FALSE, fig.cap='Comparison of different thermal time functional forms along with what temperatures the trees experience most, Day Threshold model.'}
+
+rows_TTfull <- which(ffc$type=='DT' & ffc$complexity == 'full' & ffc$form %in% c('LinearHour','Flat', 'Triangle','Asymcur','Anderson'))
+ 
+
+mcplot <- ggplot(data=ffc[rows_TTfull,]) + geom_line(aes(x=temp, y=TTA, color=form)) + guides(color=guide_legend(title='Form')) + scale_color_manual(values=methodcolors[1:5])
+mcplot <- mcplot + geom_tile(aes(x=temp, y=45, fill=freq3)) + scale_fill_gradientn(colors=rev(brewer.pal(9, 'Spectral')), name='% Time at \n Temp')
+mcplot <- mcplot + facet_wrap(~cultivar) + theme_bw(10) + labs(x='Temperature (C)', y='Thermal Time Accumulation (GDH)')
+
+mcplot
+
+```
+
+
+
+```{r compare_functionalforms_FullHT, cache=TRUE, echo=FALSE, fig.cap='Comparison of different functional forms of thermal time accumulation along with what temperatures the trees experience most, Full model.'}
+
+rows_HTfull <- which(ffc$type=='TTT' & ffc$complexity == 'full' & ffc$form %in% c('LinearHour','Flat', 'Triangle','Asymcur','Anderson'))
+ 
+
+mcplot <- ggplot(data=ffc[rows_HTfull,]) + geom_line(aes(x=temp, y=TTA, color=form)) + guides(color=guide_legend(title='Form')) + scale_color_manual(values=methodcolors[1:5])
+mcplot <- mcplot + geom_tile(aes(x=temp, y=45, fill=freq3)) + scale_fill_gradientn(colors=rev(brewer.pal(9, 'Spectral')), name='% Time at \n Temp')
+mcplot <- mcplot + facet_wrap(~cultivar) + theme_bw(10) + labs(x='Temperature (C)', y='Thermal Time Accumulation (GDH)')
+
+mcplot
+
+```
+
+
+# Discussion
+
+
+## Model complexity
+
+Using the extended model was more accurate than using the base model in almost all cases. This is because the variation in predicted season length values is greatest early on in crop development. Predicted season lengths from a linear regression will always have lower variance than observed season lengths, because of a statistical phenomenon called regression towards the mean. However, some models may capture the season length variation more effectively than others. 
+
+This is the case with the base and extended models. At the beginning of the season, variation in predicted season lengths increases as the amount of thermal time or days accumulated increases from zero to a non-zero value. At some point the variance in predictions hits a peak. This corresponds to the optimal threshold value. Then, as the season advances, the amount of variation in the predictions decreases. It is only in cases where the change in variance is very minimal that, the base models performed well. Biologically speaking, this seems to indicate that walnut development is especially sensitive to temperatures at the beginning of the season but less so later in the summer, at least under the conditions of our experiments.  
+
+The idea that predicting the season length early on in the season would yield better predictions than predicting it later in the season may be counterintuitive. However, this approach is informed by our understanding of walnut biology. Walnuts have two main stages of development: cell division and differentiation, and cell enlargement During the cell division stage, the walnut creates all the cells it will need for the rest of its development. Then during the cell enlargement stage the tree pumps carbohydrates, fats, and other nutrients into the nut [@ramos1997]. It is generally thought that fruit and nut growth rates respond more to temperature during the cell division stage than during the cell enlargement stage [@warrington1999; @bertin2005; @zhang2006]. So, predicting season length early in the season may enable us to focus our maximize the proportion of our data that comes from the highly temperature sensitive cell division stage. 
+
+Ideally, we would be able to identify the end of the cell division stage and only count thermal time during that period. Unfortunately, it is very difficult, as well as labor intensive to collect this data, so as of yet there is no time series of cell division end dates available for walnuts.
+
+
+
+## Model Optimization
+
+Overall, the simplest thermal time functions performed the best. In particular, the LinearHour function used in conjunction with the HT model produced reasonable results for all cultivars and is computationally simple to estimate. However, it does require hourly temperature estimates. If these are impossible to obtain, they can be interpolated using formulas from [@cesaraccio2001]. The more flexible functions, Triangle and Asymcur, were sensitive to overfitting and should be used with caution. The Anderson function performed worse than some of the simpler models for many of the cultivars. However, in situations where cardinal temperature optimization is not possible, it can present a viable option.
+ 
+
+Optimization clearly did not identify the biologically meaningful cardinal temperatures, especially in the TT models. One notable example was the estimation of base and optimal temperatures within 1&deg;C of each other in the TT models. This meant thermal time accumulation was extremely low. However, as the thresholds were also very low, this did not seem to unduly affect prediction, and the models with these parameters performed about as well as models with more reasonable cardinal temperatures.
+
+Another noteworthy issue was the instability of estimated optimal and critical cardinal temperatures. We suspect this is due to the fact that this dataset does not include data from trees experiencing warm enough temperatures early enough in the season to accurately estimate these parameters using empirical methods. Since we found that the temperatures early in the walnuts development seemed to have a disproportional effect on their development, it is likely that even though these trees may have experienced 40&deg;C weather on occasion, it was late enough in the season, not to slow down nut development. Incorporating walnut data from areas with different climates could help remedy this problem.
+
+
+## Model Type
+
+The TT and HT models are roughly equivalent in terms of accuracy. However, their biological underpinnings are quite different. The TT model assumes that the determining factor in when various phenological stages begin or end is the day of the year, determined by photoperiod. The HT model assumes that the ambient temperature the tree experiences has a greater effect in determining when phenological stages start and end than photoperiod does. Clearly, which assumption is appropriate will depend on what crop is being modeled.
+
+## Model Accuracy
+
+The UC Davis Walnut Breeding Program uses hull-split as their indicator of harvest readiness. It is easy to assess and accurate enough for the purposes of analyzing variety charactaristics. However, it is also affected by water and nitrogen availability, which can vary significantly from year to year [@goldhamer2000]. Growers most commonly use an indicator called packing tissue brown (PTB), which correlates very strongly with nut quality and color [@sibbett1974]. Unfortunately packing tissue brown is much more labor intensive to assess and so consequently not normally used in breeding programs, where exact harvest dates are not as critical. Because of this, model errors are higher than would be expected for data sets with packing tissue brown as the measure of harvest date.
+
+Model error values vary widely by cultivar. Unfortunately, the most commonly grown cultivar, Chandler, is also the hardest to predict. It is unclear why this is the case. One possibility is that Chandler walnuts are more affected by factors like humidity, that vary somewhat independently of harvest readiness but do affect hull split. 
+
+# Conclusions
+
+For most cultivars, predicting season length (and harvest date) early in the season yields the most accurate results. This points towards a model of walnut development that is more responsive to temperature early on in the process. However, physiological studies are needed to confirm this. TT and HT models performed similarly for walnuts, so any decision would need to be made on a basis of underlying biological knowledge. The more accurate models of thermal time accumulation did not perform better than the less accurate ones, and often suffered from overfitting. The key to realizing most of the reduction in model error is to fit either an extended TT or HT model with a relatively simple thermal time function.
+
+\newpage
+
+# Supplemental Plots
+
+
+
+```{r surface_plot_flat, echo=FALSE, cache=TRUE, fig.cap="S1: Optimization surface for the Day Threshold Model model using Flat function by cultivar. Grey indicates an invalid model."}
+
+fr <- which(flat$base <= 30 & flat$base>=-5 & flat$opt >= 0 & flat$opt <=50)
+
+flatr <- flat[fr, ]
+
+#scale_fill_gradientn()
+hplot <- ggplot(data=flatr) + geom_tile(aes(x=base, 
+                                            y=opt, 
+                                            fill=rmse,
+                                            color=rmse))
+hplot <- hplot + scale_fill_gradientn('RMSE',colours = rev(freqcolors))
+hplot <- hplot + scale_color_gradientn('RMSE',colours = rev(freqcolors))
+hplot <- hplot + facet_wrap(~cultivar) + theme_classic()
+hplot <- hplot + labs(x='Base Temperature (&deg; C)', 
+                      y='Optimal Temperature (&deg; C)')
+
+hplot
+
+```
+
+
+
+```{r surface_plot_tripayne, echo=FALSE, cache=TRUE, fig.cap="S2: Optimization surface for Day Threshold model with Triangle function applied to the 'Payne' walnut cultivar. Base vs optimal temperature heat maps are shown by critical temperature. All temperatures are given in &deg;C. Grey indicates an invalid model."}
+
+trireduce <- which(tri$base >=-5 & tri$base<=30 & tri$opt>=0 & tri$opt<=50 & tri$crit<=60)
+
+trir <- tri[trireduce, ]
+
+
+
+triplot <- ggplot(data=trir) + geom_tile(aes(x=base, y=opt, fill=rmse,
+                                            color=rmse))
+triplot <- triplot + scale_fill_gradientn('RMSE',colours = rev(freqcolors))
+triplot <- triplot + scale_color_gradientn('RMSE',colours = rev(freqcolors))
+triplot <- triplot + facet_wrap(~crit) + theme_classic()
+triplot <- triplot + labs(x='Base Temperature (&deg;C)', 
+                          y='Optimal Temperature (&deg;C)')
+
+
+triplot
+
+
+```
+
+
+
+```{r cardinaltemps_table, echo=FALSE, cache=TRUE}
+
+ms[is.na(ms)] <- ''
+
+kable(ms, digits=2, col.names = c('Cultivar','Type','Model','Function','Length',
+                                  'Base','Opt','Crit','RMSE'), 
+      caption='S3: Cardinal temperatures for all models. RMSE values are from Five fold cross-validation.', 
+      row.names=FALSE, align='c')
+
+
+```
+
+
+\newpage
+
+
+
+
+_______________
+
+# References
+
