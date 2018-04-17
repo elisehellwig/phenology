@@ -12,7 +12,12 @@ pf <- read.csv(file.path(inpath,'prunefloweringdata.csv'))
 
 wf <- read.csv(file.path(inpath, 'walnutfloweringdata.csv'), 
                stringsAsFactors = FALSE)
-walnutK <- read.csv(file.path(inpath, 'walnutchill.csv'))
+
+#chandK <- read.csv(file.path(inpath, 'Chand_Cr42JDCrag53JDHrJD.csv'))
+#franqK <- read.csv(file.path(inpath, 'Franq_Cr51JDCrag60JDHrJD.csv'))
+#payneK <- read.csv(file.path(inpath, 'Payne_Cr33JDCrag46JDHrJD.csv'))
+
+walnutK <- read.csv(file.path(outpath, 'walnutchill.csv'))
 
 elisecols <- c('year','cultivar','nearest','fday')
 katherinecols  <- c('location','cultivar','year','Chill', 'Heat')
@@ -49,6 +54,17 @@ write.csv(pfnew, file.path(outpath, 'prunespring.csv'), row.names = FALSE)
 
 ######################################################################
 ##############################Walnuts###############################
+
+####merge cultivars#######
+
+# chandK$cultivar <- 'Chandler'
+# franqK$cultivar <- 'Franquette'
+# payneK$cultivar <- 'Payne'
+# 
+# walnutK <- rbind(chandK, franqK, payneK)
+# write.csv(walnutK, file.path(outpath,'walnutchill.csv'), row.names = FALSE)
+
+##########################
 
 wfr <- wf[,elisecols[-3]] 
 names(wfr)[3] <- c('bloom') 
