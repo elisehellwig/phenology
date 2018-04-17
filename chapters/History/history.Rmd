@@ -4,7 +4,20 @@ author: |
   | Elise Hellwig^1^, Katherine Pope^2^, Robert J. Hijmans^1^
   | 1. University of California, Davis
   | 2. Cooperative Extension, University of California
-header-includes: \usepackage{morefloats}
+header-includes: 
+  - \usepackage{morefloats}
+  - \usepackage{booktabs}
+  - \usepackage{longtable}
+  - \usepackage{array}
+  - \usepackage{multirow}
+  - \usepackage[table]{xcolor}
+  - \usepackage{wrapfig}
+  - \usepackage{float}
+  - \usepackage{colortbl}
+  - \usepackage{pdflscape}
+  - \usepackage{tabu}
+  - \usepackage{threeparttable}
+  - \usepackage[normalem]{ulem}
 output:
   pdf_document:
     fig_caption: yes
@@ -26,10 +39,13 @@ library(plyr, warn.conflicts=FALSE)
 library(reshape2)
 library(grid)
 library(segmented)
+library(kableExtra)
 #library(qdap, warn.conflicts = FALSE)
 library(mgsub)
 
-opts_chunk$set(tidy.opts=list(width.cutoff=60), stringsAsFactors=FALSE)
+opts_chunk$set(tidy.opts=list(width.cutoff=60), 
+               stringsAsFactors=FALSE,
+               knitr.table.format = "latex")
 options(warn=0)
 #this makes it so numbers aren't put into scientific notation
 #options(scipen=999)
@@ -137,6 +153,12 @@ When discussing fall phenology, the most commonly referenced development stage i
 
 Climate data for each of the focal orchard sites was obtained from the National Climatic Data Center (NCDC, Menne and Houston 2015) and from California Irrigation Management Information System (CIMIS, California Department of Water Resources 2015). The NCDC provided daily minumum and maxiumum temperature data going back to 1906, and CIMIS provided hourly data back to 1983. Several climate stations were chosen for each orchard location to ensure there would be data for every day in the time span of the orchard datasets for each location (Table X). The closest station to the site with at least 85% completeness was chosen as the primary station (indicated by a *). Temperature data from other stations was related to temperature data from the primary station via a linear regression. This model was then used to fill in gaps in the primary station’s data. In cases where there were nearby NCDC and CIMIS weather stations, one primary station was chosen for each data source.
 
+```{r weatherlocs}
+
+kable(weather, )
+
+
+```
 
 
 
