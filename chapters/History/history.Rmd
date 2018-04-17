@@ -29,7 +29,7 @@ library(segmented)
 #library(qdap, warn.conflicts = FALSE)
 library(mgsub)
 
-opts_chunk$set(tidy.opts=list(width.cutoff=60))
+opts_chunk$set(tidy.opts=list(width.cutoff=60), stringsAsFactors=FALSE)
 options(warn=0)
 #this makes it so numbers aren't put into scientific notation
 #options(scipen=999)
@@ -48,28 +48,42 @@ source('../R/functions/multiplot.R')
 source('../R/functions/reportfunctions.R')
 
 
+#data paths
+data1 <- '/Volumes/GoogleDrive/My Drive/Phenology/CA_Results/'
+data2 <- file.path(data1, 'data')
+data3 <- '/Volumes/GoogleDrive/My Drive/Phenology/data/historydata'
+data4 <- '/Volumes/GoogleDrive/My Drive/Phenology/Results/history'
+
 #data
+weather <- read.csv(file.path(data3, 'weatherlocations.csv'))
+ctemps <- read.csv(file.path(data1,'switchday.csv'))
+fp <- readRDS(file.path(data1, 'floweringpredictors.RDS'))
+slp <- readRDS(file.path(data1, 'seasonlengthpredictors.RDS'))
 
-ctemps <- read.csv('../CA_Results/switchday.csv', stringsAsFactors = FALSE)
-fp <- readRDS('../CA_Results/floweringpredictors.RDS')
-slp <- readRDS('../CA_Results/seasonlengthpredictors.RDS')
 
+am <- read.csv(file.path(data2, 'annualtemperatures.csv'))
+mtc <- read.csv(file.path(data2, 'monthlytemperatures.csv'))
 
-am <- read.csv('../CA_Results/data/annualtemperatures.csv', stringsAsFactors = FALSE)
-mtc <- read.csv('../CA_Results/data/monthlytemperatures.csv', stringsAsFactors = FALSE)
+af <- read.csv(file.path(data2, 'almondfloweringdata.csv'))
+pf <- read.csv(file.path(data2, 'prunefloweringdata.csv'))
+wf <- read.csv(file.path(data2, 'walnutfloweringdata.csv'))
 
-af <- read.csv('../CA_Results/data/almondfloweringdata.csv', stringsAsFactors = FALSE)
-pf <- read.csv('../CA_Results/data/prunefloweringdata.csv', stringsAsFactors = FALSE)
-wf <- read.csv('../CA_Results/data/walnutfloweringdata.csv', stringsAsFactors = FALSE)
-
-asl <- read.csv('../CA_Results/data/almondseasonlengthdata.csv', stringsAsFactors = FALSE)
-psl <- read.csv('../CA_Results/data/pruneseasonlengthdata.csv', stringsAsFactors = FALSE)
-wsl <- read.csv('../CA_Results/data/walnutseasonlengthdata.csv', stringsAsFactors = FALSE)
+asl <- read.csv(file.path(data2, 'almondseasonlengthdata.csv'))
+psl <- read.csv(file.path(data2, 'pruneseasonlengthdata.csv'))
+wsl <- read.csv(file.path(data2, 'walnutseasonlengthdata.csv'))
 
 
 #Katherine's data
-wca <- read.csv('../CA_Results/data/monthlychillaccumulation.csv', stringsAsFactors = FALSE) #Monthly and Total Winter Chill Accumulation for all sites (Chico, Davis, Modesto, Parlier)
-pblm <- read.csv('../CA_Results/data/Bloom_Parlier_French_ksp.csv', stringsAsFactors = FALSE) #Prune bloom at Parlier
+
+#Monthly and Total Winter Chill Accumulation for all sites (Chico, Davis, Modesto, Parlier)
+wca <- read.csv(file.path(data2, 'monthlychillaccumulation.csv')) 
+pblm <- read.csv(file.path(data2, 'Bloom_Parlier_French_ksp.csv')) #Prune bloom at Parlier
+
+#bloom, chill and heat data
+pspring <- read.csv(file.path(data4, 'prunespring.csv'))
+aspring <- read.csv(file.path(data4, 'almondspring.csv'))
+wspring <- read.csv(file.path(data4, 'walnutspring.csv'))
+
 preqjd <- read.csv('../CA_Results/data/Prune_Cr38JD_Crag49JD_HrJD.csv', stringsAsFactors = FALSE) #Prune day of year for day of chill requ, agronomic chill requ and heat requ met
 cwreqjd <- read.csv('../CA_Results/data/Chand_Cr42JDCrag53JDHrJD.csv', stringsAsFactors = FALSE) # Chandler Walnut day of year for day of chill requ, agronomic chill requ and heat requ met
 fwreqjd <- read.csv('../CA_Results/data/Franq_Cr51JDCrag60JDHrJD.csv', stringsAsFactors = FALSE) # Franquette Walnut day of year for day of chill requ, agronomic chill requ and heat requ met
@@ -96,7 +110,7 @@ Almost all phenological models of plant development depend on the calculation of
 
 Flowering models frequently use a combination of chill and heat sums to predict flowering (Fishman 1987b). Once a plant has accumulated enough thermal time, it blooms. However, estimating the amount of thermal time accumulation required to produce flowering in a given species is difficult to determine experimentally. Determining when the plant accumulates chill units and heat units is also a challenge. Luedeling *et al.* (2012) used partial least squares to estimate the flowering thermal time accumulation requirements For walnuts in California in order to capture potential non-linear rel. 
 
-Models of harvest readiness only use heat sums to predict fruit and nut maturity dates. This is because most relevant chemical reactions slow to a crawl near 0&deg;C, so the plant develops very little. The most common model of calculating heat units assumes no development below the base temperature ($T_b$), maximum development at some optimal temperature ($T_o$) and no at a critical temperature ($T_c$) above the optimal temperature (Anderson). The exact functional form this can vary quite a bit. However, it seems more complex models may not gain that much in over simpler ones (Hellwig 20??). 
+Models of harvest readiness only use heat sums to predict fruit and nut maturity dates. This is because most relevant chemical reactions slow to a crawl near 0&deg;C, so the plant develops very little. The most common model of calculating heat units assumes no development below the base temperature ($T_b$), maximum development at some optimal temperature ($T_o$) and no at a critical temperature ($T_c$) above the optimal temperature (citation). The exact functional form this can vary quite a bit. However, it seems more complex models may not gain that much in over simpler ones (Hellwig 20??). 
 
 For most fruit and nut trees, including almonds, prunes and walnuts, there are two primary stages of fruit development: the cell division and differentiation stage and the cell enlargement stage [@micke1996; @buchner2012; @ramos1997]. The cell division and differentiation stage begins right after pollination and continues for a month or so into development [@micke1996]. After the cell division stage is over, most of the changes to the size of the fruit are due to enlargement of already existing cells [@micke1996; @buchner2012; @ramos1997]. Of the two phases, cell division is much more responsive to differences in temperature [@warrington1999; @bertin2005; @zhang2006]. Consequently, the amount of thermal time accumulated during the cell division stage is generally a much better indicator of how quickly the fruit or nut is developing than the amount of thermal time accumulated later in the growing season [@dejong1989, @mimoun1998, @warrington1999, @lopez2007, @tombesi2010, @ruml2011]. 
 
@@ -112,9 +126,6 @@ This paper extends those results to estimate not only the amount of thermal time
 
 
 
-![Figure 2. Models of thermal time for crop development](modelpics.png)
-
-
 
 When discussing fall phenology, the most commonly referenced development stage is maturity, the first possible harvest date [@mimoun1998; @tombesi2010; @ruml2011]. However, maturity is correlated with flowering.  Everything else being equal, a tree that bloomed earlier will also be ready to harvest earlier. Consequently, changes in harvest readiness date can be due to changes in flowering dates and/or changes in temperature after flowering dates. To avoid confounding these two phenomena, we use season length (time from flowering to maturity) as the fall phenological response, instead of harvest date.
 
@@ -124,36 +135,10 @@ When discussing fall phenology, the most commonly referenced development stage i
 
 ### Climate Data
 
-We used climate data from the National Climatic Data Center (NCDC, Menne and Houston 2015) and from California Irrigation Management Information System (CIMIS, California Department of Water Resources 2015). Several climate stations were chosen for each orchard location to ensure there would be data for every day in the time span of the orchard datasets for each location (See Appendix). These stations are the closest stations to the monitored orchards that had at least 85% record completeness. Stations indicated with a “\*” are the closest stations with reliable data records are be the primary source of data. Additional stations listed were to supplement information when data from the primary station was missing.
+Climate data for each of the focal orchard sites was obtained from the National Climatic Data Center (NCDC, Menne and Houston 2015) and from California Irrigation Management Information System (CIMIS, California Department of Water Resources 2015). The NCDC provided daily minumum and maxiumum temperature data going back to 1906, and CIMIS provided hourly data back to 1983. Several climate stations were chosen for each orchard location to ensure there would be data for every day in the time span of the orchard datasets for each location (Table X). The closest station to the site with at least 85% completeness was chosen as the primary station (indicated by a *). Temperature data from other stations was related to temperature data from the primary station via a linear regression. This model was then used to fill in gaps in the primary station’s data. In cases where there were nearby NCDC and CIMIS weather stations, one primary station was chosen for each data source.
 
-*Location: Chico (Almonds)*  
-&nbsp;&nbsp;&nbsp;&nbsp;CIMIS  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Durham\*, CA: 1982 – 2014   
-&nbsp;&nbsp;&nbsp;&nbsp;NCDC  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Chico University Farm\*, CA: 1906 – 2014  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Oroville Municipal Airport, CA: 1998 – 2014  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Orland, CA: 1903 – 2014  
 
-*Location: Davis, CA (Walnuts)*  
-&nbsp;&nbsp;&nbsp;&nbsp;CIMIS  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Davis\*, CA: 1982 – 2014  
-&nbsp;&nbsp;&nbsp;&nbsp;NCDC  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Davis Experimental Farm\*, CA: 1893 – 2014  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Winters, CA: 1942 – 2014  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Woodland, CA: 1911 – 2014  
- 
-*Location: Modesto, CA (Almonds)*  
-&nbsp;&nbsp;&nbsp;&nbsp;CIMIS  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Manteca\*, CA: 1987 – 2014  
-&nbsp;&nbsp;&nbsp;&nbsp;NCDC  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Modesto City Co Airport\*, CA: 1906 – 2014  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Stockton Metropolitan Airport: 1948 – 2014  
 
-*Location: Parlier, CA (Prunes)*  
-&nbsp;&nbsp;&nbsp;&nbsp;CIMIS  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Parlier\*, CA: 1983 – 2014  
-&nbsp;&nbsp;&nbsp;&nbsp;NCDC  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Visalia, CA: 1895 – 2014  
 
 ### Phenological Data
 
