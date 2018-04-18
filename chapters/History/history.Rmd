@@ -78,6 +78,7 @@ slp <- readRDS(file.path(data1, 'seasonlengthpredictors.RDS'))
 
 
 am <- read.csv(file.path(data2, 'annualtemperatures.csv'))
+amlabs <- read.csv(file.path(data3, 'temptrendlabels.csv'))
 mtc <- read.csv(file.path(data2, 'monthlytemperatures.csv'))
 
 af <- read.csv(file.path(data2, 'almondfloweringdata.csv'))
@@ -155,7 +156,8 @@ Climate data for each of the focal orchard sites was obtained from the National 
 
 ```{r weatherlocs}
 
-kable(weather, )
+kable(weather, booktabs = TRUE, 
+      col.names = c('Source', 'Location', 'Orchard Location','Start','End', ''))
 
 
 ```
@@ -271,6 +273,179 @@ kable(ctemps, col.names=c('Crop', 'Cultivar','Model', 'TTAL', 'Base Temp', 'Opti
 
 #Results
 
+# Temperature Trends
+
+
+```{r annual_min_plot, warning=FALSE, echo=FALSE, fig.cap='Figure 3. Mean Annual Minimum Temperatures from 1931 to 2014, duration of phenology record shown with grey lines.', fig.height=2.5, fig.width=6, tidy=TRUE}
+
+am_min <- am[am$variable=='tmin',]
+labs_min <- amlabs[amlabs$variable=='tmin', ]
+
+minplot <- ggplot(data=am_min) + ylim(5,13) +
+    geom_line(aes(x=year, y=temp), color='blue3') + facet_wrap(~nearest) +
+    geom_smooth(aes(x=year, y=temp), size=1, method='lm', se=FALSE,
+                color="black", formula = y ~ x) + 
+     geom_segment(data=labs_min, aes(x=start, y=segy, xend=end, yend=segy),
+                  color='darkgrey', size=2) + 
+    geom_text(data=labs_min, aes(x=end, y=texty, label=label), hjust=1, vjust=0,
+              size=3) + theme_bw(10) + 
+    labs(x='Year', y=expression("Temperature  "(~degree*C)))
+
+minplot
+
+```
+
+
+
+```{r annual_max_plot, warning=FALSE, echo=FALSE, fig.cap='Figure 3. Mean Annual Minimum Temperatures from 1931 to 2014, duration of phenology record shown with grey lines.', fig.height=2.5, fig.width=6, tidy=TRUE}
+
+am_max <- am[am$variable=='tmax',]
+labs_max <- amlabs[amlabs$variable=='tmax', ]
+
+maxplot <- ggplot(data=am_max) + ylim(21,28) +
+    geom_line(aes(x=year, y=temp), color='red3') + facet_wrap(~nearest) +
+    geom_smooth(aes(x=year, y=temp), size=1, method='lm', se=FALSE,
+                color="black", formula = y ~ x) + 
+     geom_segment(data=labs_max, aes(x=start, y=segy, xend=end, yend=segy),
+                  color='darkgrey', size=2) + 
+    geom_text(data=labs_max, aes(x=end, y=texty, label=label), hjust=1, vjust=0,
+              size=3) + theme_bw(10) + 
+    labs(x='Year', y=expression("Temperature  "(~degree*C)))
+
+maxplot
+
+```
+
+
+
+Over the past 80 years, annual temperatures minimum temperatures have stayed roughly the same in Chico but the annual maximum temperature has increased by 0.085  &deg;C (Table 5, Figures 2-3). No monthly minimum temperatures in Chico exhibit any significant trends. However, January, February, and December monthly maximum temperatures show significant increasing trends (Table 5).
+
+
+
+```{r chico_table, warning=FALSE,echo=FALSE}
+chico <- mtc[mtc$nearest=='Chico', ]
+achico <- am[am$nearest=='Chico', ]
+
+
+#running linear model and extracting coefficients and pvalues for monthly values
+cmin <-  t(sapply(mos, function(m) arf('tmin', 'year', m, chico) ))
+cmax <- t(sapply(mos, function(m) arf('tmax', 'year', m, chico) ))
+cavg <- t(sapply(mos, function(m) arf('tavg', 'year', m, chico) ))
+
+#running linear model etc for annual data
+cann <- t(sapply(unique(am$variable), function(v) arf('temp', 'year', NA, achico[achico$variable==v, ])))
+
+#merging data
+cmin <- rbind(cmin,cann[1,])
+cmax <- rbind(cmax,cann[2,])
+cavg <- rbind(cavg,cann[3,])
+
+ctable <- data.frame(Month=c(month.name, '*Annual*'), Minimum=sig2(cmin[,2], v2=cmin[,1]*10), pvaln=sig2(cmin[,2]), Maximum=sig2(cmax[,2], v2=cmax[,1]*10), pvalx=sig2(cmax[,2]), Average=sig2(cavg[,2], v2=cavg[,1]*10), pvala=sig2(cavg[,2]))
+
+
+kable(ctable, digits=2, col.names=c('Month', 'Minimum','p-value', 'Maximum', 'p-value', 'Average', 'p-value'), caption='Table 4. Average change per decade of Chico minimum, maximum, and mean monthly temperatures from 1931-2014. Change is considered significant and given in bold if p-values are under 0.05.')
+```
+
+
+
+
+Modesto minimum temperatures show the strongest warming trends of all the locations, with a mean increase of 0.2 &deg;C per decade (Figure 2, Table 6). In addition, all mean minimum temperatures show significant increases in all months except for January and the means from eight months increased at over 0.3 &deg;C per decade (Table 6). The annual maximum temperature in Modesto is also increasing, but not as rapidly (Figure 3, Table 6). Also, only seven months exhibit significant positive thrends in temperature (Table 6).
+
+
+
+```{r modesto_table,warning=FALSE, echo=FALSE}
+modesto <- mtc[mtc$nearest=='Modesto', ]
+amodesto <- am[am$nearest=='Modesto', ]
+
+#running AR model and extracting coefficients and pvalues
+
+mmin <-  t(sapply(mos, function(m) arf('tmin', 'year', m, modesto) ))
+mmax <- t(sapply(mos, function(m) arf('tmax', 'year', m, modesto) ))
+mavg <- t(sapply(mos, function(m) arf('tavg', 'year', m, modesto) ))
+
+mann <- t(sapply(unique(am$variable), function(v) arf('temp', 'year', NA, amodesto[amodesto$variable==v, ])))
+
+#merging data
+mmin <- rbind(mmin,mann[1,])
+mmax <- rbind(mmax,mann[2,])
+mavg <- rbind(mavg,mann[3,])
+
+mtable <- data.frame(Month=c(month.name, "*Annual*"), Minimum=sig2(mmin[,2], v2=mmin[,1]*10), pvaln=sig2(mmin[,2]), Maximum=sig2(v=mmax[,2], v2=mmax[,1]*10), pvalx=sig2(mmax[,2]), Average=sig2(mavg[,2], v2=mavg[,1]*10), pvala=sig2(mavg[,2]))
+
+kable(mtable, digits=2, col.names=c('Month', 'Minimum','p-value', 'Maximum', 'p-value','Average', 'p-value'), caption='Table 5. Average change per decade of Modesto minimum, maximum, and mean monthly temperatures from 1931-2014. Change is considered significant and given in bold if p-values are under 0.05.')
+
+```
+
+
+
+In Davis, annual minimum temperatures have risen an average of 0.21&deg;C per decade over the past 80 years based on an autoregressive linear analysis (Figure 2). Annual maximum temperatures, however, have stayed fairly constant (Figure 3). Davis monthly minimum temperatures exhibit strong warming trends in the spring, summer and fall, with temperatures increasing between 0.15&deg;C and 0.26&deg;C per decade in months where a significant change was detected (Table 16). January maximum temperatures in also show a significant warming trend (0.17&deg;C per decade), but it is the only month we have strong evidence of maximum temperatures increasing. In addition, mean maximum temperatures in July display a slight cooling trend (Table 7).
+
+
+```{r davis_table, echo=FALSE}
+davis <- mtc[mtc$nearest=='Davis', ]
+adavis <-  am[am$nearest=='Davis', ]
+
+#running AR model and extracting coefficients and pvalues
+dmin <-  t(sapply(mos, function(m) arf('tmin', 'year', m, davis) ))
+dmax <- t(sapply(mos, function(m) arf('tmax', 'year', m, davis) ))
+davg <- t(sapply(mos, function(m) arf('tavg', 'year', m, davis) ))
+
+#annual stuff
+dann <-  t(sapply(unique(am$variable), function(v) arf('temp', 'year', NA, adavis[adavis$variable==v, ])))
+
+#merging data
+dmin <- rbind(dmin,dann[1,])
+dmax <- rbind(dmax,dann[2,])
+davg <- rbind(davg,dann[3,])
+
+
+dtable <- data.frame(Month=c(month.name,'*Annual*'), Minimum=sig2(dmin[,2], v2=dmin[,1]*10), pvaln=sig2(dmin[,2]), Maximum=sig2(dmax[,2], v2=dmax[,1]*10), pvalx=sig2(dmax[,2]), Average=sig2(davg[,2], v2=davg[,1]*10), pvala=sig2(davg[,2]))
+
+kable(dtable, digits=2, col.names=c('Month', 'Minimum','p-value', 'Maximum', 'p-value', "Average", "p-value"), caption='Table 16. Average change per decade of Davis minimum, maximum, and average monthly temperatures from 1931-2014. Change is considered significant and given in bold if p-values are under 0.05.')
+
+```
+
+
+Annually Parlier exhibits warming minimum temperatures and cooling maximum temperatures (Figures 2-3) based on an autoregressive linear model of data since 1931. While the cooling trend in the mean annual maximum temperature is stronger (-0.36°C per decade), the warming trend in the mean annual minimum temperature is still highly significant (Table 8). Minimum monthly temperatures are increasing year round based on autoregression analysis, but only spring, summer, and fall maximum temperatures are cooling significantly (Table 8).
+
+
+```{r parlier_table, warning=FALSE,echo=FALSE}
+parlier <- mtc[mtc$nearest=='Parlier', ]
+aparlier <- am[am$nearest=='Parlier', ]
+
+#running AR model and extracting coefficients and pvalues
+pmin <-  t(sapply(mos, function(m) arf('tmin', 'year', m, parlier) ))
+pmax <- t(sapply(mos, function(m) arf('tmax', 'year', m, parlier) ))
+pavg <- t(sapply(mos, function(m) arf('tavg', 'year', m, parlier) ))
+
+pann <-  t(sapply(unique(am$variable), function(v) arf('temp', 'year', NA, aparlier[aparlier$variable==v, ])))
+
+#merging data
+pmin <- rbind(pmin,pann[1,])
+pmax <- rbind(pmax,pann[2,])
+pavg <- rbind(pavg,pann[3,])
+
+mtable <- data.frame(Month=c(month.name,'*Annual*'), Minimum=sig2(pmin[,2], v2=pmin[,1]*10), pvaln=sig2(pmin[,2]), Maximum=sig2(pmax[,2], v2=pmax[,1]*10), pvalx=sig2(pmax[,2]), Averague=sig2(pavg[,2], v2=pavg[,1]*10), pvala=sig2(pavg[,2]))
+
+kable(mtable, digits=2, col.names=c('Month', 'Minimum','p-value', 'Maximum', 'p-value','Average', 'p-value'), caption='Table 12. Average change per decade of Parlier minimum and maximum monthly temperatures from 1931-2014. Change is considered significant and given in bold if p-values are under 0.05.')
+
+```
+
+
+
+
+
+
+# Spring Phenology
+
+
+
+
+
+
+# Fall Phenology
+
+
 ##Almonds
 
 ```{r almond_models,warning=FALSE, echo=FALSE}
@@ -306,85 +481,7 @@ Over the past 80 years, annual temperatures minimum temperatures have stayed rou
 Modesto minimum temperatures show the strongest warming trends of all the locations, with a mean increase of 0.2 &deg;C per decade (Figure 3, Table 2). In addition, all mean minimum temperatures show significant increases in all months except for January and the means from eight months increased at over 0.3&deg;C per decade (Table 2). The annual maximum temperature in Modesto is also increasing, but not as rapidly (Figure 4, Table 5). Also, only seven months exhibit significant positive thrends in temperature (Table 5).
 
 
-```{r annual_min_chico_modesto,warning=FALSE, echo=FALSE, fig.cap='Figure 3. Mean Annual Minimum Temperatures from 1931 to 2014, duration of phenology record shown with grey lines.', fig.height=2.5, fig.width=6, tidy=TRUE}
 
-agt <- data.frame(nearest=c('Chico', 'Modesto'), sxf=c(1940, 1983), sxfend=c(2005, 2013), sxs=c(1997, 1997), sxsend=c(2005, 1997), labsl=c('almond season length', ''))
-
-antplot <- ggplot(data=am[am$variable=='tmin' & am$nearest %in% c('Chico', 'Modesto'), ]) + geom_line(aes(x=year, y=temp), color='blue3') + facet_wrap(~nearest) + geom_smooth(aes(x=year, y=temp), size=1, method='lm', se=FALSE, color="black", formula = y ~ x) + ylim(6,13) + geom_segment(data=agt, aes(x=sxf, y=12, xend=sxfend, yend=12), color='darkgrey') + geom_text(data=agt, aes(x=sxfend, y=12.1), hjust=1, vjust=0, size=3, label='almond flowering')  + geom_segment(data=agt, aes(x=sxs, y=12.6, xend=sxsend, yend=12.6), color='darkgrey') + geom_text(data=agt, aes(x=2005, y=12.7, label=labsl), hjust=1, vjust=0, size=3)
-
-antplot <- antplot + theme_bw(10)  + labs(x='Year', y=expression("Temperature  "(~degree*C)))
-
-antplot
-
-```
-
-
-
-
-```{r annual_max_chico_modesto, warning=FALSE,echo=FALSE, fig.cap='Figure 4. Mean Annual Maximum Temperatures from 1931 to 2014, duration of phenology record shown with grey lines.', fig.height=3, fig.width=7, tidy=TRUE}
-
-agt <- data.frame(nearest=c('Chico', 'Modesto'), sxf=c(1940, 1983), sxfend=c(2005, 2013), sxs=c(1997, 1997), sxsend=c(2005, 1997), labsl=c('almond season length', ''))
-
-axtplot <- ggplot(data=am[am$variable=='tmax' & am$nearest %in% c('Chico','Modesto'),]) + geom_line(aes(x=year, y=temp), color='red3') + geom_smooth(aes(x=year, y=temp), size=1, method='lm', se=FALSE, color="black", formula = y ~ x) + ylim(21,29) + facet_wrap(~nearest)+ geom_segment(data=agt, aes(x=sxf, y=21, xend=sxfend, yend=21), color='darkgrey') + geom_text(data=agt, aes(x=sxfend, y=21.1), hjust=1, vjust=0, size=3, label='almond flowering')  + geom_segment(data=agt, aes(x=sxs, y=21.5, xend=sxsend, yend=21.5), color='darkgrey') + geom_text(data=agt, aes(x=2005, y=21.6, label=labsl), hjust=1, vjust=0, size=3)
-
-axtplot <- axtplot + theme_bw(10)  + labs(x='Year', y=expression("Temperature  "(~degree*C)))
-
-
-axtplot
-
-
-```
-
-
-
-```{r chico_table, warning=FALSE,echo=FALSE}
-chico <- mtc[mtc$nearest=='Chico', ]
-achico <- am[am$nearest=='Chico', ]
-
-
-#running linear model and extracting coefficients and pvalues for monthly values
-cmin <-  t(sapply(mos, function(m) arf('tmin', 'year', m, chico) ))
-cmax <- t(sapply(mos, function(m) arf('tmax', 'year', m, chico) ))
-cavg <- t(sapply(mos, function(m) arf('tavg', 'year', m, chico) ))
-
-#running linear model etc for annual data
-cann <- t(sapply(unique(am$variable), function(v) arf('temp', 'year', NA, achico[achico$variable==v, ])))
-
-#merging data
-cmin <- rbind(cmin,cann[1,])
-cmax <- rbind(cmax,cann[2,])
-cavg <- rbind(cavg,cann[3,])
-
-ctable <- data.frame(Month=c(month.name, '*Annual*'), Minimum=sig2(cmin[,2], v2=cmin[,1]*10), pvaln=sig2(cmin[,2]), Maximum=sig2(cmax[,2], v2=cmax[,1]*10), pvalx=sig2(cmax[,2]), Average=sig2(cavg[,2], v2=cavg[,1]*10), pvala=sig2(cavg[,2]))
-
-
-kable(ctable, digits=2, col.names=c('Month', 'Minimum','p-value', 'Maximum', 'p-value', 'Average', 'p-value'), caption='Table 4. Average change per decade of Chico minimum, maximum, and mean monthly temperatures from 1931-2014. Change is considered significant and given in bold if p-values are under 0.05.')
-```
-
-
-
-```{r modesto_table,warning=FALSE, echo=FALSE}
-modesto <- mtc[mtc$nearest=='Modesto', ]
-amodesto <- am[am$nearest=='Modesto', ]
-
-#running AR model and extracting coefficients and pvalues
-
-mmin <-  t(sapply(mos, function(m) arf('tmin', 'year', m, modesto) ))
-mmax <- t(sapply(mos, function(m) arf('tmax', 'year', m, modesto) ))
-mavg <- t(sapply(mos, function(m) arf('tavg', 'year', m, modesto) ))
-
-mann <- t(sapply(unique(am$variable), function(v) arf('temp', 'year', NA, amodesto[amodesto$variable==v, ])))
-
-#merging data
-mmin <- rbind(mmin,mann[1,])
-mmax <- rbind(mmax,mann[2,])
-mavg <- rbind(mavg,mann[3,])
-
-mtable <- data.frame(Month=c(month.name, "*Annual*"), Minimum=sig2(mmin[,2], v2=mmin[,1]*10), pvaln=sig2(mmin[,2]), Maximum=sig2(v=mmax[,2], v2=mmax[,1]*10), pvalx=sig2(mmax[,2]), Average=sig2(mavg[,2], v2=mavg[,1]*10), pvala=sig2(mavg[,2]))
-
-kable(mtable, digits=2, col.names=c('Month', 'Minimum','p-value', 'Maximum', 'p-value','Average', 'p-value'), caption='Table 5. Average change per decade of Modesto minimum, maximum, and mean monthly temperatures from 1931-2014. Change is considered significant and given in bold if p-values are under 0.05.')
-
-```
 
 
 ### Spring Phenology
@@ -692,7 +789,15 @@ Annually Parlier exhibits warming minimum temperatures and cooling maximum tempe
 ```{r annual_min_parlier,warning=FALSE, echo=FALSE, fig.cap='Figure 33. Mean annual minimum temperatures from 1931 to 2014 in Parlier, CA, duration of phenology record shown with grey lines.', fig.height=3, fig.width=4.5, tidy=TRUE}
 amp <- am[am$variable=='tmin' & am$nearest=='Parlier',]
 
-anptplot <- ggplot(data=amp) + geom_line(aes(x=year, y=temp), color='blue3') + geom_smooth(aes(x=year, y=temp), size=1, method='lm', se=FALSE, color="black", formula = y ~ x) + ylim(6,12.5) + geom_segment(aes(x=1958, y=7.1, xend=2013, yend=7.1), color='darkgrey') + annotate('text', x=2013, y=7.2, hjust=1, vjust=0, size=3, label='prune flowering')  + geom_segment(aes(x=1988, y=7.5, xend=2013, yend=7.5), color='darkgrey') +annotate('text', x=2013, y=7.6, hjust=1, vjust=0, size=3, label='prune season length')
+anptplot <- ggplot(data=amp) + geom_line(aes(x=year, y=temp), color='blue3') +
+    geom_smooth(aes(x=year, y=temp), size=1, method='lm', se=FALSE,
+                color="black", formula = y ~ x) + ylim(6,12.5) +
+    geom_segment(aes(x=1958, y=7.1, xend=2013, yend=7.1), color='darkgrey') +
+    annotate('text', x=2013, y=7.2, hjust=1, vjust=0, size=3, 
+             label='prune flowering')  +
+    geom_segment(aes(x=1988, y=7.5, xend=2013, yend=7.5), color='darkgrey') +
+    annotate('text', x=2013, y=7.6, hjust=1, vjust=0, size=3, 
+             label='prune season length')
 
 anptplot <- anptplot + theme_bw(10)  + labs(x='Year', y=expression("Temperature  "(~degree*C)))
 
@@ -711,29 +816,6 @@ axtplot <- axtplot + theme_bw(10)  + labs(x='Year', y=expression("Temperature  "
 
 axtplot
 
-
-```
-
-
-```{r parlier_table, warning=FALSE,echo=FALSE}
-parlier <- mtc[mtc$nearest=='Parlier', ]
-aparlier <- am[am$nearest=='Parlier', ]
-
-#running AR model and extracting coefficients and pvalues
-pmin <-  t(sapply(mos, function(m) arf('tmin', 'year', m, parlier) ))
-pmax <- t(sapply(mos, function(m) arf('tmax', 'year', m, parlier) ))
-pavg <- t(sapply(mos, function(m) arf('tavg', 'year', m, parlier) ))
-
-pann <-  t(sapply(unique(am$variable), function(v) arf('temp', 'year', NA, aparlier[aparlier$variable==v, ])))
-
-#merging data
-pmin <- rbind(pmin,pann[1,])
-pmax <- rbind(pmax,pann[2,])
-pavg <- rbind(pavg,pann[3,])
-
-mtable <- data.frame(Month=c(month.name,'*Annual*'), Minimum=sig2(pmin[,2], v2=pmin[,1]*10), pvaln=sig2(pmin[,2]), Maximum=sig2(pmax[,2], v2=pmax[,1]*10), pvalx=sig2(pmax[,2]), Averague=sig2(pavg[,2], v2=pavg[,1]*10), pvala=sig2(pavg[,2]))
-
-kable(mtable, digits=2, col.names=c('Month', 'Minimum','p-value', 'Maximum', 'p-value','Average', 'p-value'), caption='Table 12. Average change per decade of Parlier minimum and maximum monthly temperatures from 1931-2014. Change is considered significant and given in bold if p-values are under 0.05.')
 
 ```
 
@@ -910,7 +992,16 @@ Annual minimum temperatures have risen an average of 0.21&deg;C per decade over 
 ```{r annual_min_davis, echo=FALSE, fig.cap='Figure 45. Mean annual minimum temperatures from 1931 to 2014 in Davis, CA, duration of phenology record shown with grey lines.', fig.height=3, fig.width=4.5, tidy=TRUE}
 amd <- am[am$variable=='tmin' & am$nearest=='Davis',]
 
-andtplot <- ggplot(data=amd) + geom_line(aes(x=year, y=temp), color='blue3') + geom_smooth(aes(x=year, y=temp), size=1, method='lm', se=FALSE, color="black", formula = y ~ x) + ylim(5.5,12) + geom_segment(aes(x=1959, y=10, xend=2013, yend=10), color='darkgrey') + annotate('text', x=2013, y=10.1, hjust=1, vjust=0, size=3, label='Payne') + geom_segment(aes(x=1959, y=10.5, xend=2013, yend=10.5), color='darkgrey') + annotate('text', x=2013, y=10.6, hjust=1, vjust=0, size=3, label='Franquette')  + geom_segment(aes(x=1980, y=11, xend=2013, yend=11), color='darkgrey') +annotate('text', x=2013, y=11.1, hjust=1, vjust=0, size=3, label='Chandler')
+andtplot <- ggplot(data=amd) + geom_line(aes(x=year, y=temp), color='blue3') +
+    geom_smooth(aes(x=year, y=temp), size=1, method='lm', se=FALSE,
+                color="black", formula = y ~ x) + ylim(5.5,12) +
+    geom_segment(aes(x=1959, y=10, xend=2013, yend=10), color='darkgrey') +
+    annotate('text', x=2013, y=10.1, hjust=1, vjust=0, size=3, label='Payne') +
+    geom_segment(aes(x=1959, y=10.5, xend=2013, yend=10.5), color='darkgrey') +
+    annotate('text', x=2013, y=10.6, hjust=1, vjust=0, size=3,
+             label='Franquette')  + 
+    geom_segment(aes(x=1980, y=11, xend=2013, yend=11), color='darkgrey') +
+    annotate('text', x=2013, y=11.1, hjust=1, vjust=0, size=3, label='Chandler')
 
 andtplot <- andtplot + theme_bw(10)  + labs(x='Year', y=expression("Temperature  "(~degree*C)))
 
@@ -936,29 +1027,6 @@ axtplot
 Davis monthly minimum temperatures exhibit strong warming trends in the spring, summer and fall, with temperatures increasing between 0.15&deg;C and 0.26&deg;C per decade in months where a significant change was detected (Table 16). January maximum temperatures in also show a significant warming trend (0.17&deg;C per decade), but it is the only month we have strong evidence of maximum temperatures increasing. In addition, mean maximum temperatures in July display a slight cooling trend (Table 16).
 
 
-```{r davis_table, echo=FALSE}
-davis <- mtc[mtc$nearest=='Davis', ]
-adavis <-  am[am$nearest=='Davis', ]
-
-#running AR model and extracting coefficients and pvalues
-dmin <-  t(sapply(mos, function(m) arf('tmin', 'year', m, davis) ))
-dmax <- t(sapply(mos, function(m) arf('tmax', 'year', m, davis) ))
-davg <- t(sapply(mos, function(m) arf('tavg', 'year', m, davis) ))
-
-#annual stuff
-dann <-  t(sapply(unique(am$variable), function(v) arf('temp', 'year', NA, adavis[adavis$variable==v, ])))
-
-#merging data
-dmin <- rbind(dmin,dann[1,])
-dmax <- rbind(dmax,dann[2,])
-davg <- rbind(davg,dann[3,])
-
-
-dtable <- data.frame(Month=c(month.name,'*Annual*'), Minimum=sig2(dmin[,2], v2=dmin[,1]*10), pvaln=sig2(dmin[,2]), Maximum=sig2(dmax[,2], v2=dmax[,1]*10), pvalx=sig2(dmax[,2]), Average=sig2(davg[,2], v2=davg[,1]*10), pvala=sig2(davg[,2]))
-
-kable(dtable, digits=2, col.names=c('Month', 'Minimum','p-value', 'Maximum', 'p-value', "Average", "p-value"), caption='Table 16. Average change per decade of Davis minimum, maximum, and average monthly temperatures from 1931-2014. Change is considered significant and given in bold if p-values are under 0.05.')
-
-```
 
 
 ### Spring Phenology
