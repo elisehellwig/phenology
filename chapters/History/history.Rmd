@@ -60,8 +60,8 @@ walnutcol <- 'green4'
 prunecol <- 'purple4'
 almondcol <- 'darkgoldenrod3'
 
-source('../R/functions/multiplot.R')
-source('../R/functions/reportfunctions.R')
+source('../../functions/multiplot.R')
+source('../../functions/reportfunctions.R')
 
 
 #data paths
@@ -439,6 +439,13 @@ kable(mtable, digits=2, col.names=c('Month', 'Minimum','p-value', 'Maximum', 'p-
 # Spring Phenology
 
 
+##Almonds
+
+
+Spring bloom and heat sums were analyzed for Chico and Modesto, CA. California State University, Chico hosts the longest known bloom and harvest timing records for almonds, and is part of the long-time commercially important Northern Sacramento Valley almond growing district. 
+
+
+
 
 
 
@@ -446,7 +453,6 @@ kable(mtable, digits=2, col.names=c('Month', 'Minimum','p-value', 'Maximum', 'p-
 # Fall Phenology
 
 
-##Almonds
 
 ```{r almond_models,warning=FALSE, echo=FALSE}
 
@@ -472,7 +478,7 @@ aslen <- lapply(c(3,2,1), function(i) {
 
 ```
 
-Average temperatures, flowering and fruit development thermal time accumulation, spring bloom, and season length were analyzed for Chico, California. This is the location of the longest known bloom and harvest timing records for almonds, and is part of the long-time commercially important Northern Sacramento Valley almond growing district. Additionally, average temperatures, thermal time metric accumulation, spring bloom and season length were analyzed for Modesto, California.
+
 
 ### Temperature Context: Chico and Modesto
 
