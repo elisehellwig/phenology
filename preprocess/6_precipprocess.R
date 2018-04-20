@@ -8,7 +8,7 @@ noaa <- read.csv(file.path(data, 'precipNOAA.csv')) %>%
     as.tibble()
 
 oldvars <- c('NAME', 'DATE','PRCP')
-newvars <- c('name','date','precip')
+newvars <- c('location','date','precip')
 ####################################################################
 
 noaa <- noaa[, oldvars]
@@ -48,5 +48,5 @@ precipitation <- inner_join(seasonalnoaa, annualnoaa,
                             by=c('name', 'winter_year'='annual_year'))
 names(precipitation)[2] <- 'year'
 
-write.csv(precipitation, file.path(data,'precipitation.csv'))
+write.csv(precipitation, file.path(data,'precipitation.csv'), row.names=FALSE)
     
