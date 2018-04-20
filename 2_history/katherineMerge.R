@@ -1,23 +1,28 @@
-library(reshape2)
+source('functions/general.R')
+loadtidyverse()
 
-inpath <- '~/Drive/Phenology/CA_Results/data'
-outpath <- '~/Drive/Phenology/Results/history'
+inpath <- '/Volumes/GoogleDrive/My Drive/Phenology/CA_Results/data'
+outpath <- '/Volumes/GoogleDrive/My Drive/Phenology/Results/history'
+precippath <- '/Volumes/GoogleDrive/My Drive/Phenology/data/historydata'
 
-almondK <- read.csv(file.path(inpath, 'Almond_CrCragHrJD.csv'),
-                    stringsAsFactors = FALSE)
-af <- read.csv(file.path(inpath, 'almondfloweringdata.csv'), 
-               stringsAsFactors = FALSE)
-pruneK <- read.csv(file.path(inpath, 'Prune_Cr38JD_Crag49JD_HrJD.csv'))
-pf <- read.csv(file.path(inpath,'prunefloweringdata.csv'))
+almondK <- read_csv(file.path(inpath, 'Almond_CrCragHrJD.csv'))
+af <- read_csv(file.path(inpath, 'almondfloweringdata.csv'))
 
-wf <- read.csv(file.path(inpath, 'walnutfloweringdata.csv'), 
-               stringsAsFactors = FALSE)
+pruneK <- read_csv(file.path(inpath, 'Prune_Cr38JD_Crag49JD_HrJD.csv')) 
+
+pf <- read_csv(file.path(inpath,'prunefloweringdata.csv'))
+
+wf <- read_csv(file.path(inpath, 'walnutfloweringdata.csv'))
 
 #chandK <- read.csv(file.path(inpath, 'Chand_Cr42JDCrag53JDHrJD.csv'))
 #franqK <- read.csv(file.path(inpath, 'Franq_Cr51JDCrag60JDHrJD.csv'))
 #payneK <- read.csv(file.path(inpath, 'Payne_Cr33JDCrag46JDHrJD.csv'))
 
-walnutK <- read.csv(file.path(outpath, 'walnutchill.csv'))
+walnutK <- read_csv(file.path(outpath, 'walnutchill.csv'))
+
+precip <- read_csv(file.path(precippath, 'precipitation.csv'))
+    
+
 
 elisecols <- c('year','cultivar','nearest','fday')
 katherinecols  <- c('location','cultivar','year','Chill', 'Heat')
@@ -26,13 +31,15 @@ katherinecols  <- c('location','cultivar','year','Chill', 'Heat')
 ##############################ALMONDS###############################
 
 
-afr <- af[,elisecols] 
+afr <- select(af, elisecols)
 names(afr)[3:4] <- c('location','bloom') 
 
-akc <- dcast(almondK, location + cultivar + year ~ requ, value.var = 'jd')
-akcr <- akc[, katherinecols]
+akc <- almondK %>% spread(requ, jd)
+akcr <- akc %>% select(katherinecols)
 
-afnew <- merge(afr, akcr)
+afnew <- inner_join(afr, akcr)
+
+afrain <- inner_join(afnew, precip)
 
 write.csv(afnew, file.path(outpath, 'almondspring.csv'), row.names = FALSE)
 
