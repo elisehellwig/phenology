@@ -14,7 +14,7 @@ newvars <- c('location','date','precip')
 noaa <- noaa[, oldvars]
 names(noaa) <- newvars
 
-noaa$name <- noaa$name %>%
+noaa$location <- noaa$location %>%
     recode("CHICO UNIVERSITY FARM, CA US"="Chico",
            "MODESTO CITY CO AIRPORT, CA US"="Modesto",
            "VISALIA, CA US"="Parlier",
@@ -36,16 +36,16 @@ noaa$winter <- noaa$month %>%
 
 seasonalnoaa <- noaa %>%
     filter(winter=='winter', winter_year>1914) %>%
-    group_by(name, winter_year) %>%
+    group_by(location, winter_year) %>%
     summarise(winter=sum(precip))
 
 annualnoaa <- noaa %>%
     filter(annual_year>1914) %>%
-    group_by(name, annual_year) %>%
+    group_by(location, annual_year) %>%
     summarize(annual=sum(precip))
     
 precipitation <- inner_join(seasonalnoaa, annualnoaa, 
-                            by=c('name', 'winter_year'='annual_year'))
+                            by=c('location', 'winter_year'='annual_year'))
 names(precipitation)[2] <- 'year'
 
 write.csv(precipitation, file.path(data,'precipitation.csv'), row.names=FALSE)
