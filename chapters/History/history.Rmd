@@ -465,8 +465,6 @@ ab
 
 ```{r prunebloom, fig.cap='Prune flowering day by winter heat sum in Parlier, California.'}
 
-pfm <- pf %>% gather()
-
 pb <- ggplot(data=pf) + theme_bw() +
     geom_point(aes(x=Heat, y=bloom), size=1.5, color='prunecol') +
     labs(x='Heat Sum', y='Flowering (Julian Day)')
@@ -493,6 +491,8 @@ wb
 
 # Fall Phenology
 
+
+## Almonds
 
 
 ```{r almond_models,warning=FALSE, echo=FALSE}
