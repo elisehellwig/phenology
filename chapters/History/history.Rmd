@@ -32,9 +32,10 @@ bibliography: phenology.bib
 
 ```{r, env_setup, echo=FALSE, message=FALSE, warning=FALSE}
 #This is the set-up block of code, it loads all of the required libraries
+
+library(tidyverse)
 library(knitr)
 library(lubridate)
-library(ggplot2)
 library(plyr, warn.conflicts=FALSE)
 library(reshape2)
 library(grid)
@@ -71,23 +72,26 @@ data3 <- '/Volumes/GoogleDrive/My Drive/Phenology/data/historydata'
 data4 <- '/Volumes/GoogleDrive/My Drive/Phenology/Results/history'
 
 #data
-weather <- read.csv(file.path(data3, 'weatherlocations.csv'))
-ctemps <- read.csv(file.path(data1,'switchday.csv'))
+precip <- read_csv(file.path(data3, 'chicoprecip.csv'))
+weather <- read_csv(file.path(data3, 'weatherlocations.csv'))
+ctemps <- read_csv(file.path(data1,'switchday.csv'))
 fp <- readRDS(file.path(data1, 'floweringpredictors.RDS'))
 slp <- readRDS(file.path(data1, 'seasonlengthpredictors.RDS'))
 
 
-am <- read.csv(file.path(data2, 'annualtemperatures.csv'))
-amlabs <- read.csv(file.path(data3, 'temptrendlabels.csv'))
-mtc <- read.csv(file.path(data2, 'monthlytemperatures.csv'))
+am <- read_csv(file.path(data2, 'annualtemperatures.csv'))
+amlabs <- read_csv(file.path(data3, 'temptrendlabels.csv'))
+mtc <- read_csv(file.path(data2, 'monthlytemperatures.csv'))
 
-af <- read.csv(file.path(data2, 'almondfloweringdata.csv'))
-pf <- read.csv(file.path(data2, 'prunefloweringdata.csv'))
-wf <- read.csv(file.path(data2, 'walnutfloweringdata.csv'))
+spring <- read_csv(file.path(data4, 'spring.csv'))
 
-asl <- read.csv(file.path(data2, 'almondseasonlengthdata.csv'))
-psl <- read.csv(file.path(data2, 'pruneseasonlengthdata.csv'))
-wsl <- read.csv(file.path(data2, 'walnutseasonlengthdata.csv'))
+af <- spring %>% filter(crop=='almond') 
+pf <- spring %>% filter(crop=='prune')
+wf <- spring %>% filter(crop=='walnut')
+
+asl <- read_csv(file.path(data2, 'almondseasonlengthdata.csv'))
+psl <- read_csv(file.path(data2, 'pruneseasonlengthdata.csv'))
+wsl <- read_csv(file.path(data2, 'walnutseasonlengthdata.csv'))
 
 
 #Katherine's data
@@ -442,11 +446,48 @@ kable(mtable, digits=2, col.names=c('Month', 'Minimum','p-value', 'Maximum', 'p-
 ##Almonds
 
 
-Spring bloom and heat sums were analyzed for Chico and Modesto, CA. California State University, Chico hosts the longest known bloom and harvest timing records for almonds, and is part of the long-time commercially important Northern Sacramento Valley almond growing district. 
+Spring bloom and heat sums were analyzed for Chico and Modesto, CA. California State University, Chico hosts the longest known bloom and harvest timing records for almonds, and is part of the long-time commercially important Northern Sacramento Valley almond growing district. Spring heat predicts flowering for both Nonpareil and Mission cultivars in Chico and Modesto. Heat sums explain more variation in Nonpareil almond bloom in both locations. January precipitation also explains some variation in Nonpareil flowering dates in Chico bringing the R$^2$ value for the final flowering model to 0.43 (Table X). 
+
+
+```{r almondbloom, fig.cap='Bloom day by heat sum for two cultivars in Chico and Modesto, California.'}
+
+ab <- ggplot(data=af) + labs(x='Heat Sum', y='Bloom Day (Julian)')
+    geom_point(aes(x=Heat, y=bloom), size = 1.5, color=almondcol) +
+    facet_grid(cultivar~location) + theme_bw 
+
+ab
+
+```
 
 
 
+## Prunes
 
+```{r prunebloom, fig.cap='Prune flowering day by winter heat sum in Parlier, California.'}
+
+pfm <- pf %>% gather()
+
+pb <- ggplot(data=pf) + theme_bw() +
+    geom_point(aes(x=Heat, y=bloom), size=1.5, color='prunecol') +
+    labs(x='Heat Sum', y='Flowering (Julian Day)')
+
+pb
+
+```
+
+
+
+## Walnuts
+
+```{r Walnutbloom, fig.cap='Walnut flowering day by winter heat sum for three cultivars in Davis, California.'}
+
+wb <- ggplot(data=wf) + theme_bw() + facet_wrap(~cultivar)
+    geom_point(aes(x=Heat, y=bloom), size=1.5, color='walnutcol') +
+    labs(x='Heat Sum', y='Flowering (Julian Day)')
+
+wb
+
+```
 
 
 
@@ -1062,66 +1103,6 @@ wplot
 
 
 
-```{r walnut_flower_katherine2, echo=FALSE, fig.cap='Figure 48. Walnut leaf out day by cultivar over time, segmented regression analysis.', fig.height=2.5}
-
-######################CHANDLER#####################
-chand<-wf[wf$cultivar=='Chandler',]
-clm<-lm(fday~year, data=chand)
-clm.seg<-segmented(clm,seg.Z=~year,psi=1987) ###creates segmented reg. model. starts search for cp at 1987. Can get initial cp from Davies Test above or visual inspection
-fit<-numeric(length(chand$year))*NA
-fit[complete.cases(rowSums(cbind(chand$fday,chand$year)))] <-broken.line(clm.seg)$fit
-datac <- data.frame(cultivar="Chandler", year=chand$year, fday=chand$fday, fit=fit) 
-
-#####################FRANQUETTE#####################
-franq<-wf[wf$cultivar=='Franquette',]
-flm<-lm(fday~year, data=franq)
-flm.seg<-segmented(flm,seg.Z=~year,psi=1987) ###creates segmented reg. model. starts search for cp at 1987. Can get initial cp from Davies Test above or visual inspection 
-fit<-numeric(length(franq$year))*NA
-fit[complete.cases(rowSums(cbind(franq$fday,franq$year)))] <-broken.line(flm.seg)$fit
-
-dataf <- data.frame(cultivar="Franquette", year=franq$year, fday=franq$fday, fit=fit)
-
-######################PAYNE#####################
-
-payne<-wf[wf$cultivar=="Payne",]
-plm<-lm(fday~year, data=payne)
-plm.seg<-segmented(plm,seg.Z=~year,psi=1987) ###creates segmented reg. model. starts search for cp at 1987. Can get initial cp from Davies Test above or visual inspection 
-fit<-numeric(length(payne$year))*NA
-fit[complete.cases(rowSums(cbind(payne$fday,payne$year)))] <-broken.line(plm.seg)$fit
-datap <- data.frame(cultivar="Payne", year=payne$year, fday=payne$fday, fit=fit)
-
-data2 <- rbind(datac, dataf,datap)
-
-plmplot <- ggplot(data=data2) + geom_point(aes(x=year, y=fday), color=walnutcol,size=1.5) + facet_wrap(~cultivar) + geom_line(aes(x = year, y = fit), color = 'black') + labs(x='Leaf out (julian day)')
-plmplot <- plmplot + theme_bw(10)  + labs(x='Year')
-
-#############
-plmplot
-```
-
-
-
-
-
-```{r walnutflowertable_davis_katherine, echo=FALSE}
-
-segs <- list(clm.seg, flm.seg, plm.seg)
-lms <- list(clm, flm, plm)
-
-walnutcults <- c('Chandler','Franquette','Payne')
-regp <- sapply(1:3, function(i) round(summary(lms[[i]])$coefficients[2,4],3) )
-sregp <-  sapply(1:3, function(i) round(summary(segs[[i]])$coefficients[2,4],3) )
-cngpt <- sapply(1:3, function(i) round(segs[[i]]$psi[2]))
-slope1 <- sapply(1:3, function(i) round(summary(segs[[i]])$coefficients[2,1],3) )
-slope2 <- sapply(1:3, function(i) round(summary(segs[[i]])$coefficients[3,1],3) )
-pvalpayne <- sapply(1:3, function(i) round(summary(segs[[i]])$coefficients[3,4],4) )
-
-davischill <- data.frame(cult=walnutcults, lmreg=regp, segreg=sregp, change=cngpt, slp1=slope1, slp2=slope2, ppval=pvalpayne)
-
-kable(davischill, col.names = c('cultivar', 'lm p-value', 'seg.lm p-value', 'change point', '1st slope','2nd slope', 'p-value since 1988'), caption='Table 17. Walnut leaf-out day change over time.')
-
-
-```
 
 
 ####Leaf-out dates and monthly temperature
