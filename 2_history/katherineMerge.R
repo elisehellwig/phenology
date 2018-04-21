@@ -1,5 +1,5 @@
-source('functions/general.R')
-loadtidyverse()
+library(tidyverse, warn.conflicts = FALSE, quietly = TRUE, verbose=FALSE)
+library(lubridate, quietly = TRUE, warn.conflicts = FALSE)
 
 inpath <- '/Volumes/GoogleDrive/My Drive/Phenology/CA_Results/data'
 outpath <- '/Volumes/GoogleDrive/My Drive/Phenology/Results/history'
@@ -31,33 +31,38 @@ katherinecols  <- c('location','cultivar','year','Chill', 'Heat')
 ##############################ALMONDS###############################
 
 
-afr <- select(af, elisecols)
-names(afr)[3:4] <- c('location','bloom') 
+almondEH <- select(af, elisecols)
+names(almondEH)[3:4] <- c('location','bloom') 
 
-akc <- almondK %>% spread(requ, jd)
-akcr <- akc %>% select(katherinecols)
+almondKJS <- almondK %>% 
+    spread(requ, jd) %>% 
+    select(katherinecols)
 
-afnew <- inner_join(afr, akcr)
+almond <- inner_join(almondEH, almondKJS)
 
-afrain <- inner_join(afnew, precip)
+#afrain <- inner_join(afnew, precip)
 
-write.csv(afnew, file.path(outpath, 'almondspring.csv'), row.names = FALSE)
+#write.csv(afnew, file.path(outpath, 'almondspring.csv'), row.names = FALSE)
 
 
 ######################################################################
 ##############################PRUNES##################################
 
-pfr <- pf[pf$nearest=='Parlier',  elisecols[-(2:3)]]
-names(pfr)[2] <- 'bloom'
+pruneEH <- pf %>% 
+    filter(nearest=='Parlier') %>%
+    select(elisecols[-2])
+
+pruneEH$cultivar <- 'French'
+names(pruneEH)[2:3] <- c('location', 'bloom')
 
 
-pkc <- dcast(pruneK, year ~ requ, value.var = 'jd')
-pkr <- pkc[, katherinecols[-(1:2)]]
+pruneKJS <- pruneK %>% 
+    spread(requ, jd) %>% 
+    select(katherinecols[-(1:2)])
 
+prune <- inner_join(pruneEH, pruneKJS)
 
-pfnew <- merge(pfr, pkr)
-
-write.csv(pfnew, file.path(outpath, 'prunespring.csv'), row.names = FALSE)
+#write.csv(pfnew, file.path(outpath, 'prunespring.csv'), row.names = FALSE)
 
 ######################################################################
 ##############################Walnuts###############################
@@ -73,15 +78,24 @@ write.csv(pfnew, file.path(outpath, 'prunespring.csv'), row.names = FALSE)
 
 ##########################
 
-wfr <- wf[,elisecols[-3]] 
-names(wfr)[3] <- c('bloom') 
+walnutEH <- wf %>% select(elisecols)
+names(walnutEH)[3:4] <- c('location','bloom') 
 
-wkc <- dcast(walnutK, cultivar + year ~ requ, value.var = 'jd')
-wkr <- wkc[, katherinecols[-1]]
+walnutKJS <- walnutK %>% 
+    spread(requ, jd) %>% 
+    select(katherinecols[-1])
 
-wfnew <- merge(wfr, wkr)
+walnut <- inner_join(walnutEH, walnutKJS)
 
-write.csv(wfnew, file.path(outpath, 'walnutspring.csv'), row.names = FALSE)
+######################################################################
+#########################Putting it Together##########################
+
+fruits <- rbind(almond, prune, walnut)
+spring <- inner_join(fruits, precip)
+
+write.csv(spring, file.path(outpath, 'spring.csv'), row.names = FALSE)
+
+#write.csv(wfnew, file.path(outpath, 'walnutspring.csv'), row.names = FALSE)
 
 
 
