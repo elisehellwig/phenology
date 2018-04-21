@@ -1,5 +1,5 @@
-library(tidyverse, warn.conflicts = FALSE, quietly = TRUE, verbose=FALSE)
-library(lubridate, quietly = TRUE, warn.conflicts = FALSE)
+library(tidyverse)
+library(lubridate)
 
 inpath <- '/Volumes/GoogleDrive/My Drive/Phenology/CA_Results/data'
 outpath <- '/Volumes/GoogleDrive/My Drive/Phenology/Results/history'
@@ -39,6 +39,7 @@ almondKJS <- almondK %>%
     select(katherinecols)
 
 almond <- inner_join(almondEH, almondKJS)
+almond$crop <- 'almond'
 
 #afrain <- inner_join(afnew, precip)
 
@@ -61,6 +62,7 @@ pruneKJS <- pruneK %>%
     select(katherinecols[-(1:2)])
 
 prune <- inner_join(pruneEH, pruneKJS)
+prune$crop <- 'prune'
 
 #write.csv(pfnew, file.path(outpath, 'prunespring.csv'), row.names = FALSE)
 
@@ -86,7 +88,7 @@ walnutKJS <- walnutK %>%
     select(katherinecols[-1])
 
 walnut <- inner_join(walnutEH, walnutKJS)
-
+walnut$crop <- 'walnut'
 ######################################################################
 #########################Putting it Together##########################
 
