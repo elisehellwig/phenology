@@ -1,8 +1,37 @@
 library(tidyverse)
 library(lubridate)
 
-inpath <- '/Volumes/GoogleDrive/My Drive/Phenology/Results/history'
+path <- '/Volumes/GoogleDrive/My Drive/Phenology/Results/history'
 
-almond <- read_csv(file.path(inpath, 'almondseasonlengthdata.csv'))
-prune <- read_csv(file.path(inpath, 'pruneseasonlengthdata.csv'))
-walnut <- read_csv(file.path(inpath, 'almondseasonlengthdata.csv'))
+almond <- read_csv(file.path(path, 'almondseasonlengthdata.csv'))
+prune <- read_csv(file.path(path, 'pruneseasonlengthdata.csv'))
+walnut <- read_csv(file.path(path, 'walnutseasonlengthdata.csv'))
+
+thermal <- read_csv(file.path(path, 'thermaltimeaccumulation.csv'))
+
+voi <- c('year','cultivar','nearest','slen')
+voi_thermal <- c('crop', 'cultivar','year','anderson')
+####################################################################
+####################################################################
+
+a <- select(almond, voi)
+a$crop <- 'almond'
+
+prune$cultivar <- 'French'
+p <- select(prune, voi)
+p$crop <- 'prune'
+
+
+w <- select(walnut, voi)
+w$crop <- 'walnut'
+
+th <- select(thermal, voi_thermal)
+
+####################################################################
+####################################################################
+
+fall <- bind_rows(a, p, w) %>%
+    inner_join(th)
+
+write_csv(fall, file.path(path, 'fall.csv'))
+
