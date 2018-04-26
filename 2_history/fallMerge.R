@@ -25,13 +25,18 @@ p$crop <- 'prune'
 w <- select(walnut, voi)
 w$crop <- 'walnut'
 
-th <- select(thermal, voi_thermal)
+th <- thermal %>% 
+    select(-simplified) %>% 
+    rename(heatsum=anderson)
+
 
 ####################################################################
 ####################################################################
 
 fall <- bind_rows(a, p, w) %>%
-    inner_join(th)
+    inner_join(th) %>%
+    mutate(heatscl=ave(heatsum, cultivar, FUN=scale))
+
 
 write_csv(fall, file.path(path, 'fall.csv'))
 
