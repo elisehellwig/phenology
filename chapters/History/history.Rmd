@@ -89,9 +89,11 @@ af <- spring %>% filter(crop=='almond')
 pf <- spring %>% filter(crop=='prune')
 wf <- spring %>% filter(crop=='walnut')
 
-asl <- read_csv(file.path(data2, 'almondseasonlengthdata.csv'))
-psl <- read_csv(file.path(data2, 'pruneseasonlengthdata.csv'))
-wsl <- read_csv(file.path(data2, 'walnutseasonlengthdata.csv'))
+fall <- read_csv(file.path(data4, 'fall.csv'))
+
+asl <- fall %>% filter(crop=='almond') 
+psl <- fall %>% filter(crop=='prune')
+wsl <- fall %>% filter(crop=='walnut')
 
 
 #Katherine's data
@@ -100,16 +102,26 @@ wsl <- read_csv(file.path(data2, 'walnutseasonlengthdata.csv'))
 wca <- read.csv(file.path(data2, 'monthlychillaccumulation.csv')) 
 pblm <- read.csv(file.path(data2, 'Bloom_Parlier_French_ksp.csv')) #Prune bloom at Parlier
 
-#bloom, chill and heat data
-pspring <- read.csv(file.path(data4, 'prunespring.csv'))
-aspring <- read.csv(file.path(data4, 'almondspring.csv'))
-wspring <- read.csv(file.path(data4, 'walnutspring.csv'))
 
-preqjd <- read.csv('../CA_Results/data/Prune_Cr38JD_Crag49JD_HrJD.csv', stringsAsFactors = FALSE) #Prune day of year for day of chill requ, agronomic chill requ and heat requ met
-cwreqjd <- read.csv('../CA_Results/data/Chand_Cr42JDCrag53JDHrJD.csv', stringsAsFactors = FALSE) # Chandler Walnut day of year for day of chill requ, agronomic chill requ and heat requ met
-fwreqjd <- read.csv('../CA_Results/data/Franq_Cr51JDCrag60JDHrJD.csv', stringsAsFactors = FALSE) # Franquette Walnut day of year for day of chill requ, agronomic chill requ and heat requ met
-pwreqjd <- read.csv('../CA_Results/data/Payne_Cr33JDCrag46JDHrJD.csv', stringsAsFactors = FALSE) # Payne Walnut day of year for day of chill requ, agronomic chill requ and heat requ met
-arequjd<-read.csv('../CA_Results/data/Almond_CrCragHrJD.csv', stringsAsFactors = FALSE) #Almond day of year for chill, ag chill, heat requs being met. Chico and Modesto, Sonora, Nonpareil & Mission
+#Prune day of year for day of chill requ, agronomic chill requ and heat requ met
+preqjd <- read.csv('../CA_Results/data/Prune_Cr38JD_Crag49JD_HrJD.csv',
+                   stringsAsFactors = FALSE) 
+
+# Chandler Walnut day of year for day of chill requ, agronomic chill requ and heat requ met
+cwreqjd <- read.csv('../CA_Results/data/Chand_Cr42JDCrag53JDHrJD.csv',
+                    stringsAsFactors = FALSE) 
+
+# Franquette Walnut day of year for day of chill requ, agronomic chill requ and heat requ met
+fwreqjd <- read.csv('../CA_Results/data/Franq_Cr51JDCrag60JDHrJD.csv',
+                    stringsAsFactors = FALSE) 
+
+# Payne Walnut day of year for day of chill requ, agronomic chill requ and heat requ met
+pwreqjd <- read.csv('../CA_Results/data/Payne_Cr33JDCrag46JDHrJD.csv',
+                    stringsAsFactors = FALSE) 
+
+#Almond day of year for chill, ag chill, heat requs being met. Chico and Modesto, Sonora, Nonpareil & Mission
+arequjd<-read.csv('../CA_Results/data/Almond_CrCragHrJD.csv', 
+                  stringsAsFactors = FALSE) 
 
 
 locations <- c('Chico', 'Modesto', 'Parlier', 'Davis')
