@@ -30,13 +30,12 @@ bibliography: phenology.bib
 ---
 
 
-```{r, env_setup, echo=FALSE, message=FALSE, warning=FALSE}
+```{r, env_setup, echo=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
 #This is the set-up block of code, it loads all of the required libraries
 
 library(tidyverse)
 library(knitr)
 library(lubridate)
-library(plyr, warn.conflicts=FALSE)
 library(reshape2)
 library(grid)
 library(segmented)
@@ -46,7 +45,9 @@ library(mgsub)
 
 opts_chunk$set(tidy.opts=list(width.cutoff=60), 
                stringsAsFactors=FALSE,
-               knitr.table.format = "latex")
+               knitr.table.format = "latex",
+               echo = FALSE,
+               cache=TRUE)
 options(warn=0)
 #this makes it so numbers aren't put into scientific notation
 #options(scipen=999)
@@ -61,70 +62,47 @@ walnutcol <- 'green4'
 prunecol <- 'purple4'
 almondcol <- 'darkgoldenrod3'
 
-source('../../functions/multiplot.R')
-source('../../functions/reportfunctions.R')
-
-
 #data paths
+sourcepath <- '/Users/echellwig/Research/phenology/functions'
 data1 <- '/Volumes/GoogleDrive/My Drive/Phenology/CA_Results/'
-data2 <- file.path(data1, 'data')
-data3 <- '/Volumes/GoogleDrive/My Drive/Phenology/data/historydata'
-data4 <- '/Volumes/GoogleDrive/My Drive/Phenology/Results/history'
+data2 <- '/Volumes/GoogleDrive/My Drive/Phenology/data/historydata'
+data3 <- '/Volumes/GoogleDrive/My Drive/Phenology/Results/history'
+
+source(file.path(sourcepath, 'multiplot.R'))
+source(file.path(sourcepath, 'reportfunctions.R'))
+
+
 
 #data
-precip <- read_csv(file.path(data3, 'chicoprecip.csv'))
-weather <- read_csv(file.path(data3, 'weatherlocations.csv'))
+weather <- read_csv(file.path(data2, 'weatherlocations.csv'))
 ctemps <- read_csv(file.path(data1,'switchday.csv'))
 fp <- readRDS(file.path(data1, 'floweringpredictors.RDS'))
 slp <- readRDS(file.path(data1, 'seasonlengthpredictors.RDS'))
 
 
-am <- read_csv(file.path(data2, 'annualtemperatures.csv'))
-amlabs <- read_csv(file.path(data3, 'temptrendlabels.csv'))
-mtc <- read_csv(file.path(data2, 'monthlytemperatures.csv'))
+am <- read_csv(file.path(data1, 'data/annualtemperatures.csv'))
+amlabs <- read_csv(file.path(data2, 'temptrendlabels.csv'))
+mtc <- read_csv(file.path(data1, 'data/monthlytemperatures.csv'))
 
-spring <- read_csv(file.path(data4, 'spring.csv'))
+spring <- read_csv(file.path(data3, 'spring.csv'))
 
 af <- spring %>% filter(crop=='almond') 
 pf <- spring %>% filter(crop=='prune')
 wf <- spring %>% filter(crop=='walnut')
 
-wf <- mutate(wf, heatscale=ave(Heat, cultivar, FUN=scale))
 
-fall <- read_csv(file.path(data4, 'fall.csv'))
+fall <- read_csv(file.path(data3, 'fall.csv'))
 
 asl <- fall %>% filter(crop=='almond') 
 psl <- fall %>% filter(crop=='prune')
 wsl <- fall %>% filter(crop=='walnut')
 
-asl <- asl %>% mutate(andscale=ave(anderson, cultivar, FUN=scale))
 
 #Katherine's data
 
 #Monthly and Total Winter Chill Accumulation for all sites (Chico, Davis, Modesto, Parlier)
-wca <- read.csv(file.path(data2, 'monthlychillaccumulation.csv')) 
-pblm <- read.csv(file.path(data2, 'Bloom_Parlier_French_ksp.csv')) #Prune bloom at Parlier
-
-
-#Prune day of year for day of chill requ, agronomic chill requ and heat requ met
-preqjd <- read.csv('../CA_Results/data/Prune_Cr38JD_Crag49JD_HrJD.csv',
-                   stringsAsFactors = FALSE) 
-
-# Chandler Walnut day of year for day of chill requ, agronomic chill requ and heat requ met
-cwreqjd <- read.csv('../CA_Results/data/Chand_Cr42JDCrag53JDHrJD.csv',
-                    stringsAsFactors = FALSE) 
-
-# Franquette Walnut day of year for day of chill requ, agronomic chill requ and heat requ met
-fwreqjd <- read.csv('../CA_Results/data/Franq_Cr51JDCrag60JDHrJD.csv',
-                    stringsAsFactors = FALSE) 
-
-# Payne Walnut day of year for day of chill requ, agronomic chill requ and heat requ met
-pwreqjd <- read.csv('../CA_Results/data/Payne_Cr33JDCrag46JDHrJD.csv',
-                    stringsAsFactors = FALSE) 
-
-#Almond day of year for chill, ag chill, heat requs being met. Chico and Modesto, Sonora, Nonpareil & Mission
-arequjd<-read.csv('../CA_Results/data/Almond_CrCragHrJD.csv', 
-                  stringsAsFactors = FALSE) 
+wca <- read.csv(file.path(data1, 'data/monthlychillaccumulation.csv')) 
+pblm <- read.csv(file.path(data1, 'data/Bloom_Parlier_French_ksp.csv')) #Prune bloom at Parlier
 
 
 locations <- c('Chico', 'Modesto', 'Parlier', 'Davis')
@@ -132,6 +110,13 @@ mos <- 1:12
 
 
 ```
+
+## Notes
+
+- Need to add chill and heat sums over time
+- Need to run linear models and then extract the interesting numbers
+- Need to find a good way to plot all the things without having massive amounts of space in the graph (ex scaling the data)
+- To be honest I my want to scale the data anyway for model fitting.
 
 
 # Introduction
@@ -295,7 +280,7 @@ kable(ctemps, col.names=c('Crop', 'Cultivar','Model', 'TTAL', 'Base Temp', 'Opti
 # Temperature Trends
 
 
-```{r annual_min_plot, warning=FALSE, echo=FALSE, fig.cap='Figure 3. Mean Annual Minimum Temperatures from 1931 to 2014, duration of phenology record shown with grey lines.', fig.height=2.5, fig.width=6, tidy=TRUE}
+```{r annual_min_plot, warning=FALSE, echo=FALSE, fig.cap='Figure 3. Mean Annual Minimum Temperatures from 1931 to 2014, duration of phenology record shown with grey lines.', fig.height=5, fig.width=6, tidy=TRUE}
 
 am_min <- am[am$variable=='tmin',]
 labs_min <- amlabs[amlabs$variable=='tmin', ]
@@ -316,7 +301,7 @@ minplot
 
 
 
-```{r annual_max_plot, warning=FALSE, echo=FALSE, fig.cap='Figure 3. Mean Annual Minimum Temperatures from 1931 to 2014, duration of phenology record shown with grey lines.', fig.height=2.5, fig.width=6, tidy=TRUE}
+```{r annual_max_plot, warning=FALSE, echo=FALSE, fig.cap='Figure 3. Mean Annual Minimum Temperatures from 1931 to 2014, duration of phenology record shown with grey lines.', fig.height=5, fig.width=6, tidy=TRUE}
 
 am_max <- am[am$variable=='tmax',]
 labs_max <- amlabs[amlabs$variable=='tmax', ]
@@ -339,10 +324,12 @@ maxplot
 
 Over the past 80 years, annual temperatures minimum temperatures have stayed roughly the same in Chico but the annual maximum temperature has increased by 0.085  &deg;C (Table 5, Figures 2-3). No monthly minimum temperatures in Chico exhibit any significant trends. However, January, February, and December monthly maximum temperatures show significant increasing trends (Table 5).
 
+Modesto minimum temperatures show the strongest warming trends of all the locations, with a mean increase of 0.2 &deg;C per decade (Figure 3, Table 2). In addition, all mean minimum temperatures show significant increases in all months except for January and the means from eight months increased at over 0.3&deg;C per decade (Table 2). The annual maximum temperature in Modesto is also increasing, but not as rapidly (Figure 4, Table 5). Also, only seven months exhibit significant positive thrends in temperature (Table 5).
+
 
 
 ```{r chico_table, warning=FALSE,echo=FALSE}
-chico <- mtc[mtc$nearest=='Chico', ]
+chico <- filter(mtc, nearest=='Chico')
 achico <- am[am$nearest=='Chico', ]
 
 
@@ -351,18 +338,18 @@ cmin <-  t(sapply(mos, function(m) arf('tmin', 'year', m, chico) ))
 cmax <- t(sapply(mos, function(m) arf('tmax', 'year', m, chico) ))
 cavg <- t(sapply(mos, function(m) arf('tavg', 'year', m, chico) ))
 
-#running linear model etc for annual data
-cann <- t(sapply(unique(am$variable), function(v) arf('temp', 'year', NA, achico[achico$variable==v, ])))
-
-#merging data
-cmin <- rbind(cmin,cann[1,])
-cmax <- rbind(cmax,cann[2,])
-cavg <- rbind(cavg,cann[3,])
-
-ctable <- data.frame(Month=c(month.name, '*Annual*'), Minimum=sig2(cmin[,2], v2=cmin[,1]*10), pvaln=sig2(cmin[,2]), Maximum=sig2(cmax[,2], v2=cmax[,1]*10), pvalx=sig2(cmax[,2]), Average=sig2(cavg[,2], v2=cavg[,1]*10), pvala=sig2(cavg[,2]))
-
-
-kable(ctable, digits=2, col.names=c('Month', 'Minimum','p-value', 'Maximum', 'p-value', 'Average', 'p-value'), caption='Table 4. Average change per decade of Chico minimum, maximum, and mean monthly temperatures from 1931-2014. Change is considered significant and given in bold if p-values are under 0.05.')
+# #running linear model etc for annual data
+# cann <- t(sapply(unique(am$variable), function(v) arf('temp', 'year', NA, achico[achico$variable==v, ])))
+# 
+# #merging data
+# cmin <- rbind(cmin,cann[1,])
+# cmax <- rbind(cmax,cann[2,])
+# cavg <- rbind(cavg,cann[3,])
+# 
+# ctable <- data.frame(Month=c(month.name, '*Annual*'), Minimum=sig2(cmin[,2], v2=cmin[,1]*10), pvaln=sig2(cmin[,2]), Maximum=sig2(cmax[,2], v2=cmax[,1]*10), pvalx=sig2(cmax[,2]), Average=sig2(cavg[,2], v2=cavg[,1]*10), pvala=sig2(cavg[,2]))
+# 
+# 
+# kable(ctable, digits=2, col.names=c('Month', 'Minimum','p-value', 'Maximum', 'p-value', 'Average', 'p-value'), caption='Table 4. Average change per decade of Chico minimum, maximum, and mean monthly temperatures from 1931-2014. Change is considered significant and given in bold if p-values are under 0.05.')
 ```
 
 
@@ -373,8 +360,8 @@ Modesto minimum temperatures show the strongest warming trends of all the locati
 
 
 ```{r modesto_table,warning=FALSE, echo=FALSE}
-modesto <- mtc[mtc$nearest=='Modesto', ]
-amodesto <- am[am$nearest=='Modesto', ]
+modesto <- filter(mtc, nearest=='Modesto')
+amodesto <- filter(am, nearest=='Modesto')
 
 #running AR model and extracting coefficients and pvalues
 
@@ -400,7 +387,11 @@ kable(mtable, digits=2, col.names=c('Month', 'Minimum','p-value', 'Maximum', 'p-
 In Davis, annual minimum temperatures have risen an average of 0.21&deg;C per decade over the past 80 years based on an autoregressive linear analysis (Figure 2). Annual maximum temperatures, however, have stayed fairly constant (Figure 3). Davis monthly minimum temperatures exhibit strong warming trends in the spring, summer and fall, with temperatures increasing between 0.15&deg;C and 0.26&deg;C per decade in months where a significant change was detected (Table 16). January maximum temperatures in also show a significant warming trend (0.17&deg;C per decade), but it is the only month we have strong evidence of maximum temperatures increasing. In addition, mean maximum temperatures in July display a slight cooling trend (Table 7).
 
 
-```{r davis_table, echo=FALSE}
+Davis monthly minimum temperatures exhibit strong warming trends in the spring, summer and fall, with temperatures increasing between 0.15&deg;C and 0.26&deg;C per decade in months where a significant change was detected (Table 16). January maximum temperatures in also show a significant warming trend (0.17&deg;C per decade), but it is the only month we have strong evidence of maximum temperatures increasing. In addition, mean maximum temperatures in July display a slight cooling trend (Table 16).
+
+
+
+```{r davis_table, echo=FALSE, warning=FALSE}
 davis <- mtc[mtc$nearest=='Davis', ]
 adavis <-  am[am$nearest=='Davis', ]
 
@@ -426,7 +417,6 @@ kable(dtable, digits=2, col.names=c('Month', 'Minimum','p-value', 'Maximum', 'p-
 
 
 Annually Parlier exhibits warming minimum temperatures and cooling maximum temperatures (Figures 2-3) based on an autoregressive linear model of data since 1931. While the cooling trend in the mean annual maximum temperature is stronger (-0.36°C per decade), the warming trend in the mean annual minimum temperature is still highly significant (Table 8). Minimum monthly temperatures are increasing year round based on autoregression analysis, but only spring, summer, and fall maximum temperatures are cooling significantly (Table 8).
-
 
 ```{r parlier_table, warning=FALSE,echo=FALSE}
 parlier <- mtc[mtc$nearest=='Parlier', ]
@@ -461,10 +451,37 @@ kable(mtable, digits=2, col.names=c('Month', 'Minimum','p-value', 'Maximum', 'p-
 ##Almonds
 
 
+
+Mean flowering dates has not changed significantly (p<0.05) for Sonora, Nonpareil, or Mission almonds over the study period in either location (Figure 5-6, Table 6). When analyzed with linear regression, the data for Nonpareil almonds in Chico showed some support for change (p=0.075); but the change was very small. The change in bloom is 0.07 days later every year (1 day every 14 years, 7 days over 100 years). The segmented analysis for Sonora almonds in Chico did detect a significant changepoint in 2006. However, this is too close to the end of the time series to be meaningful (Figure 5).
+
+
 Spring bloom and heat sums were analyzed for Chico and Modesto, CA. California State University, Chico hosts the longest known bloom and harvest timing records for almonds, and is part of the long-time commercially important Northern Sacramento Valley almond growing district. Spring heat predicts flowering for both Nonpareil and Mission cultivars in Chico and Modesto. Heat sums explain more variation in Nonpareil almond bloom in both locations. January precipitation also explains some variation in Nonpareil flowering dates in Chico bringing the R$^2$ value for the final flowering model to 0.43 (Table X). 
 
 
-```{r almondbloom, fig.cap='Bloom day by heat sum for two cultivars in Chico and Modesto, California.'}
+In addition to examining chill accumulation, we analyzed when chill and heat requirements were met for almonds for the duration of the phenology records for Chico and Modesto for any potential changes. No significant changes were detected in the timing of the chill requirement being met for any of the three almond cultivars in Chico and Modesto, using either linear modeling or segmented linear modeling (Figures 13-18, Table 8-9 for p-values).  The agronomic chill requirement also did not show change over time using linear or segmented regression (Figures 13-18, Tables 8-9). 
+
+The timing of the post-chill heat requirement being met did change significantly over time for the Sonora cultivar in both Chico and Modesto and for the Nonpareil cultivar in Modesto according to the linear models (Figures 13-18, Tables 8-9). On average the heat requirement for these cultivars was being met 0.7-0.9 days earlier every year over the course of the bloom record. . Note that in the figures below that zero is January 1st, as with Julian days. Negative numbers on the y-axis signify days in the previous calendar year. For example, Day of Year: -10 is December 22nd. Bloom data are the same as those given in Figures 5 & 6.
+
+The fact that the heat metrics for Sonora and Nonpareil almonds have shown significant change but that there has been no change detected in the timing of bloom points to the complex inter-relatedness of a number of determinants of bloom, and requires further research to be more adequately explained. 
+
+
+
+
+
+```{r almondbloom_time, fig.cap='Almond bloom over the past 70 years in Chico and Modesto, California.'}
+
+aby <- ggplot(data=af) + labs(x='Year', y='Bloom Day (Julian)') +
+    geom_point(aes(x=year, y=bloom), size = 1.5, color=almondcol) +
+    facet_grid(cultivar~location) + theme_bw() 
+
+aby
+
+```
+
+
+
+
+```{r almondbloom_heat, fig.cap='Bloom day by heat sum for two cultivars in Chico and Modesto, California.'}
 
 ab <- ggplot(data=af) + labs(x='Heat Sum', y='Bloom Day (Julian)') +
     geom_point(aes(x=Heat, y=bloom), size = 1.5, color=almondcol) +
@@ -475,10 +492,42 @@ ab
 ```
 
 
+```{r almondheat_time, fig.cap='Change in head sums over time for two cultivars in Chico and Modesto, California.'}
+
+ahs <- ggplot(data=af) + labs(x='Year', y='Heat Sum') +
+    geom_point(aes(x=year, y=Heat), size = 1.5, color=almondcol) +
+    facet_grid(cultivar~location) + theme_bw() 
+
+ahs
+
+```
+
+
 
 ## Prunes
 
-```{r prunebloom, fig.cap='Prune flowering day by winter heat sum in Parlier, California.'}
+
+Flowering dates in Parlier increased markedly between 1988 and 2014 (Figure 35). On average, bloom has moved 0.4315 days later each year. This trend explains 41% of the variability in bloom date and was highly significant (R^2^ = 0.41, p=0.00006). 
+
+
+In addition to examining chill accumulation, we analyzed when chill and heat requirements were met for prunes from 1988-2014, for any potential changes (Figure 40). No significant changes were detected in the timing of the chill requirement being met for prune (linear model p=0.69). The agronomic chill requirement also did not show change over time (Figure 40, p=0.465). The timing of the post-bloom heat requirement being met also did not change significantly over time either (Figure 40, p=0.879). 
+
+
+However, prune flowering dates are getting later instead of earlier, which is contradictory to what the chill and heat accumulation, as well as the monthly temperatures imply. The fact that none of these metrics on their own explain the changing timing of bloom suggests that the influence of temperature on bloom is more complex than previously thought, or that something else entirely is influencing the flowering dates. More research is necessary to adequately explain this phenomenon.
+
+```{r prunebloom_time, fig.cap='Improved French prune bloom over 25 years in Parlier, California.', fig.height=2.5, fig.width=4}
+
+pby <- ggplot(data=pf) + labs(x='Year', y='Bloom Day (Julian)') +
+    geom_point(aes(x=year, y=bloom), size = 1.5, color=prunecol) +
+    theme_bw() 
+
+pby
+
+```
+
+
+
+```{r prunebloom, fig.cap='Prune flowering day by winter heat sum in Parlier, California.', fig.height=2.5, fig.width=4}
 
 pb <- ggplot(data=pf) + theme_bw() +
     geom_point(aes(x=Heat, y=bloom), size=1.5, color=prunecol) +
@@ -488,19 +537,80 @@ pb
 
 ```
 
+```{r pruneheatsum_time, fig.cap='Improved French prune bloom over 25 years in Parlier, California.', fig.height=2.5, fig.width=4}
+
+phs <- ggplot(data=pf) + labs(x='Year', y='Heat Sum') +
+    geom_point(aes(x=year, y=Heat), size = 1.5, color=prunecol) +
+    theme_bw() 
+
+phs
+
+```
+
+
 
 
 ## Walnuts
 
-```{r Walnutbloom, fig.cap='Walnut flowering day by winter heat sum for three cultivars in Davis, California.'}
+
+Analysis of leaf-out dates in Davis illustrate the difference in results that can be obtained if one uses linear or segmented regression with long datasets. Of the three cultivars examined (Payne, Chandler, and Franquette), only one, Chandler, showed a significant change in leaf-out timing when analyzed with a linear regression (Figure 47). However, Payne also showed low p-values when analyzed with a segmented model with a break point at 1988 (Figure 48, Table 17).
+
+A more conceptually simple way to look at these results is by limiting the years we analyze. If we only examine the leaf-out timing for Payne and Franquette since their respective break points (1988 and 1990), we see leaf out dates getting significantly later. For 1988-2013, Payne has a p-value of 0.003 (R^2^=0.24), showing leaf-out coming later by 0.47 days/year. For data between 1990 and 2013, Franquette has a p-value of 0.015 (R^2^=0.17), showing leaf-out coming later by 0.47 days/year.
+
+
+
+
+
+```{r Walnutbloom_time, fig.cap='Walnut leaf out over the past 60 years in Davis, California.', fig.height=2.5}
+
+wby <- ggplot(data=wf) + labs(x='Year', y='Bloom Day (Julian)') +
+    geom_point(aes(x=year, y=bloom), size = 1.5, color=walnutcol) +
+    facet_grid(~cultivar) + theme_bw() 
+
+wby
+
+```
+
+
+
+In addition to examining chill accumulation, we analyzed when chill and heat requirements were met for walnuts from the course of the leaf-out record (starting 1959 for Payne and Franquette, 1968 for Chandler), for any potential changes. 
+
+For Payne, linear regression detected a significant decrease in the day of the year when the chill requirement was met (i.e. was met earlier) (p=0.04), by 0.11 days per year (Figure 55). Not surprisingly, linear regression also detected a significant change in when the agronomic chill requirement was met (p=0.04), 0.12 days earlier. Linear regression analysis did not detect a change in the timing of the heat requirement being met (p=0.59), but the segmented regression did detect change (p=0.08). According to the segmented regression, the heat requirement was met 0.22 days earlier every year until 1995. Then it was met 0.54 days later every year. This later meeting of the heat requirement may explain the later leaf-out date trend seen in Payne in recent years. 
+
+
+
+
+For Chandler, linear regression did not detect a significant change in the day of the year when the chill requirement or the agronomic chill requirement was met (p=0.75 and 0.73, respectively, Figure 56). The segmented model was significant (p=0.09) for the chill requirement but results were erratic, showing a change point at 1973 and 1977, indicating these are spurious results. No change was detected in the timing of meeting the heat requirement by linear regression or segmented regression. 
+
+
+
+For Franquette, linear regression did not detected a significant change in the day of the year when the chill requirement was met (Figure 57) by linear regression (p=0.13) or segmented regression (0.17). For the agronomic chill requirement, however, linear regression did detect a significant change in the day of the year that the agronomic requirement was met (p=0.07), coming 0.16 days earlier every year. The timing of meeting the heat requirement was not detected as changing by simple liner regression (p=0.24) or segmented regression (p=0.15). In other words, no changes in chill or heat accumulation were detected that would adequately explain the later leaf-out trends since 1990.
+
+
+
+
+```{r Walnutbloom, fig.cap='Walnut leaf out by winter heat sum for three cultivars in Davis, California.', fig.height=2.5}
 
 wb <- ggplot(data=wf) + theme_bw() + facet_wrap(~cultivar) +
-    geom_point(aes(x=heatscale, y=bloom), size=1, color=walnutcol) +
+    geom_point(aes(x=Heat, y=bloom), size=1, color=walnutcol) +
     labs(x='Scaled Heat Sum', y='Flowering (Julian Day)')
 
 wb
 
 ```
+
+
+
+```{r Walnutheatsum_time, fig.cap='Changes in walnut heat sums over the past 60 years in Davis, California.', fig.height=2.5}
+
+wby <- ggplot(data=wf) + labs(x='Year', y='Heat Sum') +
+    geom_point(aes(x=year, y=Heat), size = 1.5, color=walnutcol) +
+    facet_grid(~cultivar) + theme_bw() 
+
+wby
+
+```
+
 
 
 
@@ -513,7 +623,18 @@ wb
 Harvest dates were not available for Modesto almonds, so this section will only contain data from Chico. Mean almond season lengths appear to have decreased by varying degrees based on cultivars (Figure 23). However because the time series are so short, it is unclear whether these trends will continue into the future. 
 
 
-```{r almond_harvest, warning=FALSE, echo=FALSE}
+```{r almond_harvest_year, fig.cap='Almond season lengths over 10 years in Chico, California.', warning=FALSE, echo=FALSE, fig.height=2.5}
+
+amy <- ggplot(data=asl) + facet_wrap(~cultivar) + theme_bw() +
+    geom_point(aes(x=year, y=slen), size=1.5, color=almondcol) +
+    labs(x='year',y='Season Length (days)')
+
+amy
+
+```
+
+
+```{r almond_harvest, fig.cap='Almond season length by heat sum in Chico, California.', warning=FALSE, echo=FALSE, fig.height=2.5}
 
 amat <- ggplot(data=asl) + facet_wrap(~cultivar) + theme_bw() +
     geom_point(aes(x=heatscl, y=slen), size=1.5, color=almondcol) +
@@ -524,9 +645,41 @@ amat
 ```
 
 
+```{r almond_gdhtime, fig.cap='Almond heat sums over 10 years in Chico, California.', warning=FALSE, echo=FALSE, fig.height=2.5}
+
+agdh <- ggplot(data=asl) + facet_wrap(~cultivar) + theme_bw() +
+    geom_point(aes(x=year, y=heatscl), size=1.5, color=almondcol) +
+    labs(x='year',y='Season Length (days)')
+
+agdh
+
+```
+
+
+
 ## Prunes
 
-```{r prune_harvest, warning=FALSE, echo=FALSE}
+French Prune season lengths in Parlier shortened by an average of 0.49 days per year over the past 25 years (Figure 41). Improved French prune season length was significantly correlated with average maximum May temperatures (Figure 42, Table 13). In addition, prune season length responded very strongly to fruit development thermal time accumulation calculated using both models (Figure 43, Table 14).
+
+
+
+```{r prune_harvest_year, fig.cap='Prune season lengths over 25 years in Parlier, California.', warning=FALSE, echo=FALSE, fig.height=2.5, fig.width=4}
+
+pmy <- ggplot(data=psl) + theme_bw() +
+    geom_point(aes(x=year, y=slen), size=1.5, color=prunecol) +
+    labs(x='year',y='Season Length (days)')
+
+pmy
+
+```
+
+
+Fruit development thermal time accumulation values for French prunes in Parlier exhibit increasing trends using both models (Figure 44, Table 14). However, there is too much variation in the data to make any strong conclusions. Given the trends present in the monthly data though, it is likely that spring thermal accumulation values will continue to increase. Conversely the mean maximum May temperatures appear to be decreasing slightly (Table 12), which would indicate that prune season lengths will get longer based on the model in Figure 30. However, given that the thermal time accumulation model is more biologically accurate, it is likely to be more reliable. In this case, using monthly temperatures as an indicator of season length is misleading.
+
+Given the trend of increasing fruit development thermal time accumulation in Parlier (Figure 44), Improved French prune season lengths will most likely continue to shrink with increasing climate change. 
+
+
+```{r prune_harvest, fig.cap='Prune season lengths by heat sum in Parlier, CA.', warning=FALSE, echo=FALSE, fig.height=2.5, fig.width=4}
 
 pmat <- ggplot(data=psl) + theme_bw() + 
     geom_point(aes(x=heatscl, y=slen), size=1.5, color=prunecol) +
@@ -537,7 +690,55 @@ pmat
 ```
 
 
-```{r walnut_harvest, warning=FALSE, echo=FALSE}
+```{r prune_heatsumtime,  fig.cap='Prune heat sum over 25 years in Parlier, CA.', warning=FALSE, echo=FALSE, fig.height=2.5, fig.width=4}
+
+pghd <- ggplot(data=psl) + theme_bw() + 
+    geom_point(aes(x=year, y=heatscl), size=1.5, color=prunecol) +
+    labs(x='Year',y='Scaled Heat Sum')
+
+pghd
+
+```
+
+
+
+
+## Walnuts
+
+
+
+Mean season length in Payne walnuts decreased significantly over the past 50 years (Figure 58). Chandler and Franquette season lengths seem to have stayed fairly stable. However, because of the variability in the data, it is possible that a longer time series will exhibit a significant trend. This is particularly relevant for Chandler walnuts, as they were only developed in the last 50 years. 
+
+
+
+Payne is the only walnut cultivar whose mean season length shows significant change (decrease) over the past 60 years (Figure 58). Payne season length also responded to warmer April and May temperatures (Figure 59). As monthly minimum temperatures are increasing for both April and May in Davis (Table 16), it very likely that the season length of Payne walnuts will continue to get shorter over time. Additionally, Payne season length responded strongly to fruit development thermal time accumulation during the first two months after leaf-out (Figure 60, Table 19). The fact that Payne thermal time accumulation has been increasing over the past half-century is further evidence that mean season length for Payne walnuts will shorten with increasing climate change (Figure 61, Table 19).
+
+
+
+```{r walnut_harvest_year, fig.cap='Walnut season lengths over the past 60 years for Chandler, Franquette and Payne Cultivars.', warning=FALSE, echo=FALSE, fig.height=2.5}
+
+wmy <- ggplot(data=wsl) + facet_wrap(~cultivar) + theme_bw() +
+    geom_point(aes(x=year, y=slen), size=1.5, color=walnutcol) +
+    labs(x='year',y='Season Length (days)')
+
+wmy
+
+```
+
+
+
+While Chandler season length does not show a significant trend over time it does exhibit a complex response to monthly temperatures (Figure 62).  Warmer temperatures in March lead to shorter seasons, while warmer temperatures in April and May correlate with longer ones. Because March, April, and May all show warming trends in Davis (Table 16), we cannot yet tell how climate change will effect Chandler season length based on monthly temperatures. 
+
+
+ 
+Chandler season length responds strongly to thermal time accumulation in the first thirty days after leaf-out as well (Figure 63). The trends in thermal accumulation in both models indicate that it is likely that Chandler season lengths will get shorter, even though a significant trend has not yet been detected (Figure 63-64, Table 19). It is unclear biologically why warmer temperatures in April correlate with longer season lengths, while fruit development thermal time accumulation in parts of March and April correlate with shorter season length (Figure 62-63). It may be that the correlation between April temperatures and season length is spurious.
+
+
+
+
+
+
+```{r walnut_harvest, fig.cap='Heat sum correlation with walnut season lengths over the past 60 years in Davis.', warning=FALSE, echo=FALSE, fig.height=2.5}
 
 wmat <- ggplot(data=wsl) + facet_wrap(~cultivar) + theme_bw() +
     geom_point(aes(x=heatscl, y=slen), size=1.5, color=walnutcol) +
@@ -551,665 +752,23 @@ wmat
 
 
 
-### Temperature Context: Chico and Modesto
-
-Over the past 80 years, annual temperatures minimum temperatures have stayed roughly the same in Chico but the annual maximum temperature has increased by 0.085 &deg;C (Table 4, Figures 3-4). No monthly minimum temperatures in Chico exhibit any significant trends. However, January, February, and December monthly maximum temperatures show significant increasing trends (Table 4).
-
-Modesto minimum temperatures show the strongest warming trends of all the locations, with a mean increase of 0.2 &deg;C per decade (Figure 3, Table 2). In addition, all mean minimum temperatures show significant increases in all months except for January and the means from eight months increased at over 0.3&deg;C per decade (Table 2). The annual maximum temperature in Modesto is also increasing, but not as rapidly (Figure 4, Table 5). Also, only seven months exhibit significant positive thrends in temperature (Table 5).
-
-
-
-
-
-### Almond Timing of Spring Phenology
-
-
-Mean flowering dates has not changed significantly (p<0.05) for Sonora, Nonpareil, or Mission almonds over the study period in either location (Figure 5-6, Table 6). When analyzed with linear regression, the data for Nonpareil almonds in Chico showed some support for change (p=0.075); but the change was very small. The change in bloom is 0.07 days later every year (1 day every 14 years, 7 days over 100 years). The segmented analysis for Sonora almonds in Chico did detect a significant changepoint in 2006. However, this is too close to the end of the time series to be meaningful (Figure 5).
-
-
-
-
-#### Time Heat Requirements are met
-
-In addition to examining chill accumulation, we analyzed when chill and heat requirements were met for almonds for the duration of the phenology records for Chico and Modesto for any potential changes. No significant changes were detected in the timing of the chill requirement being met for any of the three almond cultivars in Chico and Modesto, using either linear modeling or segmented linear modeling (Figures 13-18, Table 8-9 for p-values).  The agronomic chill requirement also did not show change over time using linear or segmented regression (Figures 13-18, Tables 8-9). 
-
-The timing of the post-chill heat requirement being met did change significantly over time for the Sonora cultivar in both Chico and Modesto and for the Nonpareil cultivar in Modesto according to the linear models (Figures 13-18, Tables 8-9). On average the heat requirement for these cultivars was being met 0.7-0.9 days earlier every year over the course of the bloom record. . Note that in the figures below that zero is January 1st, as with Julian days. Negative numbers on the y-axis signify days in the previous calendar year. For example, Day of Year: -10 is December 22nd. Bloom data are the same as those given in Figures 5 & 6.
-
-The fact that the heat metrics for Sonora and Nonpareil almonds have shown significant change but that there has been no change detected in the timing of bloom points to the complex inter-relatedness of a number of determinants of bloom, and requires further research to be more adequately explained. 
-
-
-
-### Almond Timing of Fall Phenology
-
-
-```{r almond_season_length, echo=FALSE, fig.cap='Figure 23. Almond season length by cultivar in Chico, CA', fig.height=2.5, fig.width=7}
-#this chunk plot season length in almonds over time
-
-asplot <- ggplot(data=asl) + geom_point(aes(x=year, y=slen), color=almondcol, size=1.75) + facet_wrap(~cultivar) + geom_smooth(aes(x=year, y=slen), method = "lm", se=FALSE, color="black", formula = y ~ x)
-asplot <- asplot + theme_bw(10) + labs(x='Year', y='Season Length (Days)')
-
-asplot
-
-
-```
-
-
-```{r almond_slen_monthly_table, echo=FALSE} 
-
-r2 <- sapply(aslen, function(m) round(summary(m)$adj.r.squared, 3))
-pvalues <- unlist(sapply(aslen, function(m) round(summary(m)$coefficients[-1, 4],3 ) ))
-
-asltable <- data.frame(cultivar=acult,
-                   adjr2=r2, 
-                   predictor=unlist(sapply(aslen, function(m) names(m$coefficients)[-1])),
-                   coef = unname(unlist(sapply(aslen, function(m) m$coefficients[-1]))),
-                   pval=pvalues)
-                   
-                   
-
-kable(asltable, digits=3, caption = "Table 10. Summary of linear models comparing almond season length to monthly temperatures in Chico, CA.", col.names = c("Cultivar2", "Adj. R^2", "Predictor", "Coefficient", "p-value"))
-
-```
-
-
-
-
-
-```{r almond_mod_gdh_table, echo=FALSE}
-acultrep <- rep(acult, each=5)
-resp <- rep(c('slen', 'slen','slen', 'anderson', 'simplified'),3)
-pred <- rep(c('year','anderson','simplified', 'year','year'), 3)
-
-ms <- data.frame(cultivar=acultrep, resp=resp,pred=pred, stringsAsFactors = FALSE)
-
-mstab <- ms
-mstab[c(2:5,7:10,12:15),'cultivar'] <- ''
-lowerUpper <- list('anderson'='Anderson', 'simplified'='Simplified',
-                   'year'='Year', 'slen'='Season Length')
-
-mstab$resp <- mgsub_dict(mstab$resp, conversions=lowerUpper)
-mstab$pred <- mgsub_dict(mstab$pred, conversions=lowerUpper)
-
-
-agdhmod <- lapply(1:length(acultrep), function(i) {
-  lm(as.formula(paste0(ms$resp[i], "~", ms$pred[i])), data=asl[asl$cultivar==ms[i,1],])
-})
-
-
-r2 <- sapply(agdhmod, function(m) round(summary(m)$adj.r.squared, 3))
-pvalues <- unlist(sapply(agdhmod, function(m) round(summary(m)$coefficients[-1, 4],3 ) ))
-
-asltable2 <- data.frame(cultivar=mstab$cultivar,
-                   response=mstab$resp,
-                   predictor=mstab$pred,
-                   coef = unname(unlist(sapply(agdhmod, function(m) m$coefficients[-1]))),
-                   pval=pvalues,
-                   adjr2=r2)
-                   
-                   
-
-kable(asltable2, digits=3, caption = "Table 11. Summary of linear models comparing almond season length to thermal time accumulated (GDH) for Anderson and simplified models in Chico, CA.", col.names = c("Cultivar", "Predictor", "Response", "Coefficient", "p-value", "Adj. R^2^"))
-
-
-
-```
-
-
-
-## Prunes
-
-
-
-
-### Temperature Context: Parlier
-
-Annually Parlier exhibits warming minimum temperatures and cooling maximum temperatures (Figures 33-34) based on an autoregressive linear model of data since 1931. While the cooling trend in the mean annual maximum temperature is stronger (-0.36&deg;C per decade), the warming trend in the mean annual minimum temperature is still highly significant (Table 12). Minimum monthly temperatures are increasing year round based on autoregression analysis, but only spring, summer, and fall maximum temperatures are cooling significantly (Table 12). 
-
-### Prune Timing of Spring Phenology
-
-####Flowering dates
-
-Flowering dates in Parlier increased markedly between 1988 and 2014 (Figure 35). On average, bloom has moved 0.4315 days later each year. This trend explains 41% of the variability in bloom date and was highly significant (R^2^ = 0.41, p=0.00006). 
-
-
-```{r prune_flower, echo=FALSE,warning=FALSE, fig.cap="Figure 35. Improved French prune flowering dates in Parlier, CA.", fig.height=2.5, fig.width=4}
-# this chunk plots prune flowering dates along with associated trendlines and r2 values
-
-#selecting cultivars we want
-#creates plot
-pnplot <- ggplot(data=pf[pf$nearest=='Parlier',]) + geom_point(aes(x=year, y=fday), color=prunecol, size=1.5) + geom_smooth(aes(x=year, y=fday), method = "lm", se=FALSE, color="black", formula = y ~ x)
-pnplot <- pnplot + theme_bw(10) + labs(x='Year', y='Start of Flowering (Julian Day)')
-
-#prints plot
-pnplot
-
-```
-
-
-####Flowering dates and monthly temperature
-
-
-```{r prunemodelsummary,warning=FALSE, echo=FALSE}
-
-
- pfmod <- multiregression(pf, fp[[10]], 'fday', 'year', plot=FALSE)
- pslmod <- multiregression(psl, slp[[6]], 'slen', 'year', plot=FALSE)
-
- pftable <- data.frame(resp=c('Flowering Date', '', 'Season Length'),
-                       adjr2=c(round(summary(pfmod)$adj.r.squared,3), '', round(summary(pslmod)$adj.r.squared, 3)),
-                       predictor=c(names(pfmod$coefficients)[-1], names(pslmod$coefficients)[-1]),
-                       coef = c(summary(pfmod)$coefficients[-1,1], summary(pslmod)$coefficients[-1,1]),
-                        pval = c(summary(pfmod)$coefficients[-1,4], summary(pslmod)$coefficients[-1,4]))
- 
- row.names(pftable) <- NULL
- 
- kable(pftable, digits=3, caption = "Table 13. Summary of linear models comparing almond flowering dates to monthly temperatures.", col.names = c('Response', "Adj. R^2", "Predictor", "Coefficient", "p-value"))
-
-```
-
-
-When bloom timing was compared with monthly average temperatures, Improved French prune flowering dates in Parlier correlated with January and February monthly temperatures, but in opposite directions (Figure 36, Table 13). While there are some slight trends in Parlier monthly temperature, none of them are strong enough, or in the right direction, to produce the trend in Figure 35.
-
-
-#### Changes in Timing of Chill and Heat Requirements Being Met
-
-In addition to examining chill accumulation, we analyzed when chill and heat requirements were met for prunes from 1988-2014, for any potential changes (Figure 40). No significant changes were detected in the timing of the chill requirement being met for prune (linear model p=0.69). The agronomic chill requirement also did not show change over time (Figure 40, p=0.465). The timing of the post-bloom heat requirement being met also did not change significantly over time either (Figure 40, p=0.879). 
-
-However, prune flowering dates are getting later instead of earlier, which is contradictory to what the chill and heat accumulation, as well as the monthly temperatures imply. The fact that none of these metrics on their own explain the changing timing of bloom suggests that the influence of temperature on bloom is more complex than previously thought, or that something else entirely is influencing the flowering dates. More research is necessary to adequately explain this phenomenon.
-
-
-
-```{r prune_requjds, echo=FALSE, warning=FALSE, fig.cap='Figure 40. Timing of prune chill and heat requirements met in Parlier, CA' , fig.height=2.5, fig.width=7}
-###Timing of Meeting Dormancy Requirements - Chill, Agronomic Chill and Heat - Parlier (Prune)
-preqjd.chill<-subset(preqjd, requ=="Chill" | requ=="Agronomic Chill")
-preqjd$requ <- factor(preqjd$requ, levels = c("Chill", "Agronomic Chill", "Heat", "Bloom")) # Forces order so that graphs will show in "levels" order, not alphabetical order
-preqplot <- ggplot(data=preqjd) + geom_point(aes(x=year, y=jd), color=prunecol, size=1.5) + facet_grid(.~requ) + geom_smooth(aes(x=year, y=jd), size=0.5, method='lm', se=FALSE, color="black", formula = y ~ x) 
-preqplot <- preqplot + theme_bw(10)  + labs(x='Year', y='Day of Year')
-preqplot
-```
-
-
-### Fall Phenology
-
-French Prune season lengths in Parlier shortened by an average of 0.49 days per year over the past 25 years (Figure 41). Improved French prune season length was significantly correlated with average maximum May temperatures (Figure 42, Table 13). In addition, prune season length responded very strongly to fruit development thermal time accumulation calculated using both models (Figure 43, Table 14).
-
-Fruit development thermal time accumulation values for French prunes in Parlier exhibit increasing trends using both models (Figure 44, Table 14). However, there is too much variation in the data to make any strong conclusions. Given the trends present in the monthly data though, it is likely that spring thermal accumulation values will continue to increase. Conversely the mean maximum May temperatures appear to be decreasing slightly (Table 12), which would indicate that prune season lengths will get longer based on the model in Figure 30. However, given that the thermal time accumulation model is more biologically accurate, it is likely to be more reliable. In this case, using monthly temperatures as an indicator of season length is misleading.
-
-Given the trend of increasing fruit development thermal time accumulation in Parlier (Figure 44), Improved French prune season lengths will most likely continue to shrink with increasing climate change. 
-
-
-```{r prune_season_length, echo=FALSE, warning=FALSE, fig.cap="Figure 41. 'Improved French' prune season length in Parlier, CA.", fig.height=2.5, fig.width=3}
-
-
-psplot <- ggplot(data=psl) + geom_point(aes(x=year, y=slen), color=prunecol, size=1.7) + geom_smooth(aes(x=year, y=slen), method = "lm", se=FALSE, color="black", formula = y ~ x)
-psplot <- psplot + labs( x='Year', y='Season Length (Days)')  + theme_bw(10)
-
-psplot
-
-
-```
-
-
-```{r, PT_slen, echo=FALSE, fig.cap="Figure 42. 'Improved French' prune season length response to average maximum May temperatures in Parlier, CA.", fig.height=2.5, fig.width=3}
-
-multiregression(psl, slp[[6]],'slen','year',plotcolor=prunecol,nearest='Parlier')
-
-```
-
-
-```{r, PThermal_slen, echo=FALSE, fig.cap="Figure 43. 'Improved French' prune season length Response to thermal time accumulation in Parlier, CA.", fig.height=3, fig.width=7}
-
-pst <- subset(psl, select=c('year','slen',  'anderson', 'simplified'))
-
-psstplot <- ggplot(data=pst) + geom_point(aes(x=simplified, y=slen), size=1.5, color=prunecol) + geom_smooth(aes(x=simplified, y=slen), se=FALSE, method='lm', color='black') 
-psstplot <- psstplot + theme_bw(10) +  labs(x="Thermal Time Accumulation (GDH)", y='Season Length (Days)', title='Simplified Model')
-
-
-psatplot <- ggplot(data=pst) + geom_point(aes(x=anderson, y=slen), size=1.5, color=prunecol) + geom_smooth(aes(x=anderson, y=slen), se=FALSE, method='lm', color='black') 
-psatplot <- psatplot + theme_bw(10) +  labs(x="Thermal Time Accumulation (GDH)", y='Season Length (Days)', title='Anderson Model')
-
-multiplot(psstplot,psatplot, cols=2)
-
-```
-
-
-```{r prune_gdh_time, echo=FALSE, fig.cap='Figure 44. Thermal accumulation for French prunes in Parlier, CA.', fig.width=7, fig.height=3}
-# this chunk plots out the long-term time series temperature data from chico
-
-pstplot <- ggplot(data=psl) + geom_point(aes(x=year, y=simplified), color=prunecol, size=1.75) + geom_smooth(aes(x=year, y=simplified), se=FALSE, method='lm', color='black') 
-
-pstplot <- pstplot + labs(x='Year',y='Thermal Time (GDH)',  title='Simplified Model') + theme_bw(10)
-
-patplot <- ggplot(data=psl) + geom_point(aes(x=year, y=anderson), color=prunecol, size=1.75) + geom_smooth(aes(x=year, y=anderson), se=FALSE, method='lm', color='black') + labs(x='Year',y='Thermal Time (GDH)')
-
-patplot <- patplot + labs(x='Year',y='Thermal Time (GDH)', title='Anderson Model') + theme_bw(10)
-
-multiplot(pstplot, patplot, cols=2)
-
-
-```
-
-
-
-
-```{r prune_mod_gdh_table, echo=FALSE}
-
-resp <- c('slen', 'slen','slen', 'anderson', 'simplified')
-pred <- c('year','anderson','simplified', 'year','year')
-
-ms <- data.frame( pred=pred, resp=resp, stringsAsFactors = FALSE)
-
-mstab <- ms
-mstab$resp <- mgsub_dict(mstab$resp, conversions=lowerUpper)
-mstab$pred <- mgsub_dict(mstab$pred, conversions=lowerUpper)
-
-
-pgdhmod <- lapply(1:length(resp), function(i) {
-  lm(as.formula(paste0(ms$resp[i], "~", ms$pred[i])), data=psl)
-})
-
-
-r2 <- sapply(pgdhmod, function(m) round(summary(m)$adj.r.squared, 3))
-pvalues <- unlist(sapply(pgdhmod, function(m) round(summary(m)$coefficients[-1, 4],3 ) ))
-
-psltable2 <- data.frame(response=mstab$resp,
-                   predictor=mstab$pred,
-                   coef = unname(unlist(sapply(pgdhmod, function(m) m$coefficients[-1]))),
-                   pval=pvalues,
-                   adjr2=r2)
-                   
-                   
-
-kable(psltable2, digits=3, caption = "Table 15. Summary of linear models comparing prune season length to thermal time accumulated (GDH) for Anderson and simplified models in Parlier, CA.", col.names = c("Response", "Predictor", "Coefficient", "p-value", "Adj. R^2^"))
-
-
-
-```
-
-
-
-## Walnuts
-
-### Temperature Context: Davis
-
-Annual minimum temperatures have risen an average of 0.21&deg;C per decade over the past 80 years in Davis based on an autoregressive linear analysis (Figure 45). Annual maximum temperatures, however, have stayed fairly constant (Figure 46).
-
-```{r annual_min_davis, echo=FALSE, fig.cap='Figure 45. Mean annual minimum temperatures from 1931 to 2014 in Davis, CA, duration of phenology record shown with grey lines.', fig.height=3, fig.width=4.5, tidy=TRUE}
-amd <- am[am$variable=='tmin' & am$nearest=='Davis',]
-
-andtplot <- ggplot(data=amd) + geom_line(aes(x=year, y=temp), color='blue3') +
-    geom_smooth(aes(x=year, y=temp), size=1, method='lm', se=FALSE,
-                color="black", formula = y ~ x) + ylim(5.5,12) +
-    geom_segment(aes(x=1959, y=10, xend=2013, yend=10), color='darkgrey') +
-    annotate('text', x=2013, y=10.1, hjust=1, vjust=0, size=3, label='Payne') +
-    geom_segment(aes(x=1959, y=10.5, xend=2013, yend=10.5), color='darkgrey') +
-    annotate('text', x=2013, y=10.6, hjust=1, vjust=0, size=3,
-             label='Franquette')  + 
-    geom_segment(aes(x=1980, y=11, xend=2013, yend=11), color='darkgrey') +
-    annotate('text', x=2013, y=11.1, hjust=1, vjust=0, size=3, label='Chandler')
-
-andtplot <- andtplot + theme_bw(10)  + labs(x='Year', y=expression("Temperature  "(~degree*C)))
-
-andtplot
-
-```
-
-
-
-
-```{r annual_max_davis, echo=FALSE, fig.cap='Figure 46. Mean annual maximum temperatures from 1931 to 2014 in Davis, CA, duration of phenology record shown with grey lines.', fig.height=3, fig.width=4.5, tidy=TRUE}
-
-axtplot <- ggplot(data=am[am$variable=='tmax' & am$nearest=='Davis',]) + geom_line(aes(x=year, y=temp), color='red3') + geom_smooth(aes(x=year, y=temp), size=1, method='lm', se=FALSE, color="black", formula = y ~ x) + ylim(21,29) + geom_segment(aes(x=1959, y=27, xend=2013, yend=27), color='darkgrey') + annotate('text', x=2013, y=27.1, hjust=1, vjust=0, size=3, label='Payne') + geom_segment(aes(x=1959, y=27.5, xend=2013, yend=27.5), color='darkgrey') + annotate('text', x=2013, y=27.6, hjust=1, vjust=0, size=3, label='Franquette')  + geom_segment(aes(x=1980, y=28, xend=2013, yend=28), color='darkgrey') +annotate('text', x=2013, y=28.1, hjust=1, vjust=0, size=3, label='Chandler')
-
-axtplot <- axtplot + theme_bw(10)  + labs(x='Year', y=expression("Temperature  "(~degree*C)))
-
-
-axtplot
-
-
-```
-
-Davis monthly minimum temperatures exhibit strong warming trends in the spring, summer and fall, with temperatures increasing between 0.15&deg;C and 0.26&deg;C per decade in months where a significant change was detected (Table 16). January maximum temperatures in also show a significant warming trend (0.17&deg;C per decade), but it is the only month we have strong evidence of maximum temperatures increasing. In addition, mean maximum temperatures in July display a slight cooling trend (Table 16).
-
-
-
-
-### Spring Phenology
-
-
-####Leaf-out dates
-
-Analysis of leaf-out dates in Davis illustrate the difference in results that can be obtained if one uses linear or segmented regression with long datasets. Of the three cultivars examined (Payne, Chandler, and Franquette), only one, Chandler, showed a significant change in leaf-out timing when analyzed with a linear regression (Figure 47). However, Payne also showed low p-values when analyzed with a segmented model with a break point at 1988 (Figure 48, Table 17).
-
-A more conceptually simple way to look at these results is by limiting the years we analyze. If we only examine the leaf-out timing for Payne and Franquette since their respective break points (1988 and 1990), we see leaf out dates getting significantly later. For 1988-2013, Payne has a p-value of 0.003 (R^2^=0.24), showing leaf-out coming later by 0.47 days/year. For data between 1990 and 2013, Franquette has a p-value of 0.015 (R^2^=0.17), showing leaf-out coming later by 0.47 days/year.
-
-```{r walnut_leaf_out_elise, echo=FALSE, fig.cap="Figure 47. Walnut leaf-out dates by cultivar in Davis, CA.,", fig.height=2.5, fig.width=7}
-# this chunk plots the walnut leaf out data 
-
-wf$cultivar <- factor(wf$cultivar, levels=c("Payne","Chandler","Franquette"))
-
-# create walnut plots
-wplot <- ggplot(data=wf) + geom_point(aes(x=year, y=fday), size=1.5, color=walnutcol) + facet_wrap(~cultivar) + geom_smooth(aes(x=year, y=fday), method = "lm", se=FALSE, color="black", formula = y ~ x)
-wplot <- wplot + theme_bw(10) + labs(x='Year', y='Leaf-out (julian day)')
-
-
-#print walnut leaf-out day plots
-wplot
-
-```
-
-
-
-
-
-
-####Leaf-out dates and monthly temperature
-
-Earlier leaf-out for Payne and Chandler walnuts correlate positively with warmer temperatures in November and December, and negatively with warmer temperatures in March (Figure 49-50, Table 18). In other words, warmer February temperature correlate with earlier Payne leaf-out. Consequently, is likely that Payne and Chandler walnuts accumulate a large part of their required chill in November and December. Thus, earlier leaf-out results from earlier heat accumulation. However, this does not explain the later leaf-out found in the phenology record.
-
-March average temperatures, on the other hand, appear to be increasing, pointing to earlier leaf out for both cultivars. This is not reflected in the current leaf out trends though. The conflictiong signs on the correlations between leaf-out and monthly temperatures for Payne and Chandler walnuts, mean it is not possible to tell what the effect of future climate change will be.
-
-
-
-```{r walnutmodelsummary,warning=FALSE, echo=FALSE}
-wcult <- c('Chandler', 'Franquette', "Payne")
-
-wfmod <- lapply(c(3,1,2), function(i) {
-   multiregression(wf, fp[[i+3]], 'fday', 'year', cultivar=wcult[i], plot=FALSE)
- })
-
-wslmod <- list(multiregression(wsl, slp[[5]], 'slen', 'year', cultivar=wcult[3], plot=FALSE),
-            multiregression(wsl, slp[[4]], 'slen', 'year', cultivar=wcult[4], plot=FALSE))
-
-wmod <- c(wfmod,wslmod)
- 
-pvalues <- unlist(lapply(wmod, function(m) round(summary(m)$coefficients[-1,4],3))) 
-r2 <- sapply(wmod, function(m) round(summary(m)$adj.r.squared,3))
-
-cultrep <- rep('', length(pvalues))
-cultrep[c(1,10)] <- 'Payne'
-cultrep[c(4, 12)] <- 'Chandler'
-cultrep[c(7)] <- 'Franquette'
-
-indexes <- c(1,4,7,10,12)
-r2rep <- rep('',length(pvalues))
-for (i in 1:length(indexes)) {
-  r2rep[indexes[i]] <- r2[i]
-}
-
-
-wtable <- data.frame(resp=c('Flowering Date', rep('',8) , 'Season Length', rep('', 4)),
-                     cultivar=cultrep,
-                     adjr2=r2rep,
-                     predictor=unlist(lapply(wmod, function(m) names(m$coefficients)[-1])),
-                     coef= unlist(lapply(wmod, function(m) summary(m)$coefficients[-1,1])),
-                     pval = pvalues)
- 
- row.names(wtable) <- NULL
- 
- kable(wtable, digits=3, caption = "Table 18. Summary of linear models comparing walnut flowering dates and season lengths to monthly temperatures in Davis, CA.", col.names = c('Response', 'Cultivar', "Adj. R^2", "Predictor", "Coefficient", "p-value"))
-
-```
-
-
-
-#### Changes in winter chill accumulation
-
-When winter chill accumulation was examined over the same period as the leaf-out record, it was found that chill accumulation for the whole winter shows a weak signal of increasing over time (p=0.10) by 0.08 chill portions per year, with a large amount of variability (R^2^=0.0457, Figure 52). The segmented model was not significant (p=0.42). 
-
-
-#### Changes in timing of chill and heat requirements being met
-
-In addition to examining chill accumulation, we analyzed when chill and heat requirements were met for walnuts from the course of the leaf-out record (starting 1959 for Payne and Franquette, 1968 for Chandler), for any potential changes. 
-
-For Payne, linear regression detected a significant decrease in the day of the year when the chill requirement was met (i.e. was met earlier) (p=0.04), by 0.11 days per year (Figure 55). Not surprisingly, linear regression also detected a significant change in when the agronomic chill requirement was met (p=0.04), 0.12 days earlier. Linear regression analysis did not detect a change in the timing of the heat requirement being met (p=0.59), but the segmented regression did detect change (p=0.08). According to the segmented regression, the heat requirement was met 0.22 days earlier every year until 1995. Then it was met 0.54 days later every year. This later meeting of the heat requirement may explain the later leaf-out date trend seen in Payne in recent years. 
-
-
-
-
-```{r walnut_payne_requjds, echo=FALSE, fig.cap='Figure 55. Timing of requirements met in Payne walnuts, Davis, CA' , fig.height=2.5, fig.width=7}
-###Timing of Meeting Dormancy Requirements - Chill, Agronomic Chill and Heat - Davis (Walnut, Payne)
-pwreqjd<- pwreqjd[pwreqjd$requ %in% c("Chill","Agronomic Chill","Heat", "Leaf-Out"),]
-
-
-pwreqjd$requ <- factor(pwreqjd$requ, levels = c("Chill", "Agronomic Chill", "Heat", "Leaf-Out")) # Forces order so that graphs will show in "levels" order, not alphabetical order
-pwreqplot <- ggplot(data=pwreqjd) + geom_point(aes(x=year, y=jd), color=walnutcol, size=1.5) + facet_grid(.~requ) + geom_smooth(aes(x=year, y=jd), size=0.5, method='lm', se=FALSE, color="black", formula = y ~ x) 
-pwreqplot <- pwreqplot + theme_bw(10)  + labs(x='Year', y='Day of Year')
-pwreqplot
-```
-
-
-
-For Chandler, linear regression did not detect a significant change in the day of the year when the chill requirement or the agronomic chill requirement was met (p=0.75 and 0.73, respectively, Figure 56). The segmented model was significant (p=0.09) for the chill requirement but results were erratic, showing a change point at 1973 and 1977, indicating these are spurious results. No change was detected in the timing of meeting the heat requirement by linear regression or segmented regression. 
-
-
-
-```{r walnut_chandler_requjds_chill, echo=FALSE, fig.cap='Figure 56. Timing of chill and heat requirements met in Chandler walnuts, Davis, CA' , fig.height=2.5, fig.width=7}
-cwreqjd<- cwreqjd[cwreqjd$requ %in% c("Chill","Agronomic Chill","Heat","Leaf-Out"),]
-
-
-cwreqjd$requ <- factor(cwreqjd$requ, levels = c("Chill", "Agronomic Chill", "Heat", "Leaf-Out")) # Forces order so that graphs will show in "levels" order, not alphabetical order
-cwreq.chillplot <- ggplot(data=cwreqjd) + geom_point(aes(x=year, y=jd), size=1.5, color=walnutcol) + facet_grid(.~requ)# + geom_smooth(aes(x=year, y=jd), size=1, method='lm', se=FALSE, color="black", formula = y ~ x) 
-cwreq.chillplot <- cwreq.chillplot + theme_bw(10)  + labs(x='Year', y='Day of Year')
-cwreq.chillplot
-```
-
-
-
-
-For Franquette, linear regression did not detected a significant change in the day of the year when the chill requirement was met (Figure 57) by linear regression (p=0.13) or segmented regression (0.17). For the agronomic chill requirement, however, linear regression did detect a significant change in the day of the year that the agronomic requirement was met (p=0.07), coming 0.16 days earlier every year. The timing of meeting the heat requirement was not detected as changing by simple liner regression (p=0.24) or segmented regression (p=0.15). In other words, no changes in chill or heat accumulation were detected that would adequately explain the later leaf-out trends since 1990.
-
-
-
-
-
-```{r walnut_franq_requjds_chill, echo=FALSE, fig.cap='Figure 57. Timing of chill and heat requirements met in Franquette walnuts, Davis, CA ', fig.height=2.5, fig.width=7}
-###Timing of Meeting Dormancy Requirements - Chill and Agronomic Chill - Davis (Walnut, Franquette)
-fwreqjd.chill<- fwreqjd[fwreqjd$requ %in% c("Chill","Agronomic Chill","Heat", "Leaf-Out"),]
-fwreqjd.chill$requ <- factor(fwreqjd.chill$requ, levels = c("Chill", "Agronomic Chill", "Heat", "Leaf-Out")) # Forces order so that graphs will show in "levels" order, not alphabetical order
-fwreq.chillplot <- ggplot(data=fwreqjd.chill) + geom_point(aes(x=year, y=jd), size=1.5, color=walnutcol) + facet_grid(.~requ)# + geom_smooth(aes(x=year, y=jd), size=1, method='lm', se=FALSE, color="black", formula = y ~ x) 
-fwreq.chillplot <- fwreq.chillplot + theme_bw(10)  + labs(x='Year', y='Day of Year')
-fwreq.chillplot
-```
-
-
-### Fall Phenology
-
-Mean season length in Payne walnuts decreased significantly over the past 50 years (Figure 58). Chandler and Franquette season lengths seem to have stayed fairly stable. However, because of the variability in the data, it is possible that a longer time series will exhibit a significant trend. This is particularly relevant for Chandler walnuts, as they were only developed in the last 50 years. 
-
-
-```{r walnut_season_length, echo=FALSE, fig.cap="Figure 58. Walnut season length by cultivar in Davis; Chandler  NS, Franquette NS, Payne p=0.0010", fig.height=2.5, fig.width=7}
-
-
-
-wsplot <- ggplot(data=wsl) + geom_point(aes(x=year, y=slen), size=1.5, color=walnutcol) + facet_wrap(~cultivar) + geom_smooth(aes(x=year, y=slen), method = "lm", se=FALSE, color="black", formula = y ~ x)
-wsplot <- wsplot  + theme_bw(10) + labs(x='Year', y='Season Length (Days)')
-
-wsplot
-
-
-```
-
-
-
-Payne is the only walnut cultivar whose mean season length shows significant change (decrease) over the past 60 years (Figure 58). Payne season length also responded to warmer April and May temperatures (Figure 59). As monthly minimum temperatures are increasing for both April and May in Davis (Table 16), it very likely that the season length of Payne walnuts will continue to get shorter over time. Additionally, Payne season length responded strongly to fruit development thermal time accumulation during the first two months after leaf-out (Figure 60, Table 19). The fact that Payne thermal time accumulation has been increasing over the past half-century is further evidence that mean season length for Payne walnuts will shorten with increasing climate change (Figure 61, Table 19).
-
-```{r PayneT_slen,  echo=FALSE, fig.cap="Figure 59. 'Payne' walnut season length response to monthly temperatures in Davis, CA.", fig.height=2.5, fig.width=5}
-
-multiregression(wsl, slp[[5]],'slen','year', plotcolor=walnutcol, cultivar='Payne', respname='Season Length (Days)')
-
-```
-
-
-
-
-```{r, PayneThermal_slen, echo=FALSE, fig.cap="Figure 60. 'Payne' walnut season length response to thermal time accumulation in Davis, CA.", fig.height=3, fig.width=7}
-wst <- wsl[,c('year', 'cultivar','slen','simplified','anderson')]
-
-
-wpsstplot <- ggplot(data=wst[wst$cultivar=='Payne',]) + geom_point(aes(x=simplified, y=slen), size=1.5, color=walnutcol) + geom_smooth(aes(x=simplified, y=slen), se=FALSE, method='lm', color='black') 
-wpsstplot <- wpsstplot + theme_bw(10) +  labs(x="Simplified Thermal Accumulation (GDH)", y='Season Length (Days)')
-
-
-wpastplot <- ggplot(data=wst[wst$cultivar=='Payne',]) + geom_point(aes(x=anderson, y=slen), size=1.5, color=walnutcol) + geom_smooth(aes(x=anderson, y=slen), se=FALSE, method='lm', color='black') 
-wpastplot <- wpastplot + theme_bw(10) +  labs(x="Anderson Thermal Accumulation (GDH)", y='Season Length (Days)')
-
-multiplot(wpsstplot,wpastplot, cols=2)
-
-```
-
-
-
-
-```{r Payne_gdh_time, echo=FALSE, fig.cap='Figure 61. Thermal accumulation for Payne walnuts in Davis, CA.', fig.width=7, fig.height=3}
-# this chunk plots out the long-term time series temperature data from chico
-
-w12gdhp <- wsl[wsl$cultivar=='Payne',]
-
-pastplot <- ggplot(data=w12gdhp) + geom_point(aes(x=year, y=simplified), color=walnutcol, size=1.75) + geom_smooth(aes(x=year, y=simplified), se=FALSE, method='lm', color='black') 
-
-pastplot <-pastplot + labs(x='Year',y='Thermal Time (GDH)',  title='Simplified Model') + theme_bw(10)
-
-paatplot <- ggplot(data=w12gdhp) + geom_point(aes(x=year, y=anderson), color=walnutcol, size=1.75) + geom_smooth(aes(x=year, y=anderson), se=FALSE, method='lm', color='black') + labs(x='Year',y='Thermal Time (GDH)')
-
-paatplot <- paatplot + labs(x='Year',y='Thermal Time (GDH)', title='Anderson Model') + theme_bw(10)
-
-multiplot(pastplot, paatplot, cols=2)
-
-
-```
-
-
-
-
-
-While Chandler season length does not show a significant trend over time it does exhibit a complex response to monthly temperatures (Figure 62).  Warmer temperatures in March lead to shorter seasons, while warmer temperatures in April and May correlate with longer ones. Because March, April, and May all show warming trends in Davis (Table 16), we cannot yet tell how climate change will effect Chandler season length based on monthly temperatures. 
-
-
-
-
-```{r ChandlerT_slen,  echo=FALSE, fig.cap="Figure 62. 'Chandler' walnut season length response to monthly temperatures in Davis, CA.", fig.height=2.5, fig.width=7}
-
-multiregression(wsl, slp[[4]],'slen','year', plotcolor=walnutcol, cultivar='Chandler', respname='Season Length (Days)')
-
-```
-
- 
-Chandler season length responds strongly to thermal time accumulation in the first thirty days after leaf-out as well (Figure 63). The trends in thermal accumulation in both models indicate that it is likely that Chandler season lengths will get shorter, even though a significant trend has not yet been detected (Figure 63-64, Table 19). It is unclear biologically why warmer temperatures in April correlate with longer season lengths, while fruit development thermal time accumulation in parts of March and April correlate with shorter season length (Figure 62-63). It may be that the correlation between April temperatures and season length is spurious.
-
-
-```{r, ChandlerThermal_slen, echo=FALSE, fig.cap="Figure 63. 'Chandler' walnut season length response to thermal time accumulation in Davis, CA." , fig.height=3, fig.width=7}
-#Contains missing points
-
-wst <- wsl[,c('year', 'cultivar','slen','simplified','anderson')]
-
-wcsstplot <- ggplot(data=wst[wst$cultivar=='Chandler',]) + geom_point(aes(x=simplified, y=slen), size=1.5, color=walnutcol) + geom_smooth(aes(x=simplified, y=slen), se=FALSE, method='lm', color='black') 
-wcsstplot <- wcsstplot + theme_bw(10) +  labs(x="Thermal Time Accumulation (GDH)", y='Season Length (Days)', title='Simplified Model')
-
-
-wcastplot <- ggplot(data=wst[wst$cultivar=='Chandler',]) + geom_point(aes(x=anderson, y=slen), size=1.5, color=walnutcol) + geom_smooth(aes(x=anderson, y=slen), se=FALSE, method='lm', color='black') 
-wcastplot <- wcastplot + theme_bw(10) +  labs(x="Thermal Time Accumulation (GDH)", y='Season Length (Days)', title='Anderson Model')
-
-multiplot(wcsstplot,wcastplot, cols=2)
-
-```
-
-
-```{r chandler_gdh_time, echo=FALSE, fig.cap='Figure 64. Thermal accumulation over time for Chandler walnuts in Davis, Simplified model p=0.0069; Anderson model p=0.012', fig.width=7, fig.height=3}
-# this chunk plots out the long-term time series temperature data from chico
-
-wgdhc <- wsl[wsl$cultivar=='Chandler',]
-
-cstplot <- ggplot(data=wgdhc) + geom_point(aes(x=year, y=simplified), color=walnutcol, size=1.75) + geom_smooth(aes(x=year, y=simplified), se=FALSE, method='lm', color='black') 
-
-cstplot <- cstplot + labs(x='Year',y='Thermal Time (GDH)',  title='Simplified Model') + theme_bw(10)
-
-catplot <- ggplot(data=wgdhc) + geom_point(aes(x=year, y=anderson), color=walnutcol, size=1.75) + geom_smooth(aes(x=year, y=anderson), se=FALSE, method='lm', color='black') + labs(x='Year',y='Thermal Time (GDH)')
-
-catplot <- catplot + labs(x='Year',y='Thermal Time (GDH)', title='Anderson Model') + theme_bw(10)
-
-multiplot(cstplot, catplot, cols=2)
-
-
-```
-
-
-
-
 While Franquette mean season length did not significantly correlate with mean temperatures from any month, it did respond to thermal time accumulation during the first 37 days after leaf-out (Figure 65, Table 19). As fruit development thermal time accumulation (calculated using the simplified model), is increasing (Figure 66, Table 19), we would expect that mean season length for Franquette walnuts will decrease as the climate warms. However, due to the amount of noise in the data, it may take a while before this trend becomes clear.
 
 
-```{r, FranquetteThermal_slen, echo=FALSE, fig.cap="Figure 65. 'Franquette' walnut season length response to thermal time accumulation; Simplified model R^2^= 0.325 and p=5.0 * 10^-6^, Anderson model R^2^= 0.347 and p=2.1 * 10^-6^", fig.height=3, fig.width=7}
 
-wfsstplot <- ggplot(data=wst[wst$cultivar=='Franquette',]) + geom_point(aes(x=simplified, y=slen), size=1.5, color=walnutcol) + geom_smooth(aes(x=simplified, y=slen), se=FALSE, method='lm', color='black') 
-wfsstplot <- wfsstplot + theme_bw(10) +  labs(x="Thermal Time Accumulation (GDH)", y='Season Length (Days)', title='Simplified Model')
+```{r walnut_heatsumtime, fig.cap='Walnut heat sums over the past 60 years.', warning=FALSE, echo=FALSE, fig.height=2.5}
 
+wgdh <- ggplot(data=wsl) + facet_wrap(~cultivar) + theme_bw() +
+    geom_point(aes(x=year, y=heatscl), size=1.5, color=walnutcol) +
+    labs(x='Year',y='Scaled Heat Sum')
 
-wfastplot <- ggplot(data=wst[wst$cultivar=='Franquette',]) + geom_point(aes(x=anderson, y=slen), size=1.5, color=walnutcol) + geom_smooth(aes(x=anderson, y=slen), se=FALSE, method='lm', color='black') 
-wfastplot <- wfastplot + theme_bw(10) +  labs(x="Thermal Time Accumulation (GDH)", y='Season Length (Days)', title='Anderson Model')
-
-multiplot(wfsstplot,wfastplot, cols=2)
-
-```
-
-
-
-```{r franquette_gdh_time, echo=FALSE, fig.cap='Figure 66. Thermal accumulation for Franquette walnuts in Davis; Simplified model p=0.045, Anderson model p=0.157', fig.width=7, fig.height=3}
-# this chunk plots out the long-term time series temperature data from chico
-
-w12gdhf <- wsl[wsl$cultivar=='Franquette',]
-
-fstplot <- ggplot(data=w12gdhf) + geom_point(aes(x=year, y=simplified), color=walnutcol, size=1.75) + geom_smooth(aes(x=year, y=simplified), se=FALSE, method='lm', color='black') 
-
-fstplot <-fstplot + labs(x='Year',y='Thermal Time (GDH)',  title='Simplified Model') + theme_bw(10)
-
-fatplot <- ggplot(data=w12gdhf) + geom_point(aes(x=year, y=anderson), color=walnutcol, size=1.75) + geom_smooth(aes(x=year, y=anderson), se=FALSE, method='lm', color='black') + labs(x='Year',y='Thermal Time (GDH)')
-
-fatplot <- fatplot + labs(x='Year',y='Thermal Time (GDH)', title='Anderson Model') + theme_bw(10)
-
-multiplot(fstplot, fatplot, cols=2)
-
-
-```
-
-
-```{r walnut_mod_gdh_table, echo=FALSE}
-
-wcult <- c('Payne','Chandler', 'Franquette')
-wcultrep <- rep(wcult, each=5)
-resp <- rep(c('slen', 'slen','slen', 'anderson', 'simplified'),3)
-pred <- rep(c('year','anderson','simplified', 'year','year'), 3)
-
-ms <- data.frame(cultivar=wcultrep, pred=pred, resp=resp, stringsAsFactors = FALSE)
-
-mstab <- ms
-mstab[c(2:5,7:10,12:15),'cultivar'] <- ''
-mstab$resp <- mgsub_dict(mstab$resp, conversions=lowerUpper)
-mstab$pred <- mgsub_dict(mstab$pred, conversions=lowerUpper)
-
-
-wgdhmod <- lapply(1:length(wcultrep), function(i) {
-  lm(as.formula(paste0(ms$resp[i], "~", ms$pred[i])), data=wsl[wsl$cultivar==ms[i,1],])
-})
-
-
-r2 <- sapply(wgdhmod, function(m) round(summary(m)$adj.r.squared, 3))
-pvalues <- unlist(sapply(wgdhmod, function(m) round(summary(m)$coefficients[-1, 4],3 ) ))
-
-wsltable2 <- data.frame(cultivar=mstab$cultivar,
-                   response=mstab$resp,
-                   predictor=mstab$pred,
-                   coef = unname(unlist(sapply(wgdhmod, function(m) m$coefficients[-1]))),
-                   pval=pvalues,
-                   adjr2=r2)
-                   
-                   
-
-kable(wsltable2, digits=3, caption = "Table 19. Summary of linear models comparing walnut season length to thermal time accumulated (GDH) for Anderson and simplified models in Davis, CA.", col.names = c("Cultivar", "Response", "Predictor", "Coefficient", "p-value", "Adj. R^2^"))
+wgdh
 
 
 
 ```
+
+
 
 # Conclusions
 
@@ -1247,12 +806,6 @@ French prune season lengths have gotten, on average, 12 days shorter since 1988.
 
 Payne walnut season lengths have shortened by approximately 11 days since 1960. Based on the upwards trends in the thermal time accumulation (Figure 49)  as well as April and May temperatures (Table 9), Payne season lengths will continue to get shorter as climate change intensifies. Chandler season lengths have not changed appreciably over the past 50 years. However, the increasing thermal time accumulation (Figure 52) indicates that season lengths will shorten in the future. Franquette season length shows a similar pattern to Chandler season length. It has yet to exhibit any trend, but the increasing trend in thermal accumulation for Franquette walnuts indicate that it is likely Franquette season lengths will get shorter in the future (Figure 54).
 
-#Appendix: Maps
-
-![Climate Stations by Station Type](maps/climatestations.png)
-
-
-![Orchards by Crop](maps/orchards.png)
 
 
 #References
