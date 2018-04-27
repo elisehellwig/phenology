@@ -117,13 +117,13 @@ arf <- function(response, predictor, mo, data) {
   if (is.na(mo)) {
     d <- df
   } else {
-    d <- df[df$month==mo, ]
+    d <- filter(df, month==mo)
   }
   
   n <- length(d[,1])
-  y <- d[-1,response]
-  x1 <- d[-1, predictor]
-  x2 <- d[-n, response]
+  y <- pull(d, response)[-1]
+  x1 <- pull(d, predictor)[-1]
+  x2 <- pull(d, response)[-n]
   
   mod <- lm(y ~ x1 + x2)
   
