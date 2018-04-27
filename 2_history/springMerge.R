@@ -23,23 +23,19 @@ walnutK <- read_csv(file.path(outpath, 'walnutchill.csv'))
 precip <- read_csv(file.path(precippath, 'precipitation.csv'))
     
 
-
-elisecols <- c('year','cultivar','nearest','fday')
-katherinecols  <- c('location','cultivar','year','Chill', 'Heat')
-
 ######################################################################
 ##############################ALMONDS###############################
 
 
-almondEH <- select(af, elisecols)
-names(almondEH)[3:4] <- c('location','bloom') 
+almondEH <- select(af, -contains('_')) %>% 
+    rename(location=nearest, bloom=fday) %>% 
+    add_column(crop='almond')
 
 almondKJS <- almondK %>% 
     spread(requ, jd) %>% 
-    select(katherinecols)
+    select(-`Agronomic Chill`, -Bloom)
 
 almond <- inner_join(almondEH, almondKJS)
-almond$crop <- 'almond'
 
 #afrain <- inner_join(afnew, precip)
 
@@ -51,18 +47,16 @@ almond$crop <- 'almond'
 
 pruneEH <- pf %>% 
     filter(nearest=='Parlier') %>%
-    select(elisecols[-2])
-
-pruneEH$cultivar <- 'French'
-names(pruneEH)[2:3] <- c('location', 'bloom')
+    select(-contains('_')) %>% 
+    add_column(cultivar='French', crop='prune') %>% 
+    rename(location=nearest, bloom=fday)
 
 
 pruneKJS <- pruneK %>% 
     spread(requ, jd) %>% 
-    select(katherinecols[-(1:2)])
+    select(-`Agronomic Chill`, -Bloom)
 
 prune <- inner_join(pruneEH, pruneKJS)
-prune$crop <- 'prune'
 
 #write.csv(pfnew, file.path(outpath, 'prunespring.csv'), row.names = FALSE)
 
@@ -80,15 +74,16 @@ prune$crop <- 'prune'
 
 ##########################
 
-walnutEH <- wf %>% select(elisecols)
-names(walnutEH)[3:4] <- c('location','bloom') 
+walnutEH <- wf %>% 
+    select(-contains("_")) %>% 
+    rename(location=nearest, bloom=fday) %>% 
+    add_column(crop='walnut')
 
 walnutKJS <- walnutK %>% 
     spread(requ, jd) %>% 
     select(katherinecols[-1])
 
 walnut <- inner_join(walnutEH, walnutKJS)
-walnut$crop <- 'walnut'
 ######################################################################
 #########################Putting it Together##########################
 
