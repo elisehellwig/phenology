@@ -9,8 +9,6 @@ walnut <- read_csv(file.path(path, 'walnutseasonlengthdata.csv'))
 
 thermal <- read_csv(file.path(path, 'thermaltimeaccumulation.csv'))
 
-voi <- c('year','cultivar','nearest','slen')
-voi_thermal <- c('crop', 'cultivar','year','anderson')
 ####################################################################
 ####################################################################
 
@@ -25,9 +23,7 @@ w <- select(walnut, -contains("_")) %>%
     add_column(crop='walnut')
 
 th <- thermal %>% 
-    select(-simplified) %>% 
-    rename(heatsum=anderson)
-
+    select(-simplified, heatsum=anderson)
 
 ####################################################################
 ####################################################################
