@@ -14,16 +14,15 @@ voi_thermal <- c('crop', 'cultivar','year','anderson')
 ####################################################################
 ####################################################################
 
-a <- select(almond, voi)
-a$crop <- 'almond'
+a <- select(almond, -contains("_")) %>% 
+    add_column(crop='almond')
 
-prune$cultivar <- 'French'
-p <- select(prune, voi)
-p$crop <- 'prune'
+p <- select(prune, -contains("_")) %>% 
+    add_column(crop='prune', cultivar='French')
 
 
-w <- select(walnut, voi)
-w$crop <- 'walnut'
+w <- select(walnut, -contains("_")) %>% 
+    add_column(crop='walnut')
 
 th <- thermal %>% 
     select(-simplified) %>% 
