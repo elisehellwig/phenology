@@ -89,12 +89,15 @@ af <- spring %>% filter(crop=='almond')
 pf <- spring %>% filter(crop=='prune')
 wf <- spring %>% filter(crop=='walnut')
 
+wf <- mutate(wf, heatscale=ave(Heat, cultivar, FUN=scale))
+
 fall <- read_csv(file.path(data4, 'fall.csv'))
 
 asl <- fall %>% filter(crop=='almond') 
 psl <- fall %>% filter(crop=='prune')
 wsl <- fall %>% filter(crop=='walnut')
 
+asl <- asl %>% mutate(andscale=ave(anderson, cultivar, FUN=scale))
 
 #Katherine's data
 
@@ -463,9 +466,9 @@ Spring bloom and heat sums were analyzed for Chico and Modesto, CA. California S
 
 ```{r almondbloom, fig.cap='Bloom day by heat sum for two cultivars in Chico and Modesto, California.'}
 
-ab <- ggplot(data=af) + labs(x='Heat Sum', y='Bloom Day (Julian)')
+ab <- ggplot(data=af) + labs(x='Heat Sum', y='Bloom Day (Julian)') +
     geom_point(aes(x=Heat, y=bloom), size = 1.5, color=almondcol) +
-    facet_grid(cultivar~location) + theme_bw 
+    facet_grid(cultivar~location) + theme_bw() 
 
 ab
 
@@ -478,7 +481,7 @@ ab
 ```{r prunebloom, fig.cap='Prune flowering day by winter heat sum in Parlier, California.'}
 
 pb <- ggplot(data=pf) + theme_bw() +
-    geom_point(aes(x=Heat, y=bloom), size=1.5, color='prunecol') +
+    geom_point(aes(x=Heat, y=bloom), size=1.5, color=prunecol) +
     labs(x='Heat Sum', y='Flowering (Julian Day)')
 
 pb
@@ -491,9 +494,9 @@ pb
 
 ```{r Walnutbloom, fig.cap='Walnut flowering day by winter heat sum for three cultivars in Davis, California.'}
 
-wb <- ggplot(data=wf) + theme_bw() + facet_wrap(~cultivar)
-    geom_point(aes(x=Heat, y=bloom), size=1.5, color='walnutcol') +
-    labs(x='Heat Sum', y='Flowering (Julian Day)')
+wb <- ggplot(data=wf) + theme_bw() + facet_wrap(~cultivar) +
+    geom_point(aes(x=heatscale, y=bloom), size=1, color=walnutcol) +
+    labs(x='Scaled Heat Sum', y='Flowering (Julian Day)')
 
 wb
 
@@ -507,27 +510,42 @@ wb
 ## Almonds
 
 
-```{r almond_models,warning=FALSE, echo=FALSE}
-
-acult <- c('Mission', 'Nonpareil', 'Sonora')
-indicies <- data.frame(Chico=c(3,2,1), Modesto=c(9,8,7))
+Harvest dates were not available for Modesto almonds, so this section will only contain data from Chico. Mean almond season lengths appear to have decreased by varying degrees based on cultivars (Figure 23). However because the time series are so short, it is unclear whether these trends will continue into the future. 
 
 
-#flowering models
-aflower <- unlist(lapply(c('Chico','Modesto'), function(n) {
-  lapply(indicies[,n], function(i) {
-    multiregression(af, fp[[i]], 'fday', 'year', plotcolor=almondcol,
-          cultivar=acult[i], nearest=n, plot=FALSE)
-  })
-}), recursive=FALSE)
+```{r almond_harvest, warning=FALSE, echo=FALSE}
+
+amat <- ggplot(data=asl) + facet_wrap(~cultivar) + theme_bw() +
+    geom_point(aes(x=heatscl, y=slen), size=1.5, color=almondcol) +
+    labs(x='Scaled Heat Sum',y='Season Length (days)')
+
+amat
+
+```
 
 
+## Prunes
 
-#season length models
-aslen <- lapply(c(3,2,1), function(i) {
-  multiregression(asl, slp[[i]], 'slen', 'year', plotcolor=almondcol,
-          cultivar=acult[i], nearest='Chico', plot=FALSE)
-})
+```{r prune_harvest, warning=FALSE, echo=FALSE}
+
+pmat <- ggplot(data=psl) + theme_bw() + 
+    geom_point(aes(x=heatscl, y=slen), size=1.5, color=prunecol) +
+    labs(x='Scaled Heat Sum',y='Season Length (days)')
+
+pmat
+
+```
+
+
+```{r walnut_harvest, warning=FALSE, echo=FALSE}
+
+wmat <- ggplot(data=wsl) + facet_wrap(~cultivar) + theme_bw() +
+    geom_point(aes(x=heatscl, y=slen), size=1.5, color=walnutcol) +
+    labs(x='Scaled Heat Sum',y='Season Length (days)')
+
+wmat
+
+
 
 ```
 
@@ -543,51 +561,11 @@ Modesto minimum temperatures show the strongest warming trends of all the locati
 
 
 
-### Spring Phenology
+### Almond Timing of Spring Phenology
 
 
 Mean flowering dates has not changed significantly (p<0.05) for Sonora, Nonpareil, or Mission almonds over the study period in either location (Figure 5-6, Table 6). When analyzed with linear regression, the data for Nonpareil almonds in Chico showed some support for change (p=0.075); but the change was very small. The change in bloom is 0.07 days later every year (1 day every 14 years, 7 days over 100 years). The segmented analysis for Sonora almonds in Chico did detect a significant changepoint in 2006. However, this is too close to the end of the time series to be meaningful (Figure 5).
 
-
-```{r almond_flower_chico_plot, echo=FALSE,warning=FALSE, fig.cap='Figure 5. Almond flowering dates in Chico, CA', fig.height=2.5, fig.width=7}
-# this chunk plots almond flowering dates along with associated trendlines and r2 values
-
-af$cultivar <- factor(af$cultivar, levels = c("Sonora","Nonpareil","Mission"))
-
-# setting up the plot
-aplot <- ggplot(data=af[af$nearest=='Chico',]) + geom_point(aes(x=year, y=fday), size=1.5, color=almondcol) + facet_wrap(~cultivar) #+ geom_smooth(aes(x=year, y=fday), method = "lm", se=FALSE, color="black", formula = y ~ x)
-aplot <- aplot + theme_bw(10) + labs(x='Year', y='Start of Flowering (Julian Day)')
-
-
-aplot
-
-```
-
-
-
-```{r almond_flower_modesto, echo=FALSE,warning=FALSE, fig.cap='Figure 6. Almond flowering dates in Modesto, CA', fig.height=2.5, fig.width=7}
-# this chunk plots almond flowering dates along with associated trendlines and r2 values
-
-# setting up the plot
-aplot <- ggplot(data=af[af$nearest=='Modesto',]) + geom_point(aes(x=year, y=fday), size=1.5, color=almondcol) + facet_wrap(~cultivar) #+ geom_smooth(aes(x=year, y=fday), method = "lm", se=FALSE, color="black", formula = y ~ x)
-aplot <- aplot + theme_bw(10) + labs(x='Year', y='Start of Flowering (Julian Day)')
-
-
-aplot
-
-```
-
-#### Flowering dates and monthly temperature
-
-Flowering dates of all three cultivars of almonds in Chico correlated strongly with average January and February temperatures, with flowering date getting earlier if temperatures in these months were warmer (Figure 7-9, Table 7). There was also correlations between flowering date and November and December monthly temperatures for cultivars Nonpareil and Mission. Only warmer November temperatures correlated with later bloom. 
-
-Given the current data, it is likely that almonds in Chico generally meet their chill requirement in November (Figures 7-9). Consequently, warming December and January temperatures allow the almonds to meet their heat requirement sooner, which causes them to bloom earlier. Based on the December and January temperature trends in Chico (Table 3), it seems likely that almond flowering dates will continue to get earlier as long as November temperatures stay stable.
-
-
-
-In Modesto, flowering dates for all almond cultivars correlate negatively January temperatures and positively with November temperatures. (Figure 10-12, Table 7). Because both November and January temperatures in Modesto may potentially be increasing, it is not currently possible to tell what affect warming will have on Almonds in Modesto (Table 4). It will depend on the strength of the warming in both months, as well as the strength of the trees response to that warming.
-
-#### Winter Chill Accumulation
 
 
 
@@ -599,26 +577,10 @@ The timing of the post-chill heat requirement being met did change significantly
 
 The fact that the heat metrics for Sonora and Nonpareil almonds have shown significant change but that there has been no change detected in the timing of bloom points to the complex inter-relatedness of a number of determinants of bloom, and requires further research to be more adequately explained. 
 
-```{r chill_heat_req_table, echo=FALSE}
-
-chicotable <- data.frame(cultivar=c("Sonora","Nonpareil","Mission"), Chill=sig2(c(0.75, 0.41,0.65)), Agrochill=sig2(c(0.47, 0.48,0.70)), Heat=sig2(c(0.02,0.46,0.28)))
-
-                         
-kable(chicotable, caption="Table 8. P-values for change in the timing of meeting chill and heat requirements over the course of the phenology record for almonds in Chico using linear models.", col.names = c("Cultivar","Chill", "Agronomic Chill", "Heat"))
 
 
-modestotable <- data.frame(cultivar=c("Sonora","Nonpareil","Mission"), Chill=sig2(c(0.98, 0.76,0.72)), Agrochill=sig2(c(0.34, 0.39,0.97)), Heat=sig2(c(0.02,0.01,0.14)))
+### Almond Timing of Fall Phenology
 
-kable(modestotable, caption="Table 9. P-values for change in the timing of meeting chill and heat requirements over the course of the phenology record for almonds in Modesto using linear models.", col.names = c("Cultivar","Chill", "Agronomic Chill", "Heat"))
-
-```
-
-
-
-
-### Fall Phenology
-
-Harvest dates were not available for Modesto almonds, so this section will only contain data from Chico. Mean almond season lengths appear to have decreased by varying degrees based on cultivars (Figure 23). However because the time series are so short, it is unclear whether these trends will continue into the future. 
 
 ```{r almond_season_length, echo=FALSE, fig.cap='Figure 23. Almond season length by cultivar in Chico, CA', fig.height=2.5, fig.width=7}
 #this chunk plot season length in almonds over time
@@ -627,32 +589,6 @@ asplot <- ggplot(data=asl) + geom_point(aes(x=year, y=slen), color=almondcol, si
 asplot <- asplot + theme_bw(10) + labs(x='Year', y='Season Length (Days)')
 
 asplot
-
-
-```
-
-
-The season lengths of Sonora, Nonpareil, and Mission all responded to May temperatures (Figure 24-26). May temperatures reduced season lengths for all cultivars. However, the lack of a detectable trend in May temperatures in Chico means it is not currently possible to determine what kind of an impact continued climate change will have on almond season lengths.
-
-```{r SonoraT_slen,  echo=FALSE, warning=FALSE, fig.cap="Figure 24. Sonora almond season length response to monthly temperatures in Chico, CA.", fig.height=2.5, fig.width=3}
-
-multiregression(asl, slp[[3]],'slen','year',plotcolor=almondcol,cultivar='Sonora',nearest='Chico', respname='Season Length (Days)')
-
-
-```
-
-
-```{r NonpareilT_slen,  echo=FALSE, warning=FALSE, fig.cap="Figure 25. Nonpareil almond season length response to monthly temperatures in Chico, CA.", fig.height=2.5, fig.width=3}
-
-multiregression(asl, slp[[2]],'slen','year',plotcolor=almondcol,cultivar='Nonpareil',nearest='Chico', respname='Season Length (Days)')
-
-
-```
-
-
-```{r MissionT_slen,  echo=FALSE, warning=FALSE, fig.cap="Figure 26. Mission almond season length response to monthly temperatures in Chico, CA.", fig.height=2.5, fig.width=3}
-
-multiregression(asl, slp[[1]],'slen','year',plotcolor=almondcol,cultivar='Mission',nearest='Chico', respname='Season Length (Days)')
 
 
 ```
@@ -675,122 +611,6 @@ kable(asltable, digits=3, caption = "Table 10. Summary of linear models comparin
 
 ```
 
-
-
-In addition, all three cultivars showed strong correlation with fruit development thermal time accumulation during the first part of the season (~ the first four months) (Figures 27, 29, 31). However, there is not a significant trend in thermal time accumulation over time for any of the almond cultivars (Figures 28, 30, 32). While this could be because fruit developement thermal time accumulation is not changing, it is also possible that a longer time series is required to detect a trend in the data. This would be consistent with trend detection in other climate change affected variables. If there is an upward trend in almond thermal time accumulation, we can expect (with high confidence) that almond season lengths will get shorter.
-
-
-```{r Sonora_gdh_slen, echo=FALSE, fig.cap='Figure 27. Season length vs. thermal accumulation for Sonora almonds in Chico, CA.', fig.width=7, fig.height=3}
-# this chunk plots out the long-term time series temperature data from chico
-
-agdhs <- asl[asl$cultivar=='Sonora',]
-
-sastplot <- ggplot(data=agdhs) + geom_point(aes(x=simplified, y=slen), color=almondcol, size=1.75) + geom_smooth(aes(x=simplified, y=slen), se=FALSE, method='lm', color='black') 
-
-sastplot <-sastplot + labs(x='Thermal Time (GDH)',y='Season Length (Days)',  title='Simplified Model') + theme_bw(10)
-
-saatplot <- ggplot(data=agdhs) + geom_point(aes(x=anderson, y=slen), color=almondcol, size=1.75) + geom_smooth(aes(x=anderson, y=slen), se=FALSE, method='lm', color='black') + labs(x='Year',y='Thermal Time (GDH)')
-
-saatplot <- saatplot + labs(x='Thermal Time (GDH)', y='Season Length (Days)', title='Anderson Model') + theme_bw(10)
-
-multiplot(sastplot, saatplot, cols=2)
-
-
-```
-
-
-
-```{r Sonora_gdh_time, echo=FALSE, fig.cap='Figure 28. Thermal accumulation for Sonora almonds in Chico, CA.', fig.width=7, fig.height=3}
-# this chunk plots out the long-term time series temperature data from chico
-
-agdhs <- asl[asl$cultivar=='Sonora',]
-
-sastplot <- ggplot(data=agdhs) + geom_point(aes(x=year, y=simplified), color=almondcol, size=1.75)
-sastplot <-sastplot + labs(x='Year',y='Thermal Time (GDH)',  title='Simplified Model') + theme_bw(10)
-
-saatplot <- ggplot(data=agdhs) + geom_point(aes(x=year, y=anderson), color=almondcol, size=1.75) 
-saatplot <- saatplot + labs(x='Year',y='Thermal Time (GDH)', title='Anderson Model') + theme_bw(10)
-
-multiplot(sastplot, saatplot, cols=2)
-
-
-```
-
-
-
-```{r Nonpareil_gdh_slen, echo=FALSE, fig.cap='Figure 29. Season length vs. thermal accumulation for Nonpareil almonds in Chico, CA.', fig.width=7, fig.height=3}
-# this chunk plots out the long-term time series temperature data from chico
-
-agdhn <- asl[asl$cultivar=='Nonpareil',]
-
-nastplot <- ggplot(data=agdhn) + geom_point(aes(x=simplified, y=slen), color=almondcol, size=1.75) + geom_smooth(aes(x=simplified, y=slen), se=FALSE, method='lm', color='black') 
-
-nastplot <-nastplot + labs(x='Thermal Time (GDH)',y='Season Length (Days)',  title='Simplified Model') + theme_bw(10)
-
-naatplot <- ggplot(data=agdhn) + geom_point(aes(x=anderson, y=slen), color=almondcol, size=1.75) + geom_smooth(aes(x=anderson, y=slen), se=FALSE, method='lm', color='black') + labs(x='Year',y='Thermal Time (GDH)')
-
-naatplot <- naatplot + labs(x='Thermal Time (GDH)', y='Season Length (Days)', title='Anderson Model') + theme_bw(10)
-
-multiplot(nastplot, naatplot, cols=2)
-
-
-```
-
-
-
-
-```{r Nonpareil_gdh_time, echo=FALSE, fig.cap='Figure 30. Thermal accumulation for Nonpareil almonds in Chico, CA.', fig.width=7, fig.height=3}
-# this chunk plots out the long-term time series temperature data from chico
-
-nastplot <- ggplot(data=agdhn) + geom_point(aes(x=year, y=simplified), color=almondcol, size=1.75)
-nastplot <-nastplot + labs(x='Year',y='Thermal Time (GDH)',  title='Simplified Model') + theme_bw(10)
-
-naatplot <- ggplot(data=agdhn) + geom_point(aes(x=year, y=anderson), color=almondcol, size=1.75) 
-naatplot <- naatplot + labs(x='Year',y='Thermal Time (GDH)', title='Anderson Model') + theme_bw(10)
-
-multiplot(nastplot, naatplot, cols=2)
-
-
-```
-
-
-
-```{r Mission_gdh_slen, echo=FALSE, fig.cap='Figure 31. Season length vs. thermal accumulation for Mission almonds in Chico, CA.', fig.width=7, fig.height=3}
-# this chunk plots out the long-term time series temperature data from chico
-
-agdhm <- asl[asl$cultivar=='Mission',]
-
-mastplot <- ggplot(data=agdhm) + geom_point(aes(x=simplified, y=slen), color=almondcol, size=1.75) + geom_smooth(aes(x=simplified, y=slen), se=FALSE, method='lm', color='black') 
-
-mastplot <-mastplot + labs(x='Thermal Time (GDH)',y='Season Length (Days)',  title='Simplified Model') + theme_bw(10)
-
-maatplot <- ggplot(data=agdhm) + geom_point(aes(x=anderson, y=slen), color=almondcol, size=1.75) + geom_smooth(aes(x=anderson, y=slen), se=FALSE, method='lm', color='black') + labs(x='Year',y='Thermal Time (GDH)')
-
-maatplot <- maatplot + labs(x='Thermal Time (GDH)', y='Season Length (Days)', title='Anderson Model') + theme_bw(10)
-
-multiplot(mastplot, maatplot, cols=2)
-
-
-```
-
-
-
-
-```{r Mission_gdh_time, echo=FALSE, fig.cap='Figure 32. Thermal accumulation for Mission almonds in Chico, CA.', fig.width=7, fig.height=3}
-# this chunk plots out the long-term time series temperature data from chico
-
-agdhm <- asl[asl$cultivar=='Mission',]
-
-mastplot <- ggplot(data=agdhm) + geom_point(aes(x=year, y=simplified), color=almondcol, size=1.75)
-mastplot <-mastplot + labs(x='Year',y='Thermal Time (GDH)',  title='Simplified Model') + theme_bw(10)
-
-maatplot <- ggplot(data=agdhm) + geom_point(aes(x=year, y=anderson), color=almondcol, size=1.75) 
-maatplot <- maatplot + labs(x='Year',y='Thermal Time (GDH)', title='Anderson Model') + theme_bw(10)
-
-multiplot(mastplot, maatplot, cols=2)
-
-
-```
 
 
 
@@ -845,41 +665,7 @@ kable(asltable2, digits=3, caption = "Table 11. Summary of linear models compari
 
 Annually Parlier exhibits warming minimum temperatures and cooling maximum temperatures (Figures 33-34) based on an autoregressive linear model of data since 1931. While the cooling trend in the mean annual maximum temperature is stronger (-0.36&deg;C per decade), the warming trend in the mean annual minimum temperature is still highly significant (Table 12). Minimum monthly temperatures are increasing year round based on autoregression analysis, but only spring, summer, and fall maximum temperatures are cooling significantly (Table 12). 
 
-```{r annual_min_parlier,warning=FALSE, echo=FALSE, fig.cap='Figure 33. Mean annual minimum temperatures from 1931 to 2014 in Parlier, CA, duration of phenology record shown with grey lines.', fig.height=3, fig.width=4.5, tidy=TRUE}
-amp <- am[am$variable=='tmin' & am$nearest=='Parlier',]
-
-anptplot <- ggplot(data=amp) + geom_line(aes(x=year, y=temp), color='blue3') +
-    geom_smooth(aes(x=year, y=temp), size=1, method='lm', se=FALSE,
-                color="black", formula = y ~ x) + ylim(6,12.5) +
-    geom_segment(aes(x=1958, y=7.1, xend=2013, yend=7.1), color='darkgrey') +
-    annotate('text', x=2013, y=7.2, hjust=1, vjust=0, size=3, 
-             label='prune flowering')  +
-    geom_segment(aes(x=1988, y=7.5, xend=2013, yend=7.5), color='darkgrey') +
-    annotate('text', x=2013, y=7.6, hjust=1, vjust=0, size=3, 
-             label='prune season length')
-
-anptplot <- anptplot + theme_bw(10)  + labs(x='Year', y=expression("Temperature  "(~degree*C)))
-
-anptplot
-
-```
-
-
-
-```{r annual_max_parlier, warning=FALSE,echo=FALSE, fig.cap='Figure 34. Mean annual maximum temperatures from 1931 to 2014 in Parlier, CA, duration of phenology record shown with grey lines.', fig.height=3, fig.width=4.5, tidy=TRUE}
-
-axtplot <- ggplot(data=am[am$variable=='tmax' & am$nearest=='Parlier',]) + geom_line(aes(x=year, y=temp), color='red3') + geom_smooth(aes(x=year, y=temp), size=1, method='lm', se=FALSE, color="black", formula = y ~ x) + ylim(21,29) + geom_segment(aes(x=1958, y=21, xend=2013, yend=21), color='darkgrey') + annotate('text', x=2013, y=21.1, hjust=1, vjust=0, size=3, label='prune flowering')  + geom_segment(aes(x=1988, y=21.5, xend=2013, yend=21.5), color='darkgrey') +annotate('text', x=2013, y=21.6, hjust=1, vjust=0, size=3, label='prune season length')
-
-axtplot <- axtplot + theme_bw(10)  + labs(x='Year', y=expression("Temperature  "(~degree*C)))
-
-
-axtplot
-
-
-```
-
-
-### Spring Phenology
+### Prune Timing of Spring Phenology
 
 ####Flowering dates
 
