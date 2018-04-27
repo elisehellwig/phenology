@@ -75,13 +75,12 @@ prune <- inner_join(pruneEH, pruneKJS)
 ##########################
 
 walnutEH <- wf %>% 
-    select(-contains("_")) %>% 
-    rename(location=nearest, bloom=fday) %>% 
+    select(-contains("_"), location=nearest, bloom=fday) %>% 
     add_column(crop='walnut')
 
 walnutKJS <- walnutK %>% 
     spread(requ, jd) %>% 
-    select(katherinecols[-1])
+    select(-`Agronomic Chill`, -`Leaf-Out`)
 
 walnut <- inner_join(walnutEH, walnutKJS)
 ######################################################################
