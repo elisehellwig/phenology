@@ -140,14 +140,6 @@ This paper extends those results to estimate not only the amount of thermal time
 
 
 
-
-
-
-![Figure 1. Chill and Heat Accumulation Curve](chillcurve.png)
-
-
-
-
 When discussing fall phenology, the most commonly referenced development stage is maturity, the first possible harvest date [@mimoun1998; @tombesi2010; @ruml2011]. However, maturity is correlated with flowering.  Everything else being equal, a tree that bloomed earlier will also be ready to harvest earlier. Consequently, changes in harvest readiness date can be due to changes in flowering dates and/or changes in temperature after flowering dates. To avoid confounding these two phenomena, we use season length (time from flowering to maturity) as the fall phenological response, instead of harvest date.
 
 # Methods
