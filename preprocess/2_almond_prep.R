@@ -1,5 +1,5 @@
 
-drivepath <- '/Users/echellwig/Drive/Phenology'
+drivepath <- '/Volumes/GoogleDrive/My Drive/Phenology'
 importpath <- file.path(drivepath, 'data/raw/crop/')
 
 library(tidyverse)

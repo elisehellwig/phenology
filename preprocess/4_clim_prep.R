@@ -1,5 +1,4 @@
-setwd('/Users/echellwig/Research/phenology')
-drivepath <- '/Users/echellwig/Drive/Phenology'
+drivepath <- '/Volumes/GoogleDrive/My Drive/Phenology'
 library(lubridate)
 library(reshape2)
 library(rnoaa)
