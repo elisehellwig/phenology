@@ -1,25 +1,39 @@
+
+# Setup -------------------------------------------------------------------
+
+
 #setwd('/Users/echellwig/Research/phenology')
-drivepath <- '/Users/echellwig/Drive/Phenology'
+drivepath <- '/Volumes/GoogleDrive/My Drive/Phenology'
 importpath <- file.path(drivepath, 'data/raw/crop/')
 
-source('functions/generalfunctions.R')
+library(lubridate)
+library(reshape2)
+library(plyr)
+
+source('functions/general.R')
 source('functions/preprocessfunctions.R')
 
 pkgs <- c('reshape2','lubridate','dismo')
-checkpacks(pkgs)
 
 
-#This script cleans up prune walnut and almond data for further processing and analysis.
+#This script cleans up walnut data for further processing and analysis.
 
 options(stringsAsFactors = FALSE)
 
 cl <- read.csv(file.path(drivepath,'data/clean/croploc.csv'))
 
 
-########################Walnuts###################################
+# Import ------------------------------------------------------------------
+
+
 wraw1 <- read.csv(file.path(importpath, 'walnut1954.csv'))
 wraw2 <- read.csv(file.path(importpath,'walnutpope2.csv'))
 wraw3 <- read.csv(file.path(importpath,'walnutbloompope.csv'))
+
+
+
+# Merge -------------------------------------------------------------------
+
 
 wcols <- c('CULT', 'YR','LOCATE','LFDA','HARV')
 
@@ -39,6 +53,9 @@ w$flower <- w$lfda
 
 #convert data to long format
 mw <- melt(w, id.vars=c('cultivar', 'year','loc'), value.name='date')
+
+
+# Clean ------------------------------------------------------------------
 
 #remove blanks and NAs
 blank <- which(mw$cultivar=="" | mw$date %in% c('', NA))
@@ -70,6 +87,8 @@ w <- unique(w)
 w$day <- yday(w$date)
 
 wc <-dcast(w[,c('cultivar','year','variable','day')], year + cultivar ~ variable)
+
+
 nas <- union(which(is.na(wc$flower)), which(is.na(wc$harvest)))
 w <- wc[-nas,]
 w$lfda <- NULL
@@ -79,7 +98,30 @@ names(w)[3:4] <- c('event2','event1')
 cults <- names(which(table(w$cultivar)>=35))
 wcults <- w[w$cultivar %in% cults, ]
 
+
 write.csv(wcults, 
           file=file.path(drivepath, 'data/walnutdata/walnutclean.csv'), 
           row.names=FALSE)
+
+
+
+# creating flowering structured data --------------------------------------
+
+
+
+wf <- ldply(cults, function(var) {
+    df <- wcults[wcults$cultivar==var,]
+    df2 <- df[order(df$year), ]
+    
+    data.frame(year=df2$year[-1],
+               cultivar=var,
+               event1=df2$event1[-1],
+               event0=df2$event2[-nrow(df2)])
+})
+
+write.csv(wf, 
+          file=file.path(drivepath, 'data/flowering/walnutbloomclean.csv'), 
+          row.names=FALSE)
+
+
 

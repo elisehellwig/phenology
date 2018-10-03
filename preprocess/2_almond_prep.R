@@ -2,11 +2,9 @@
 drivepath <- '/Users/echellwig/Drive/Phenology'
 importpath <- file.path(drivepath, 'data/raw/crop/')
 
-source('functions/generalfunctions.R')
+library(tidyverse)
 source('functions/preprocessfunctions.R')
 
-pkgs <- c('reshape2','lubridate','dismo')
-checkpacks(pkgs)
 
 options(stringsAsFactors = FALSE)
 
@@ -26,11 +24,11 @@ araw3 <-  read.csv(file.path(importpath, 'RAVTHullsplitandBloom.csv'))
 
 #########extracting useful columns (araw1)#####################
 
-adat1 <- araw1[,c('Cultivar', 'Location', 'Year', 'JD')]
-names(adat1) <- c('cultivar', 'loc','year','day')
-adat1$event <- "flowering"
+adat1 <- araw1 %>% 
+    select(c(Cultivar, Location, Year, JD)) %>% 
+    rename(cultivar=Cultivar, loc=Location, year=Year, day=JD) %>% 
+    add_column(event='flowering')
 
-adat1 <- adat1[,voi]
 
 #########restucturing the NSV Almond data (araw2)#####################
 
@@ -60,14 +58,13 @@ adat2 <- adat2[, voi]
 voi3 <- c('Year','Location','X','Hull.Split.Start','Hull.Split.End',
          'X10..bloom', 'X90..bloom')
 
-adat3 <- araw3[,voi3]
+adat3 <- araw3 %>% 
+    select(voi3) %>% 
+    rename('year'='Year', 'loc'='Location', 'cultivar'='X', 
+           'hstart'='Hull.Split.Start', 'hend'='Hull.Split.End', 
+           'flower10'='X10..bloom', 'flower90'='X90..bloom') 
 
-names(adat3) <- c('year', 'loc', 'cultivar', 'hstart', 'hend', 'flower10',
-               'flower90')
-
-adat3[adat3$loc==1,'loc'] <- 'Chico'
-adat3[adat3$loc==2,'loc'] <- 'Manteca'
-adat3[adat3$loc==3,'loc'] <- 'Shafter'
+adat3$loc <- recode(adat3$loc, 'Chico','Manteca', 'Shafter')
 
 adat3 <- melt(adat3, id.vars = c('year','loc','cultivar'),
               measure.vars = c('hstart','hend','flower10','flower90'),
@@ -87,4 +84,19 @@ a <- rbind(adat1, adat2, a3)
 
 write.csv(a, file.path(drivepath,'data/historydata/almondclean.csv'),
           row.names = FALSE)
+
+
+
+# Reformatting for flowering ----------------------------------------------
+
+af <- adat1 %>% 
+    select(-event) %>% 
+    rename(event1=day)
+
+
+write.csv(af, 
+          file=file.path(drivepath, 'data/flowering/almondbloomclean.csv'), 
+          row.names=FALSE)
+
+
 
