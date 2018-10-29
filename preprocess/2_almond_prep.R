@@ -2,6 +2,8 @@
 drivepath <- '/Volumes/GoogleDrive/My Drive/Phenology'
 importpath <- file.path(drivepath, 'data/raw/crop/')
 
+library(lubridate)
+library(reshape2)
 library(tidyverse)
 source('functions/preprocessfunctions.R')
 
@@ -9,7 +11,7 @@ source('functions/preprocessfunctions.R')
 options(stringsAsFactors = FALSE)
 
 #This script cleans almond data for further processing and analysis.
-
+#note I use first flower and flower 10% as flowering
 
 cl <- read.csv(file.path(drivepath,'data/clean/croploc.csv'))
 
@@ -24,10 +26,10 @@ araw3 <-  read.csv(file.path(importpath, 'RAVTHullsplitandBloom.csv'))
 
 #########extracting useful columns (araw1)#####################
 
-adat1 <- araw1 %>% 
+a1 <- araw1 %>% 
     select(c(Cultivar, Location, Year, JD)) %>% 
     rename(cultivar=Cultivar, loc=Location, year=Year, day=JD) %>% 
-    add_column(event='flowering')
+    add_column(event='event1')
 
 
 #########restucturing the NSV Almond data (araw2)#####################
@@ -39,35 +41,34 @@ cultivars2 <- c('Joranolo', 'Ne_Plus_Ultra', 'IXL', 'Peerless', 'Nonpareil', 'Dr
 #transposing the data (except for the first column which is just the cultivar
     #names)
 
-adat2 <- reform(araw2, cultivars2)
+a2 <- reform(araw2, cultivars2)
 
 #converting the date into a 'Date' class vector
-adat2$Date <- as.Date(paste(adat2$date, adat2$year, sep='/'), 
+a2$Date <- as.Date(paste(a2$date, a2$year, sep='/'), 
                       format = '%m/%d/%Y') 
 
-adat2$day <- yday(adat2$Date)
+a2$day <- yday(a2$Date)
 
-adat2 <- adat2[complete.cases(adat2),]
+a2 <- a2[complete.cases(a2),]
 
-adat2$loc <- 'NSacValley'
+a2$loc <- 'NSacValley'
 
-adat2 <- adat2[, voi]
+a2 <- a2[a2$event=='First_Flower', voi]
+a2$event <- 'event1'
 
 #########Extracting the useful columns (araw3)#####################
 
-voi3 <- c('Year','Location','X','Hull.Split.Start','Hull.Split.End',
-         'X10..bloom', 'X90..bloom')
+voi3 <- c('Year','Location','X','Hull.Split.Start','X10..bloom')
 
 adat3 <- araw3 %>% 
     select(voi3) %>% 
     rename('year'='Year', 'loc'='Location', 'cultivar'='X', 
-           'hstart'='Hull.Split.Start', 'hend'='Hull.Split.End', 
-           'flower10'='X10..bloom', 'flower90'='X90..bloom') 
+           'event2'='Hull.Split.Start', 'event1'='X10..bloom') 
 
 adat3$loc <- recode(adat3$loc, 'Chico','Manteca', 'Shafter')
 
 adat3 <- melt(adat3, id.vars = c('year','loc','cultivar'),
-              measure.vars = c('hstart','hend','flower10','flower90'),
+              measure.vars = c('event1','event2'),
               variable.name = 'event',value.name = 'date')
 
 zerorows <- which(adat3$date==0)
@@ -80,23 +81,9 @@ a3 <- a3[,voi]
 
 ##################Putting it all together#####################
 
-a <- rbind(adat1, adat2, a3)
+a <- rbind(a1, a2, a3)
+
+a$year <- as.numeric(a$year)
 
 write.csv(a, file.path(drivepath,'data/historydata/almondclean.csv'),
           row.names = FALSE)
-
-
-
-# Reformatting for flowering ----------------------------------------------
-
-af <- adat1 %>% 
-    select(-event) %>% 
-    rename(event1=day)
-
-
-write.csv(af, 
-          file=file.path(drivepath, 'data/flowering/almondbloomclean.csv'), 
-          row.names=FALSE)
-
-
-

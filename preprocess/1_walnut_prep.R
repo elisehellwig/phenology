@@ -91,21 +91,23 @@ for (i in 1:length(uy[,1])) {
 w <- unique(w)
 w$day <- yday(w$date)
 
-wc <-dcast(w[,c('cultivar','year','variable','day')], year + cultivar ~ variable)
+wc <-dcast(w[,c('cultivar','year','variable','day')], year + cultivar ~ variable, value.var = 'day')
 
+wc$lfda <- NULL
 
-nas <- intersect(which(is.na(wc$flower)), which(is.na(wc$harvest)))
-wh <- wc[-nas,]
-wh$lfda <- NULL
+names(wc)[3:4] <- c('event2','event1')
 
-names(wh)[3:4] <- c('event2','event1')
+wm <- melt(wc, id.vars=c('year','cultivar'), value.name = 'day',
+           variable.name = 'event', measure.vars = c('event1','event2'))
 
-cults <- names(which(table(wh$cultivar)>=35))
-wcults <- wh[wh$cultivar %in% cults, ]
+nas <- which(is.na(wm$day))
+wm2 <- wm[-nas, ]
+
+cults <- names(which(table(wm2$cultivar)>=70))
+wcults <- wm2[wm2$cultivar %in% cults, ]
 
 
 write.csv(wcults, 
           file=file.path(drivepath, 'data/walnutdata/walnutclean.csv'), 
           row.names=FALSE)
-
 
