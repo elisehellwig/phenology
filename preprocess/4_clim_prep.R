@@ -1,7 +1,8 @@
-setwd('/Volumes/GoogleDrive/My Drive/Phenology')
 library(lubridate)
+library(dplyr)
 source('R/functions/generalfunctions.R')
 
+datapath <- '/Volumes/GoogleDrive/My Drive/Phenology/data/'
 
 #This script imports climate date from CIMIS and NOAA (NCDC) and cleans it up for further processing and analysis.
 #This script focuses on min and max temperatures.
@@ -10,28 +11,33 @@ source('R/functions/generalfunctions.R')
 #############################################################
 ##############Davis##########################################
 nums <- c('','2','3','4')
-nfils <- paste0('data/raw/climate/noaa',nums,'.csv')
-nlist <- lapply(nfils, function(f) read.csv(f, stringsAsFactors=FALSE))
+nfils <- paste0('raw/climate/noaa',nums,'.csv')
+nlist <- lapply(nfils, function(f) {
+    read.csv(file.path(datapath, f), stringsAsFactors=FALSE)
+    })
 
 #creates a vector of variables that we are interested in
 ivars <- c('STATION_NAME','DATE','TMAX','TMIN')
 
 #gets the variables wer are interested in from the various NOAA datasets
-n <- rbind(nlist[[1]][,ivars],nlist[[2]][,ivars], nlist[[3]][,ivars],nlist[[4]][,ivars])
+n <- rbind(nlist[[1]][,ivars],nlist[[2]][,ivars], nlist[[3]][,ivars],
+           nlist[[4]][,ivars])
 
 
 names(n) <- c('loc', 'date','tmax', 'tmin')
 
 #vector of names of stations
-station <- c("WINTERS CA US", "WOODLAND 1 WNW CA US", "DAVIS 2 WSW EXPERIMENTAL FARM CA US")
+station <- c("WINTERS CA US", "WOODLAND 1 WNW CA US", 
+             "DAVIS 2 WSW EXPERIMENTAL FARM CA US")
 
 #selects only the stations we want
 n <- n[n$loc %in% station, ]
 
 #gives them reasonable names
-n$loc <- as.factor(n$loc)
-levels(n$loc) <- c('davis', 'winters', 'woodland')
-n$loc <- as.character(n$loc)
+n$loc <- recode(n$loc, "WINTERS CA US"='winters', 
+                "WOODLAND 1 WNW CA US"='woodland',
+                "DAVIS 2 WSW EXPERIMENTAL FARM CA US"='davis')
+
 
 #adds lat data
 
