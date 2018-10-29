@@ -19,10 +19,10 @@ praw1 <- read.csv(file.path(importpath,'french1988.csv'))[,c(1:5,10)]
 praw2 <- read.csv(file.path(importpath,'NSVPrune.csv'))
 
 ####################Praw1#############################
-names(praw1) <- c('bstart','bend','maturity','cultivar','loc','year')
+names(praw1) <- c('event1','bend','event2','cultivar','loc','year')
 
 p1melt <- melt(praw1, id.vars=c('cultivar','loc','year'),
-               measure.vars = c('bstart','bend','maturity'),
+               measure.vars = c('event1','bend','event2'),
                variable.name = 'event',
                value.name = 'date')
                 
@@ -30,6 +30,7 @@ p1melt$Date <- as.Date(p1melt$date, format="%m/%d/%y")
 p1melt$day <- yday(p1melt$Date)
 p1melt$event <- as.character(p1melt$event)
 
+p1 <- p1melt[which(p1melt$event !='bend'),]
 ####################Praw2#############################
 vars <- c('French','Gerren','Imperial','General')
 
@@ -41,15 +42,19 @@ p2$year <- as.integer(p2$year)
 p2$cultivar <- as.character(p2$cultivar)
 p2$loc <- 'NSacValley'
 
+p2 <- p2[p2$event=='First_Flower', ]
 
+p2$event <- 'event1'
 #####################################
 #put it together
 voi <- c('cultivar','year','loc','event','day')
 
-p <- rbind(p1melt[,voi], p2[,voi])
+p <- rbind(p1[,voi], p2[,voi])
 
 write.csv(p, file.path(drivepath,'data/historydata/pruneclean.csv'),
           row.names = FALSE)
+
+
 
 
 
