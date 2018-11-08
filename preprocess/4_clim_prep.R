@@ -1,8 +1,11 @@
+library(tidyverse)
 library(lubridate)
+library(reshape2)
 library(dplyr)
-source('R/functions/generalfunctions.R')
-
+#source('R/functions/generalfunctions.R')
 datapath <- '/Volumes/GoogleDrive/My Drive/Phenology/data/'
+source('functions/cleanTemps.R')
+options(stringsAsFactors = FALSE)
 
 #This script imports climate date from CIMIS and NOAA (NCDC) and cleans it up for further processing and analysis.
 #This script focuses on min and max temperatures.
@@ -10,97 +13,40 @@ datapath <- '/Volumes/GoogleDrive/My Drive/Phenology/data/'
 
 #############################################################
 ##############Davis##########################################
-nums <- c('','2','3','4')
-nfils <- paste0('raw/climate/noaa',nums,'.csv')
-nlist <- lapply(nfils, function(f) {
-    read.csv(file.path(datapath, f), stringsAsFactors=FALSE)
-    })
+n <- read.csv(file.path(datapath, 'raw/climate/noaadavisnew.csv'))
 
-#creates a vector of variables that we are interested in
-ivars <- c('STATION_NAME','DATE','TMAX','TMIN')
+#convert date number to date class
+n$DATE <- as.Date(n$DATE)
 
-#gets the variables wer are interested in from the various NOAA datasets
-n <- rbind(nlist[[1]][,ivars],nlist[[2]][,ivars], nlist[[3]][,ivars],
-           nlist[[4]][,ivars])
-
-
-names(n) <- c('loc', 'date','tmax', 'tmin')
-
-#vector of names of stations
-station <- c("WINTERS CA US", "WOODLAND 1 WNW CA US", 
-             "DAVIS 2 WSW EXPERIMENTAL FARM CA US")
-
-#selects only the stations we want
-n <- n[n$loc %in% station, ]
+n <- n %>% select('loc'='NAME','date'='DATE', 'tmax'='TMAX', 'tmin'='TMIN')
 
 #gives them reasonable names
-n$loc <- recode(n$loc, "WINTERS CA US"='winters', 
-                "WOODLAND 1 WNW CA US"='woodland',
-                "DAVIS 2 WSW EXPERIMENTAL FARM CA US"='davis')
+n$loc <- recode(n$loc, "WINTERS, CA US"='winters', 
+                "WOODLAND 1 WNW, CA US"='woodland',
+                "DAVIS 2 WSW EXPERIMENTAL FARM, CA US"='davis')
 
 
-#adds lat data
 
-#converts string dates to Date class
-n$date <- as.Date(as.character(n$date), format='%Y%m%d')
 n$year <- year(n$date)
-n$month <- month(n$date)
+n <- n[n$year > 1924, ]
+n[which(n$tmin > n$tmax), 'tmin'] <- NA
+n[which(n$tmin > n$tmax), 'tmax'] <- NA
+n[which(n$tmax<28), 'tmax'] <- NA
+n[which(n$tmin>90 | n$tmin<10), 'tmin'] <- NA
 
-n <- n[n$year>1951,]
+ndmin <- fillinTemps(n, 'tmin', c('winters','woodland'), 'davis')
+ndmax <- fillinTemps(n, 'tmax', c('winters','woodland'), 'davis')
 
-n[n$tmin==-9999, 'tmin'] <- NA
-n[n$tmax==-9999, 'tmax'] <- NA
+nd <- merge(ndmin, ndmax)
 
+#convert to celcius
+nd$tmax <- FtoC(nd$tmax)
+nd$tmin <- FtoC(nd$tmin)
 
-nd <- n[n$loc=='davis' & n$year>1951,]
+nd$year <- year(nd$date)
+nd$day <- yday(nd$date)
 
-wnov <- n[n$year==1998 & n$month==11 & n$loc=='winters', ]
-wnov$loc <- 'Davis'
-
-nd <- rbind(nd, wnov)
-#############getting winters/woodland data
-
-nwi <- n[n$loc=='winters',]
-nwo <- n[n$loc=='woodland',]
-
-#recreating data for Jan 2005
-jmin <- (nwi[nwi$year==2005 & nwi$month==1,'tmin'] + nwo[nwo$year==2005 & nwo$month==1,'tmin'])/2
-jmax <- (nwi[nwi$year==2005 & nwi$month==1,'tmax'] + nwo[nwo$year==2005 & nwo$month==1,'tmax'])/2
-
-
-jan2005 <- data.frame(loc='davis', date=nwi[nwi$year==2005 & nwi$month==1,'date'], tmax=jmax, tmin=jmin, year=2005, month=1)
-nd <- rbind(nd,jan2005)
-#replacing missing davis data with averaged winters/woodland data
-nrows <- which(is.na(nd[, 'tmin']))
-xrows <- which(is.na(nd[, 'tmax']))
-
-ndates <- nd[nrows, 'date']
-xdates <- nd[xrows, 'date']
-
-for (d in xdates) {
-	nd[nd$date==d, 'tmax'] <-  mean(c(nwi[nwi$date==d, 'tmax'], nwo[nwo$date==d, 'tmax']), na.rm=TRUE)
-}
-
-for (d in ndates) {
-	nd[nd$date==d, 'tmin'] <- mean(c(nwi[nwi$date==d, 'tmin'], nwo[nwo$date==d, 'tmin']), na.rm=TRUE)
-}
-
-
-#making the implied decimal point explicit
-nd$tmax <- nd$tmax/10
-nd$tmin <- nd$tmin/10
-
-
-#switching min and max values
-srows <- which(nd$tmin>nd$tmax)
-sdat <- data.frame(tn=nd[srows, 'tmax'], tx=nd[srows,'tmin'])
-nd[srows,'tmin'] <- sdat[,'tn']
-nd[srows,'tmax'] <- sdat[,'tx']
-
-nd <- subset(nd, select=-month)
-nd$jday <- as.numeric(format(as.Date(nd$date), "%j"))
-
-save(nd, file='data/clean/noaadavis.RData')
+save(nd, file=file.path(datapath, 'clean/noaadavis.RData'))
 
 #############################################################
 ##############Winters##########################################
