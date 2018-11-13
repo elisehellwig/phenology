@@ -9,7 +9,7 @@ source('helperfunctions.R')
 #source('functions/helperfunctions.R')
 #setwd('/Volumes/GoogleDrive/My Drive/Phenology/data/flowering')
 
-temps <- read.csv('davisdailyhourlytemp2.csv', stringsAsFactors = FALSE)
+temps <- read.csv('davisdailyhourlytemp.csv', stringsAsFactors = FALSE)
 w <- read.csv('walnutclean.csv', stringsAsFactors = FALSE)
 
 temps$dt <- as.POSIXct(temps$dt)
