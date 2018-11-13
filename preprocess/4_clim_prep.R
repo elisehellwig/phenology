@@ -40,13 +40,14 @@ ndmax <- fillinTemps(n, 'tmax', c('winters','woodland'), 'davis')
 nd <- merge(ndmin, ndmax)
 
 #convert to celcius
-nd$tmax <- FtoC(nd$tmax)
-nd$tmin <- FtoC(nd$tmin)
+nd$tmax <- round(FtoC(nd$tmax))
+nd$tmin <- round(FtoC(nd$tmin))
 
 nd$year <- year(nd$date)
 nd$day <- yday(nd$date)
 
-save(nd, file=file.path(datapath, 'clean/noaadavis.RData'))
+write.csv(nd, file=file.path(datapath, 'clean/noaadavis.csv'),
+          row.names = FALSE)
 
 #############################################################
 ##############Winters##########################################

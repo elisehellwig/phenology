@@ -1,12 +1,14 @@
-setwd('/Volumes/GoogleDrive/My Drive/Phenology')
+datapath <- '/Volumes/GoogleDrive/My Drive/Phenology/data/'
 library(lubridate)	
 library(phenoclim)
+library(plyr)
 
 #source('R/functions/generalfunctions.R')
-source('R/functions/diurnal_temperature2.R')
+source('functions/diurnal_temperature2.R')
 
-temp <- read.csv(file='data/clean/temp.csv')
-
+#temp <- read.csv(file='data/clean/temp.csv')
+davis <- read.csv(file=file.path(datapath, 'clean/noaadavis.csv'),
+                 stringsAsFactors = FALSE)
 
 #this script readies the climate data for analysis.
 #load('data/clean/hrly3.Rdata')
@@ -14,36 +16,38 @@ temp <- read.csv(file='data/clean/temp.csv')
 
 ###########################################
 
-temp$date <- as.Date(temp$date)
+davis$date <- as.Date(davis$date)
 
-locs <- c('Chico','Davis', 'Manteca','Parlier')
+#locs <- c('Chico','Davis', 'Manteca','Parlier')
 #####################Create Hourly Temperatures####################
 
 
-davis <- temp[temp$nearest=='Davis',]
-davis$date <- as.Date(davis$date)
+#davis <- temp[temp$nearest=='Davis',]
+#davis$date <- as.Date(davis$date)
 
-hrdav <- data.frame(date=0, hour=0, temp=0)
-
-for (i in 1:length(davis$date)) {
-    temp <- round(diTemp(38.544476, davis[i, 'date'], davis[i,'tmin'], davis[i, 'tmax']), 1)
+hrdav <- ldply(1:length(davis$date), function(i) {
+    temp <- round(diTemp(38.544476, davis[i, 'date'], davis[i,'tmin'], 
+                         davis[i, 'tmax']), 1)
     hour <- 1:24
     date <- rep(as.Date(davis$date[i]), 24)
-    dat <- cbind(date, hour, temp)
-    hrdav <- rbind(hrdav, dat)
-}
+    data.frame(date, hour, temp)
+})
 
-hrdav$date <- as.Date(hrdav$date, origin='1970-01-01')
+hrdav$day <- yday(hrdav$date)
+hrdav$year <- year(hrdav$date)
 
-dht <- hrdav[-1,]
+dt <- merge(hrdav, davis)
+dt$hourstring <-  ifelse(nchar(dt$hour-1)<2, paste0(0, dt$hour-1), 
+                         as.character(dt$hour-1))
+dt$dt <- as.POSIXct(paste(dt$date, 
+                          paste0(dt$hourstring, ':00:00')),
+                    format="%Y-%m-%d %H:%M:%OS")
 
-dht$day <- as.numeric(format(as.Date(dht$date), "%j"))
-dht$year <- year(dht$date)
-dht$month <- month(dht$date)
+dtfinal <- dt[,c('dt','year','day','hour','temp','tmin','tmax')]
 
-
-
-
+write.csv(dtfinal, file.path(datapath, 'davisdailyhourlytemp.csv'), 
+          row.names = FALSE)
+######################################
 
 testdf <- temp[temp$nearest=='Chico', ]
 
