@@ -1,7 +1,6 @@
 library(tidyverse)
 library(lubridate)
 library(reshape2)
-library(dplyr)
 #source('R/functions/generalfunctions.R')
 datapath <- '/Volumes/GoogleDrive/My Drive/Phenology/data/'
 source('functions/cleanTemps.R')
@@ -11,8 +10,10 @@ options(stringsAsFactors = FALSE)
 #This script focuses on min and max temperatures.
 
 
-#############################################################
-##############Davis##########################################
+
+# Davis-NOAA --------------------------------------------------------------
+
+
 n <- read.csv(file.path(datapath, 'raw/climate/noaadavisnew.csv'))
 
 #convert date number to date class
@@ -48,6 +49,71 @@ nd$day <- yday(nd$date)
 
 write.csv(nd, file=file.path(datapath, 'clean/noaadavis.csv'),
           row.names = FALSE)
+
+
+# Davis-CIMIS -------------------------------------------------------------
+filenames <- list.files(file.path(datapath, 'raw/climate/cimis'),
+                        pattern='.csv',
+                        full.names = TRUE)
+
+
+
+cimis <- plyr::ldply(filenames, function(fn) {
+    read.csv(fn)[,c('Stn.Name','Date','Hour..PST.','Jul','Air.Temp..C.','qc')]
+    }) 
+
+names(cimis) <- c('name','date','hour','day','temp','qc')
+cimis[which(cimis$name=="Bryte (experimental)"), 'name'] <- 'Bryte'
+
+
+cimis$hour <- cimis$hour/100
+timestring <- paste(cimis$date, 
+                    paste0(sprintf('%02d', cimis$hour-1), ":00:00"))
+cimis$date <- as.POSIXct(timestring, format="%m/%d/%Y %H:%M:%OS")
+
+extremerows <- which(cimis$temp>50 | cimis$temp<=-14 | cimis$qc=='R')
+cimis[extremerows, 'temp'] <- NA
+
+cd <- cimis[which(cimis$name=='Davis'),]
+library(phenoclim)
+timeSeriesCheck(cd, start="1982-07-17 23:00:00 PDT", 
+                end="2018-11-13 23:00:00 PST", hours = TRUE,
+                datename='date')
+
+
+cim80 <- cimis[which(cimis$date<'1994-09-20 00:00:00'), ] 
+cim80d <- fillinTemps(cim80, 'temp','Zamora','Davis','name')
+
+row95 <- which(cimis$date>='1994-09-20 00:00:00' & 
+                   cimis$date<'1998-12-10 00:00:00')
+cim95 <- cimis[row95, ] 
+cim95d <- fillinTemps(cim95, 'temp',c('Dixon','Zamora'),'Davis','name')
+
+row00 <- which(cimis$date>='1998-12-10 00:00:00' & 
+                   cimis$date<'2006-01-21 00:00:00')
+cim00 <- unique(cimis[row00, ]) 
+cim00d <- fillinTemps(cim00, 'temp',c('Dixon','Winters','Zamora','Bryte'),
+                      'Davis','name')
+
+
+row10 <- which(cimis$date>='2006-01-21 00:00:00' & cimis$date<'2011-05-12 00:00:00')
+cim10 <- cimis[row10, ] 
+cim10d <- fillinTemps(cim10, 'temp',c('Dixon','Winters','Bryte'),
+                      'Davis','name')
+
+row15 <- which(cimis$date>='2011-05-12 00:00:00')
+cim15 <- cimis[row15, ] 
+cim15d <- fillinTemps(cim15, 'temp',c('Dixon','Winters', 'Woodland','Bryte'),
+                      'Davis','name')
+
+
+cimdav <- do.call(rbind, list(cim80d, cim95d, cim00d, cim10d, cim15d))
+timeSeriesCheck(cimdav, start="1982-07-17 23:00:00 PDT", 
+                end="2018-11-13 23:00:00 PST", hours = TRUE,
+                datename='date')
+
+write.csv(cimdav, file.path(datapath, 'clean/cimisdavis.csv'),
+          row.names=FALSE)
 
 #############################################################
 ##############Winters##########################################
