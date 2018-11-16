@@ -1,6 +1,7 @@
 library(tidyverse)
 library(lubridate)
 library(reshape2)
+library(phenoclim)
 #source('R/functions/generalfunctions.R')
 datapath <- '/Volumes/GoogleDrive/My Drive/Phenology/data/'
 source('functions/cleanTemps.R')
@@ -75,10 +76,6 @@ extremerows <- which(cimis$temp>50 | cimis$temp<=-14 | cimis$qc=='R')
 cimis[extremerows, 'temp'] <- NA
 
 cd <- cimis[which(cimis$name=='Davis'),]
-library(phenoclim)
-timeSeriesCheck(cd, start="1982-07-17 23:00:00 PDT", 
-                end="2018-11-13 23:00:00 PST", hours = TRUE,
-                datename='date')
 
 
 cim80 <- cimis[which(cimis$date<'1994-09-20 00:00:00'), ] 
@@ -108,7 +105,7 @@ cim15d <- fillinTemps(cim15, 'temp',c('Dixon','Winters', 'Woodland','Bryte'),
 
 
 cimdav <- do.call(rbind, list(cim80d, cim95d, cim00d, cim10d, cim15d))
-timeSeriesCheck(cimdav, start="1982-07-17 23:00:00 PDT", 
+tsc <- timeSeriesCheck(cimdav, start="1982-07-17 23:00:00 PDT", 
                 end="2018-11-13 23:00:00 PST", hours = TRUE,
                 datename='date')
 
