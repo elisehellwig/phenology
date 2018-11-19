@@ -10,6 +10,10 @@ source('functions/diurnal_temperature2.R')
 davis <- read.csv(file=file.path(datapath, 'clean/noaadavis.csv'),
                  stringsAsFactors = FALSE)
 
+cim <- read.csv(file.path(datapath, 'clean/cimisdavis.csv'),
+                stringsAsFactors = FALSE)
+
+
 #this script readies the climate data for analysis.
 #load('data/clean/hrly3.Rdata')
 
@@ -43,7 +47,33 @@ dt$dt <- as.POSIXct(paste(dt$date,
                           paste0(dt$hourstring, ':00:00')),
                     format="%Y-%m-%d %H:%M:%OS")
 
+missingDTs <- which(is.na(dt$dt))
+dtMiss <- dt[missingDTs, ]
+dtstring <- paste0(dtMiss$date, ' ', dtMiss$hourstring, ':00:00')
+dt$dt[missingDTs] <- dtstring
+
+
+mindt <- min(dt$dt)
+maxdt <- max(dt$dt)
 dtfinal <- dt[,c('dt','year','day','hour','temp','tmin','tmax')]
+
+cim$date <- as.POSIXct(cim$date, format="%Y-%m-%d %H:%M:%OS")
+ 
+tdfinal$temp <- sapply(1:nrow(dtfinal), function(i) {
+    dtdate <- dtfinal[i, 'dt']
+    
+    if (dtdate %in% cim$date) {
+        if (!is.na(cim[which(cim$date==dtdate),'temp'])) {
+            cim[which(cim$date==dtdate),'temp']
+        } else {
+            dtfinal[i, 'temp']
+        }
+        
+    } else {
+        dtfinal[i, 'temp']
+        
+    }
+})
 
 write.csv(dtfinal, file.path(datapath, 'davisdailyhourlytemp.csv'), 
           row.names = FALSE)
