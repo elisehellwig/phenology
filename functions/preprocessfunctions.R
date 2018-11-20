@@ -1,10 +1,4 @@
 
-createHourlyTemps <- function(df, latitude) {
-    
-}
-
-
-
 daylength <- function(jul, lat=38.5, ret='') {
     #from extractTemp.py: Cesaraccio et al (2001) "An improved model for determining degree-day values..."
     #jul is the julian date
