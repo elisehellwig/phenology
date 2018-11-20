@@ -103,7 +103,10 @@ wm <- melt(wc, id.vars=c('year','cultivar'), value.name = 'day',
 nas <- which(is.na(wm$day))
 wm2 <- wm[-nas, ]
 
-cults <- names(which(table(wm2$cultivar)>=70))
+
+cults <- c('Chandler','Franquette','Hartley','Howard','Ivanhoe','Payne','Serr',
+           'Solano','Tulare','Vina')
+#cults <- names(which(table(wm2$cultivar)>=70))
 wcults <- wm2[wm2$cultivar %in% cults, ]
 
 
