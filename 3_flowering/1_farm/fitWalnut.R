@@ -14,10 +14,10 @@ w <- read.csv('walnutclean.csv', stringsAsFactors = FALSE)
 
 temps$dt <- as.POSIXct(temps$dt)
 
-#cv <- Sys.getenv("SLURM_ARRAY_TASK_ID")
-#v <- as.integer(cv)
+cv <- Sys.getenv("SLURM_ARRAY_TASK_ID")
+v <- as.integer(cv)
 
-v <- 6
+#v <- 6
 w <- na.omit(w)
 
 forms <- c('chillbasic','linear','gdd','anderson')
@@ -32,17 +32,22 @@ wv <- w %>%
     spread(event, day) %>% 
     mutate(event0=300)
 
-dpl <- lapply(1:length(forms), function(i) {
+pl <- lapply(1:length(forms), function(i) {
     parameterlist(1, 'TTT', FALSE, forms[i], initpars[[i]],
                   varyingparameters = NA, modelthreshold=50, start=300, 
                   optimized=c('threshold', 'start'),
                   ModelClass = 'FlowerModel')
 })
 
-dpmlen <- flowermodel(wv, temps, dpl, c(0,0), c(365,5000),
+fm <- flowermodel(wv, temps, pl, c(0,0), c(365,5000),
                    iterations=400, cores = 8L)
 
-saveRDS(dpmlen, paste0('TTT', variety ,'test.RDS'))
+saveRDS(fm, paste0('TTT', variety ,'.RDS'))
 
+
+fmcv <- crossval(fm, temps, k=5, seed=2928391,  c(0,0), c(365,5000),
+                 400, 8L)
+
+saveRDS(fmcv, paste0('TTT', variety ,'CV.RDS'))
 
 
