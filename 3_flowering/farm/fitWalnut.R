@@ -20,9 +20,9 @@ temps$dt <- as.POSIXct(temps$dt)
 v <- 6
 w <- na.omit(w)
 
-forms <- c('gdd')
-initpars <- initialparlist(c(1,1,2,3,3))
-
+forms <- c('chillbasic','linear','gdd','anderson')
+initpars <- initialparlist(c(1,1,1,3))
+initpars[[1]][[1]] <- 7.2
 ###########################
 vars <- sort(unique(w$cultivar))
 variety <- vars[v]
@@ -35,14 +35,12 @@ wv <- w %>%
 dpl <- lapply(1:length(forms), function(i) {
     parameterlist(1, 'TTT', FALSE, forms[i], initpars[[i]],
                   varyingparameters = NA, modelthreshold=50, start=300, 
-                  optimized=c('cardinaltemps','threshold', 'start'),
+                  optimized=c('threshold', 'start'),
                   ModelClass = 'FlowerModel')
 })
 
-dpmlen <- mclapply(1:length(dpl), function(i) {
-       flowermodel(wv, temps, dpl, c(0,0,0), c(365,5000,100),
-                   iterations=200, cores = 8L)
-    }, mc.cores = 4L)
+dpmlen <- flowermodel(wv, temps, dpl, c(0,0), c(365,5000),
+                   iterations=400, cores = 8L)
 
 saveRDS(dpmlen, paste0('TTT', variety ,'test.RDS'))
 
