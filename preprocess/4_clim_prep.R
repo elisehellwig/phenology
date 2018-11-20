@@ -53,7 +53,7 @@ write.csv(nd, file=file.path(datapath, 'clean/noaadavis.csv'),
 
 
 # Davis-CIMIS -------------------------------------------------------------
-filenames <- list.files(file.path(datapath, 'raw/climate/cimis'),
+filenames <- list.files(file.path(datapath, 'raw/climate/cimis/davis'),
                         pattern='.csv',
                         full.names = TRUE)
 
@@ -101,7 +101,7 @@ cim10d <- fillinTemps(cim10, 'temp',c('Dixon','Winters','Bryte'),
 row15 <- which(cimis$date>='2011-05-12 00:00:00')
 cim15 <- cimis[row15, ] 
 cim15d <- fillinTemps(cim15, 'temp',c('Dixon','Winters', 'Woodland','Bryte'),
-                      'Davis','name')
+                      'Davis','name') 
 
 
 cimdav <- do.call(rbind, list(cim80d, cim95d, cim00d, cim10d, cim15d))
@@ -112,44 +112,27 @@ tsc <- timeSeriesCheck(cimdav, start="1982-07-17 23:00:00 PDT",
 write.csv(cimdav, file.path(datapath, 'clean/cimisdavis.csv'),
           row.names=FALSE)
 
-#############################################################
-##############Winters##########################################
-n <- rbind(nlist[[1]][,ivars],nlist[[2]][,ivars], nlist[[3]][,ivars],nlist[[4]][,ivars])
-names(n) <- c('loc', 'date','tmax', 'tmin')
-
-nwi <- n[n$loc=="WINTERS CA US", ]
-nwi$date <- as.Date(as.character(nwi$date), format='%Y%m%d')
-nwi$year <- year(nwi$date)
-nwi <- nwi[nwi$year > 1987,]
-
-nwi[nwi$tmin < -1000, 'tmin'] <- NA
-nwi[nwi$tmax < -1000, 'tmax'] <- NA
-
-nrows <- which(is.na(nwi$tmin))
-xrows <- which(is.na(nwi$tmax))
 
 
-for (i in nrows) {
-	nwi$tmin[i] <- mean(nwi$tmin[i-1], nwi$tmin[i+1])
-}
+# Chico-NOAA --------------------------------------------------------------
+chico <- read.csv(file.path(datapath, 'raw/climate/noaachiconew.csv'))
 
-for (i in xrows) {
-	nwi$tmax[i] <- mean(nwi$tmax[i-1], nwi$tmax[i+1])
-}
+chico$DATE <- as.Date(chico$DATE)
 
-nwi$tmin <- nwi$tmin/10
-nwi$tmax <- nwi$tmax/10
-nwi$jday <- yday(nwi$date)
+chico <- chico %>% select('loc'='NAME','date'='DATE', 'tmax'='TMAX', 
+                          'tmin'='TMIN')
 
-nwi$loc <- 'Winters'
+#gives them reasonable names
+chico$loc <- recode(chico$loc, "ORLAND, CA US"='orland', 
+                "OROVILLE MUNICIPAL AIRPORT, CA US"='orovilleAirport',
+                "CHICO UNIVERSITY FARM, CA US"='chico',
+                "OROVILLE 1 N, CA US"='oroville')
 
-#############################################################
-##############Chico##########################################
-chico <- read.csv('data/raw/climate/Chico1930-2015.csv')
 
-names(chico) <- c('loc', 'month', 'day', 'year','tmin','tmax')
-
-chico$loc <- 'chico'
+chico$year <- year(chico$date)
+chico[which(chico$tmin > chico$tmax), 'tmin'] <- NA
+chico[which(chico$tmin > chico$tmax), 'tmax'] <- NA
+chico[which(chico$tmin>32 | chico$tmin<=-14), 'tmin'] <- NA
 
 chico <- chico[which(chico$year < 2014),]
 chico$date <- sapply(1:length(chico$year), function(i) {
@@ -168,6 +151,13 @@ xrows <- which(is.na(chico[, 'tmax']))
 
 ndates <- chico$date[nrows]
 xdates <- chico$date[xrows]
+
+# Chico-CIMIS --------------------------------------------------------------
+
+cfilenames <- list.files(file.path(datapath, 'raw/climate/cimis/chico'),
+                         pattern='.csv',
+                         full.names = TRUE)
+
 #####################################
 #get more data
 cdat <- read.csv('data/raw/climate/cimis/durham.csv', stringsAsFactors=FALSE)
