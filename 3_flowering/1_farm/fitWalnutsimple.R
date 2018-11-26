@@ -56,7 +56,7 @@ fm <- flowermodel(phenology=wv,
 
 warnings()
 
-saveRDS(fm, paste0('TTT', variety ,'.RDS'))
+saveRDS(fm, paste0('TTT', variety ,'simple.RDS'))
 
 
 fmcv <- crossval(object=fm, 
@@ -69,6 +69,6 @@ fmcv <- crossval(object=fm,
                  cores=8L, 
                  iterations=400)
 
-saveRDS(fmcv, paste0('TTT', variety ,'CV.RDS'))
+saveRDS(fmcv, paste0('TTT', variety ,'CVsimple.RDS'))
 
 
