@@ -36,7 +36,7 @@ wv <- wv[complete.cases(wv),]
 pl <- lapply(seq_along(forms), function(i) {
     parameterlist(1, 
                   mt='TTT',
-                  simple=FALSE,
+                  simple=TRUE,
                   ff=forms[i],
                   ct=initpars[[i]],
                   varyingparameters = NA, 
@@ -50,7 +50,7 @@ fm <- flowermodel(phenology=wv,
                   temps=temps, 
                   parlist=pl, 
                   lbounds=c(1,1), 
-                  ubounds=c(365, 2000),
+                  ubounds=c(365, 5000),
                   iterations=400, 
                   cores = 8L)
 

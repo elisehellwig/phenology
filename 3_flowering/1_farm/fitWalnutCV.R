@@ -17,7 +17,7 @@ temps$dt <- as.POSIXct(temps$dt)
 cv <- Sys.getenv("SLURM_ARRAY_TASK_ID")
 v <- as.integer(cv)
 
-#v <- 1
+v <- 1
 
 forms <- c('chillbasic','linear','gdd','anderson')
 initpars <- initialparlist(c(1,1,1,3))
@@ -46,17 +46,9 @@ pl <- lapply(seq_along(forms), function(i) {
                   ModelClass = 'FlowerModel')
 })
 
-fm <- flowermodel(phenology=wv, 
-                  temps=temps, 
-                  parlist=pl, 
-                  lbounds=c(1,1), 
-                  ubounds=c(365, 2000),
-                  iterations=400, 
-                  cores = 8L)
 
-warnings()
-
-saveRDS(fm, paste0('TTT', variety ,'.RDS'))
+#warnings()
+fm <- readRDS('TTTChandler.RDS')
 
 
 fmcv <- crossval(object=fm, 
