@@ -5,6 +5,7 @@ fillinTemps <- function(df, variable, predictors, response, predname='loc',
     #print(1) 
     fmla <- as.formula(paste('date ~', predname))
     wide <- dcast(df, fmla, value.var = variable)
+    #print(head(wide))
         
     #print(1.1)
     wc <- wide[complete.cases(wide),]
@@ -52,6 +53,8 @@ fillinTemps <- function(df, variable, predictors, response, predname='loc',
     
     #print(6)
     names(newdf)[2] <- variable
+    
+    newdf[which(!is.numeric(newdf[,variable])), variable] <- NA
     
     return(newdf)
     
