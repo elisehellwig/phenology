@@ -115,7 +115,7 @@ write.csv(cimdav, file.path(datapath, 'clean/cimisdavis.csv'),
 
 
 # Chico-NOAA --------------------------------------------------------------
-chico <- read.csv(file.path(datapath, 'raw/climate/noaachiconew.csv'))
+cn <- read.csv(file.path(datapath, 'raw/climate/noaachiconew.csv'))
 
 chico$DATE <- as.Date(chico$DATE)
 
@@ -134,10 +134,6 @@ chico[which(chico$tmin > chico$tmax), 'tmin'] <- NA
 chico[which(chico$tmin > chico$tmax), 'tmax'] <- NA
 chico[which(chico$tmin>32 | chico$tmin<=-14), 'tmin'] <- NA
 
-chico <- chico[which(chico$year < 2014),]
-chico$date <- sapply(1:length(chico$year), function(i) {
-	paste0(chico$year[i], '-', chico$month[i], '-', chico$day[i])
-	})
 
 chico$date <- as.Date(chico$date, format='%Y-%m-%d')
 chico$jday <- as.numeric(format(as.Date(chico$date), "%j"))
