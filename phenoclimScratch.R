@@ -16,7 +16,7 @@ wall <- read.csv(file.path(datapath, 'walnutclean.csv'))
 
 dav$dt <- as.POSIXct(dav$dt, format="%Y-%m-%d %H:%M:%OS")
 
-ww <- which( wall$cultivar=='Chandler')
+ww <- which( wall$cultivar=='Chandler' & wall$year %in% 2013:2016)
 w <- wall[ww,]
 
 wc <- dcast(w, year + cultivar~ event, value.var = 'day')
@@ -67,7 +67,7 @@ parlist <- lapply(seq_along(forms), function(i) {
                   modelthreshold=100,
                   start=275,
                   varyingparameters=NA,
-                  optimized=c('threshold','start'),
+                  optimized=c('threshold'),
                   ModelClass='FlowerModel')
 })
 
@@ -82,8 +82,8 @@ parlist <- lapply(seq_along(forms), function(i) {
 fm2 <- flowermodel(phenology=wf,
                   temps=dav,
                   parlist=parlist,
-                  lbounds=c(1,1),
-                  ubounds=c(365,2000),
+                  lbounds=c(1),
+                  ubounds=c(2000),
                   cores = 4L)
 
 
