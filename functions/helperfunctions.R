@@ -41,7 +41,7 @@ extractslots <- function(slot, object) {
 }
 
 
-extractCT <- function(object, ct) {
+extractCT <- function(object, stage) {
     
     ctvec <- rep(NA, length(object))
     
@@ -49,13 +49,56 @@ extractCT <- function(object, ct) {
     
     for (i in 1:length(cts)) {
         
-        if (ct <= length(cts[[i]])) {
-            ctvec[i] <- cts[[i]][ct]
+        if (stage <= length(cts[[i]])) {
+            ctvec[i] <- cts[[i]][stage]
         }
     }
 
     return(ctvec)
 }
+
+
+summarizeModel <- function(modlist, cultivars, CT=TRUE) {
+    
+    forms <- unlist(extractslots('form', modlist))
+    starts <- round(as.vector(extractslots('startday', modlist)))
+    threshs <- round(unlist(extractslots('threshold', modlist)), 1)
+    errors <- round(as.vector(extractslots('error', modlist)), 2)
+    simples <- as.vector(extractslots('simplified', modlist))
+    
+    n <- length(unique(forms))
+    
+    if (CT) {
+        cts <- extractCT(modlist, 1)
+        baseCT <- sapply(cts, function(v) v[1])
+        optCT <- sapply(cts, function(v) v[2])
+        critCT <- sapply(cts, function(v) v[3])
+        
+        df <- data.frame(cultivar=rep(cultivars, each=n),
+                         simplified=simples,
+                         form=forms,
+                         error=errors,
+                         start=starts,
+                         threshold=threshs,
+                         base=baseCT,
+                         optimal=optCT,
+                         critical=critCT)
+        
+        
+    } else {
+        
+        df <- data.frame(cultivar=rep(cultivars, each=n),
+                         simplified=simples,
+                         form=forms,
+                         error=errors,
+                         start=starts,
+                         threshold=threshs)
+    }
+    
+    return(df)
+    
+}
+
 
 
 importfiles <- function(path, label, varieties, ext) {
