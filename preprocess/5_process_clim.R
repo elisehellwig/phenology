@@ -18,9 +18,53 @@ cim <- read.csv(file.path(datapath, 'clean/cimisdavis.csv'),
 #load('data/clean/hrly3.Rdata')
 
 
-###########################################
+
+# Calibrating temperature interpolation model -----------------------------
+
+la <- which(is.na(cim$temp))
+
+calibdat <- data.frame(ID='Davis',
+                       date=gsub('-', '/', as.character(date(cim$date))),
+                       hour=hour(cim$date),
+                       temp=cim$temp)
+
+
+cpar <- par_calibration(calibdat, band_min = 3:9, band_max = 12:20, 
+                        band_suns = 13:21)
+
+cshape <- shape_calibration(calibdat, cal_times_list = cpar)
+
+# Running the temp interpolation ------------------------------------------
 
 davis$date <- as.Date(davis$date)
+
+dtmin <- data.frame(year=davis$year,
+                    month=month(davis$date),
+                    day=davis$day,
+                    Davis=davis$tmin)
+
+dtmax <- data.frame(year=davis$year,
+                    month=month(davis$date),
+                    day=davis$day,
+                    Davis=davis$tmax)
+
+davhourly <- Th_int_series(cal_times=cpar, 
+                           cal_shape = cshape,
+                           TMIN=dtmin, 
+                           TMAX=dtmax, 
+                           start_year=1925, 
+                           end_year=2017,
+                           active_IDs = 'Davis')
+
+dh <- davhourly$Date
+dh$temp <- davhourly$Davis
+write.csv(dh, file.path(datapath, 'clean/interpolatedDavis.csv'),
+          row.names = FALSE)
+
+
+dtstring <- paste0( dh$year, '-', dh$month, '-', dh$day, ' ', 
+                    sprintf("%02d", dh$hour), ':00:00')
+dh$dt <- as.POSIXct(dtstring, format="%Y-%m-%d %H:%M:%OS")
 
 #locs <- c('Chico','Davis', 'Manteca','Parlier')
 #####################Create Hourly Temperatures####################
