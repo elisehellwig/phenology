@@ -1,3 +1,9 @@
+toPOSIX <- function(datetime) {
+    
+    dt <- as.POSIXct(datetime, format="%Y-%m-%d %H:%M:%OS")
+    return(dt)
+}
+
 convertToDT <- function(df, returnedVars=c('year','dt')) {
     
     
@@ -19,7 +25,7 @@ convertToDT <- function(df, returnedVars=c('year','dt')) {
                            df$day, ' ',
                            sprintf("%02d", df$hour), ':00:00')
         
-        df$dt <- as.POSIXct(dtstring, format="%Y-%m-%d %H:%M:%OS")
+        df$dt <- toPOSIX(dtstring)
         
     } else {
         
@@ -28,10 +34,12 @@ convertToDT <- function(df, returnedVars=c('year','dt')) {
         
         dtstring <- paste0(df$date, ' ', sprintf("%02d", df$hour), ':00:00')
         
-        df$dt <- as.POSIXct(dtstring, format="%Y-%m-%d %H:%M:%OS")
+        df$dt <- toPOSIX(dtstring)
     }
     
     
     return(df[,returnedVars])
     
 }
+
+
