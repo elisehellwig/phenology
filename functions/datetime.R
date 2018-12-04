@@ -42,4 +42,16 @@ convertToDT <- function(df, returnedVars=c('year','dt')) {
     
 }
 
+POSIXtoDate <- function(vec) {
+    
+    chrvec <- as.character(vec)
+    subvec <- substr(chrvec, 1, 10)
+    
+    datevec <- as.Date(subvec, format="%Y-%m-%d")
+    
+    return(datevec)
+}
+
+
+
 
