@@ -72,6 +72,7 @@ dhdt$date <- POSIXtoDate(dhdt$dt)
 
 dt <- merge(dhdt, davis, by='date')
 dtfinal <- dt[,c('dt','year','day','temp','tmin','tmax')]
+dtfinal$hour <- hour(dtfinal$dt)
 dtfinal <- dtfinal[order(dtfinal$dt), ]
 
 
@@ -92,6 +93,8 @@ dtfinal$temp <- sapply(1:nrow(dtfinal), function(i) {
         
     }
 })
+
+
 
 write.csv(dtfinal, file.path(datapath, 'clean/davisdailyhourlytemp.csv'), 
           row.names = FALSE)
