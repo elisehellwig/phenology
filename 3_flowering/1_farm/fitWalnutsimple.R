@@ -54,7 +54,7 @@ fm <- flowermodel(phenology=wv,
                   temps=temps, 
                   parlist=pl, 
                   lbounds=c(1,1), 
-                  ubounds=c(365, 20000),
+                  ubounds=c(365, 80000),
                   iterations=400, 
                   cores = 12L)
 
@@ -69,7 +69,7 @@ fmcv <- crossval(object=fm,
                  fun='rmse',
                  seed=2928391, 
                  lbounds=c(1,1),
-                 ubounds=c(365,20000),
+                 ubounds=c(365, 80000),
                  cores=12L, 
                  iterations=400)
 
