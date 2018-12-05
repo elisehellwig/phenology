@@ -1,5 +1,6 @@
 library(lubridate)
 library(phenoclim)
+library(reshape2)
 library(DEoptim)
 source('functions/helperfunctions.R')
 
@@ -33,5 +34,11 @@ names(walMods) <- cults
 #la <- extractResults(simplefiles, cults, 'chillbasic')
 
 sm <- summarizeModel(simpleMods, cults)
+
+minrmse(c(4,25,36), wc2, dav, 'TTT', 'anderson', 1, c(4,25,36), 49, 21100,
+        TRUE, NA, 'FlowerModel', wc2$event0)
+
+
+
 wm <- summarizeModel(walMods, cults)
 
