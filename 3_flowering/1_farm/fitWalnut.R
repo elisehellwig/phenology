@@ -50,9 +50,9 @@ fm <- flowermodel(phenology=wv,
                   temps=temps, 
                   parlist=pl, 
                   lbounds=c(1,1), 
-                  ubounds=c(365, 2000),
+                  ubounds=c(365, 20000),
                   iterations=400, 
-                  cores = 8L)
+                  cores = 12L)
 
 warnings()
 
@@ -64,9 +64,9 @@ fmcv <- crossval(object=fm,
                  k=5, 
                  fun='rmse',
                  seed=2928391, 
-                 lbounds=c(0,0),
-                 ubounds=c(365,5000),
-                 cores=8L, 
+                 lbounds=c(1,1),
+                 ubounds=c(365,20000),
+                 cores=12L, 
                  iterations=400)
 
 saveRDS(fmcv, paste0('TTT', variety ,'CV.RDS'))
