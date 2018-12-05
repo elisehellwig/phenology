@@ -1,5 +1,5 @@
 .libPaths( c(file.path('~','R'), .libPaths()) )
-#Will take ~3 days to run and 9G of ram
+#Will take ~1 days to run and 2G of ram
 
 library(parallel)
 library(tidyverse)
@@ -33,6 +33,10 @@ wv <- w %>%
 
 wv <- wv[complete.cases(wv),]
 
+
+print(unique(temps$year))
+
+
 pl <- lapply(seq_along(forms), function(i) {
     parameterlist(1, 
                   mt='TTT',
@@ -64,7 +68,7 @@ fmcv <- crossval(object=fm,
                  k=5, 
                  fun='rmse',
                  seed=2928391, 
-                 lbounds=c(0,0),
+                 lbounds=c(1,1),
                  ubounds=c(365,20000),
                  cores=12L, 
                  iterations=400)
