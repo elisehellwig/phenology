@@ -113,6 +113,8 @@ mos <- 1:12
 
 ## Notes
 
+** Thesis: Temperature increases due to climate change vary by region in California. By looking at tree response to interannual temperature variation we can explain past phenological trends and predict future ones. **
+
 - Need to add chill and heat sums over time
 - Need to run linear models and then extract the interesting numbers
 - Need to find a good way to plot all the things without having massive amounts of space in the graph (ex scaling the data)
@@ -142,6 +144,17 @@ This paper documents themperature changes in California over the past century an
 ### Climate Data
 
 Climate data for each of the focal orchard sites was obtained from the National Climatic Data Center (NCDC, Menne and Houston 2015) and from California Irrigation Management Information System (CIMIS, California Department of Water Resources 2015). The NCDC provided daily minumum and maxiumum temperature data going back to 1906, and CIMIS provided hourly data back to 1983. Several climate stations were chosen for each orchard location to ensure there would be data for every day in the time span of the orchard datasets for each location (Table X). The closest station to the site with at least 85% completeness was chosen as the primary station (indicated by a *). Temperature data from other stations was related to temperature data from the primary station via a linear regression. This model was then used to fill in gaps in the primary station’s data. In cases where there were nearby NCDC and CIMIS weather stations, one primary station was chosen for each data source.
+
+## Monthly temperatures
+
+We considered the monthly average minimum, maximum, and mean temperatures for November through July as simple climate metrics. These eight months are deemed to have the most influence over tree crop flowering and fruit development [@ramos1997]. Temperatures in November, December and January are generally associated with the amount of chill accumulation, as well as February, if a tree blooms later in the spring (e.g. prunes, walnuts). In contrast, February and March are associated primarily with heat accumulation, as well as January for early blooming crops (e.g. almond). That is, given that vernalization requirements are at least partly met, trees will generally flower earlier if temperatures are higher during February and March [@micke1996; @buchner2012; @ramos1997]. 
+
+By the end of April almost all of the tree crops have bloomed [@ramos1997], so temperatures during May, June, and July only affect season length. In addition, early flowering crops (e.g. almonds) may start fruit or nut development as early as March. The Aikaike Information Criterion (AIC) was used to select the months with the best ability to predict flowering date and season length for each cultivar. These groups of months were then modified to remove collinearity. 
+
+We analyzed both the monthly and annual temperature time series with a first degree autoregressive linear model, due the presence of autocorrelation in the data. A first degree autoregressive linear model is a statistical model where the value of the dependent variable for time *t* is a predictor for the value of the dependent variable at time *t+1* [@cressie2015]. 
+
+For plots that show data from multiple months or multiple locations, we used deviation from mean temperature, instead of just the raw temperature value, as the variable on the x-axis. So if the mean temperature value for February was 4&deg; C, points at 6&deg;C would be plotted at 2&deg; and points at 1&deg;C would be plotted at -3&deg;. This ensures that the data for any number months can be plotted together without data from the hotest or coldest month (or location) being pushed to the edge of the graph. 
+
 
 ```{r weatherlocs}
 
@@ -174,86 +187,6 @@ We investigated variation and trends in the four locations in the Central Valley
 Changes in bloom or leaf-out dates over time were analyzed using both linear regression and segmented (broken-line) models. Using this dual approach can be illuminating for long-term datasets in which there are no trends or changes early in the dataset but changes do occur later in the dataset. For example, given a hundred year record of an annual event, if there has only been a change in the last 30 years, linear analysis may not pick up this change, because the consistency of the first 70 years would dilute the statistical signal of change from the last 30 years. Segmented analysis can break up this record into two trends, giving one trend line for the first 70 years and a second trend line for the 30 years after that, if this gives a more robust statistical explanation of the data.
 
 
-## Monthly temperatures
-
-We considered the monthly average minimum, maximum, and mean temperatures for November through July as simple climate metrics. These eight months are deemed to have the most influence over tree crop flowering and fruit development [@ramos1997]. Temperatures in November, December and January are generally associated with the amount of chill accumulation, as well as February, if a tree blooms later in the spring (e.g. prunes, walnuts). In contrast, February and March are associated primarily with heat accumulation, as well as January for early blooming crops (e.g. almond). That is, given that vernalization requirements are at least partly met, trees will generally flower earlier if temperatures are higher during February and March [@micke1996; @buchner2012; @ramos1997]. 
-
-By the end of April almost all of the tree crops have bloomed [@ramos1997], so temperatures during May, June, and July only affect season length. In addition, early flowering crops (e.g. almonds) may start fruit or nut development as early as March. The Aikaike Information Criterion (AIC) was used to select the months with the best ability to predict flowering date and season length for each cultivar. These groups of months were then modified to remove collinearity. 
-
-We analyzed both the monthly and annual temperature time series with a first degree autoregressive linear model, due the presence of autocorrelation in the data. A first degree autoregressive linear model is a statistical model where the value of the dependent variable for time *t* is a predictor for the value of the dependent variable at time *t+1* [@cressie2015]. 
-
-For plots that show data from multiple months or multiple locations, we used deviation from mean temperature, instead of just the raw temperature value, as the variable on the x-axis. So if the mean temperature value for February was 4&deg; C, points at 6&deg;C would be plotted at 2&deg; and points at 1&deg;C would be plotted at -3&deg;. This ensures that the data for any number months can be plotted together without data from the hotest or coldest month (or location) being pushed to the edge of the graph. 
-
-## Chill and heat metrics (flowering)
-
-Chill accumulation was calculated using the Dynamic Model [@fishman1987]. This model is more complex than the often cited Chill Hours thermal time model, which gives the same value to any temperature under a particular threshold. However, it has been found to model the timing of spring phenological events better than the chill hours model in Mediterranean climates [@alburquerque2008; @luedeling2009; @ruiz2007].  Chill accumulation was then compared with chill requirements, as measured in chill portions, to determine with the chill requirement was met.
-
-Accumulation of chill according to the Dynamic Model is a two-step process. First, a chill intermediate is accumulated based on a bell-shaped relationship of hourly temperature to chill value (Table 1). Temperatures between 6°-8°C (43°-47° F) have the most chill value. The chill value on either side of that range are lower, dropping to no value at 0° C (32° F) and 12°C (54° F). This accumulation can be reduced given high temperature. Second, the chill intermediate accumulates to a threshold and is counted as one chill portion (CP), which cannot be negated by later warm temperatures (Table 2). Accumulation of new chill intermediate starts again from zero [@erez1997]. Chill accumulation was calculated beginning November 1.
-
-
-Spring heat accumulation was calculated using the Growing Degree Hours (GDH) Anderson model from @anderson1986, with a base, optimal, and critical temperatures of 4&deg; C, 25&deg; C, and 36&deg; C respectively (Figure 2, Table 1). Trees will accumulate the most GDH at temperatures near 25&deg; C, and will not accumulate any spring heat thermal time below temperatures of 4&deg; C or above temperatures of 36&deg; C.
-
-
-```{r spring_cardinal_temps, echo=FALSE}
- springcardinal <- data.frame(variable=c('Chill','Heat'),
-                              model=c('Dynamic Model', 'Anderson'),
-                              base=c(0, 4),
-                              optimal=c(7, 25),
-                              crit=c(12, 36))
-
-kable(springcardinal, col.names=c('Variable', 'Model', 'Base Temp', 'Optimal Temp', 'Critical Temp'), caption='Table 1. Cardinal temperatures for flowering thermal time accumulation. Temperatures in degrees C.')
-```
-
-
-```{r chillheatreqs, echo=FALSE}
-chcrops <- c('Almond','','','Prune','Walnut','','')
-chcults <- c('Sonora', 'Nonpareil','Mission','French', 'Payne', 'Chandler', 'Franquette')
-creqtab <- c(21,	20,	32,	38,	33,	42,	51)
-careqtab <- c(41,	38,	56,	49,	46,	53,	60)
-hreqtab <- c(3210,	3142,	2786,	6994,	6782,	8091,	8887)
-
-
- chreqs <- data.frame(Crop=chcrops,
-                      Cultivar=chcults,
-                      creq=creqtab,
-                      careq=careqtab,
-                      hreq=hreqtab)
-
-
-kable(chreqs, col.names=c('Crop', 'Cultivar','Chill Req.', 'Ag. Chill Req.', 'Heat Req.'), caption='Table 2. Cardinal temperatures for fruit development thermal time accumulation.')
-```
-
-## Fruit development thermal time metrics (season length)
-
-The amount of fruit development thermal time accumulated during the cell division stage is, in theory, the best metric to use to predict season length [@dejong1989; @micke1996; @buchner2012; @ramos1997]. However, determining the exact length of the cell division and differentiation stage is difficult, if not impossible to do experimentally. Many studies use 30 days after flowering as an estimate of the length of cell division [@mimoun1998; @marra2001; @day2007; @debuse2008]. However, it is not clear that this length of time is appropriate across cultivars and crops [@tombesi2010]. Because of the intractability of estimating the length of the cell division stage, we focus instead on estimating what we call the optimal length of fruit development thermal time accumulation. This is the length of time after bloom that produces thermal time accumulation sums that correlate the strongest with the season length.
-
-For this report, we used an optimization process to determine optimal values for both the cardinal temperatures, and the length of fruit development thermal time accumulation for each cultivar. Sets of parameter values were scored based on the root mean squared error (RMSE) of the statistical linear model relating thermal time accumulation and season length. Parameter sets with lower RMSE values were considered to be more optimal. The length of thermal time accumulation and accompanying cardinal temperatures with the lowest RMSE value were selected for each cultivar and used for the rest of the analysis (Table 3). We conducted this optimization for the Anderson model and the Simplified model of fruit development thermal time accumulation separately.
-
-
-
-
-
-```{r slen_cardinal_temps, echo=FALSE}
-
-numvars <- c('p1', 'p2', 'p3')
-for (var in numvars) {
-  ctemps[,var] <- round(ctemps[,var],0)
-}
-
-ctemps[c(2:6,8,10:14) , 'crop'] <- ""
-ctemps[seq(2,14, by=2), 'cultivar'] <- ""
-
-ctemps[ctemps$model=='anderson','model'] <- 'Anderson'
-ctemps[ctemps$model=='nc','model'] <- 'Simplified'
-
-
-ctemps[,'rmse'] <- round(ctemps[,'rmse'], 2)
-
-
-kable(ctemps, col.names=c('Crop', 'Cultivar','Model', 'TTAL', 'Base Temp', 'Optimal Temp', 'Critical Temp','RMSE'), caption='Table 3. Cardinal temperatures for fruit development thermal time accumulation. TTAL: thermal time accumulation length. Temperatures in degrees C.')
-
-```
-
 
 
 #Results
@@ -279,7 +212,6 @@ minplot <- ggplot(data=am_min) + ylim(5,13) +
 minplot
 
 ```
-
 
 
 ```{r annual_max_plot, warning=FALSE, echo=FALSE, fig.cap='Figure 3. Mean Annual Minimum Temperatures from 1931 to 2014, duration of phenology record shown with grey lines.', fig.height=5, fig.width=6, tidy=TRUE}
