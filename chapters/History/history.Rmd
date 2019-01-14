@@ -42,12 +42,14 @@ library(segmented)
 library(kableExtra)
 #library(qdap, warn.conflicts = FALSE)
 library(mgsub)
+library(kableExtra)
 
 opts_chunk$set(tidy.opts=list(width.cutoff=60), 
                stringsAsFactors=FALSE,
                knitr.table.format = "latex",
+               #cache=TRUE,
                echo = FALSE,
-               cache=TRUE)
+               kableExtra.latex.load_packages = FALSE)
 options(warn=0)
 #this makes it so numbers aren't put into scientific notation
 #options(scipen=999)
@@ -74,24 +76,24 @@ source(file.path(sourcepath, 'reportfunctions.R'))
 
 
 #data
-weather <- read_csv(file.path(data2, 'weatherlocations.csv'))
-ctemps <- read_csv(file.path(data1,'switchday.csv'))
+weather <- read.csv(file.path(data2, 'weatherlocations.csv'))
+ctemps <- read.csv(file.path(data1,'switchday.csv'))
 fp <- readRDS(file.path(data1, 'floweringpredictors.RDS'))
 slp <- readRDS(file.path(data1, 'seasonlengthpredictors.RDS'))
 
 
-am <- read_csv(file.path(data1, 'data/annualtemperatures.csv'))
-amlabs <- read_csv(file.path(data2, 'temptrendlabels.csv'))
-mtc <- read_csv(file.path(data1, 'data/monthlytemperatures.csv'))
+am <- read.csv(file.path(data1, 'data/annualtemperatures.csv'))
+amlabs <- read.csv(file.path(data2, 'temptrendlabels.csv'))
+mtc <- read.csv(file.path(data1, 'data/monthlytemperatures.csv'))
 
-spring <- read_csv(file.path(data3, 'spring.csv'))
+spring <- read.csv(file.path(data3, 'spring.csv'))
 
 af <- spring %>% filter(crop=='almond') 
 pf <- spring %>% filter(crop=='prune')
 wf <- spring %>% filter(crop=='walnut')
 
 
-fall <- read_csv(file.path(data3, 'fall.csv'))
+fall <- read.csv(file.path(data3, 'fall.csv'))
 
 asl <- fall %>% filter(crop=='almond') 
 psl <- fall %>% filter(crop=='prune')
@@ -252,17 +254,35 @@ cmax <- t(sapply(mos, function(m) arf('tmax', 'year', m, chico) ))
 cavg <- t(sapply(mos, function(m) arf('tavg', 'year', m, chico) ))
 
 # #running linear model etc for annual data
-# cann <- t(sapply(unique(am$variable), function(v) arf('temp', 'year', NA, achico[achico$variable==v, ])))
-# 
-# #merging data
-# cmin <- rbind(cmin,cann[1,])
-# cmax <- rbind(cmax,cann[2,])
-# cavg <- rbind(cavg,cann[3,])
-# 
-# ctable <- data.frame(Month=c(month.name, '*Annual*'), Minimum=sig2(cmin[,2], v2=cmin[,1]*10), pvaln=sig2(cmin[,2]), Maximum=sig2(cmax[,2], v2=cmax[,1]*10), pvalx=sig2(cmax[,2]), Average=sig2(cavg[,2], v2=cavg[,1]*10), pvala=sig2(cavg[,2]))
-# 
-# 
-# kable(ctable, digits=2, col.names=c('Month', 'Minimum','p-value', 'Maximum', 'p-value', 'Average', 'p-value'), caption='Table 4. Average change per decade of Chico minimum, maximum, and mean monthly temperatures from 1931-2014. Change is considered significant and given in bold if p-values are under 0.05.')
+cann <- t(sapply(unique(am$variable), function(v) arf('temp', 'year', NA, achico[achico$variable==v, ])))
+
+#merging data
+cmin <- rbind(cmin,cann[1,])
+cmax <- rbind(cmax,cann[2,])
+cavg <- rbind(cavg,cann[3,])
+
+ctable <- data.frame(Month=c(month.name, 'Annual'), 
+                     Minimum=signif(cmin[,1]*10,2), 
+                     pvaln=signif(cmin[,2],2), 
+                     Maximum=signif(cmax[,1]*10,2), 
+                     pvalx=signif(cmax[,2],2), 
+                     Average=signif(cavg[,1]*10,2),
+                     pvala=signif(cavg[,2],2))
+
+#cell_spec(Month, italic=ifelse(Month='Annual', TRUE, FALSE))
+
+ctable %>% mutate(Month=Month,
+                  Minimum = cell_spec(Minimum, bold = sig(pvaln)),
+                  pvaln = cell_spec(pvaln, bold = sig(pvaln)),
+                  Maximum = cell_spec(Maximum, bold = sig(pvalx)),
+                  pvalx = cell_spec(pvalx, bold = sig(pvalx)),
+                  Average = cell_spec(Average, bold = sig(pvala)),
+                  pvala = cell_spec(pvala, bold = sig(pvala))) %>% 
+    kable(digits=2, booktabs=TRUE, 
+          col.names=c('Month', 'Minimum','p-value', 'Maximum', 'p-value',
+                  'Average', 'p-value'), 
+          caption='Average change per decade of Chico minimum, maximum, and mean monthly temperatures from 1931-2014. Change is considered significant and given in bold if p-values are under 0.05.')
+    
 ```
 
 
@@ -289,9 +309,27 @@ mmin <- rbind(mmin,mann[1,])
 mmax <- rbind(mmax,mann[2,])
 mavg <- rbind(mavg,mann[3,])
 
-mtable <- data.frame(Month=c(month.name, "*Annual*"), Minimum=sig2(mmin[,2], v2=mmin[,1]*10), pvaln=sig2(mmin[,2]), Maximum=sig2(v=mmax[,2], v2=mmax[,1]*10), pvalx=sig2(mmax[,2]), Average=sig2(mavg[,2], v2=mavg[,1]*10), pvala=sig2(mavg[,2]))
+mtable <- data.frame(Month=c(month.name, 'Annual'), 
+                     Minimum=signif(mmin[,1]*10,2), 
+                     pvaln=signif(mmin[,2],2), 
+                     Maximum=signif(mmax[,1]*10,2), 
+                     pvalx=signif(mmax[,2],2), 
+                     Average=signif(mavg[,1]*10,2),
+                     pvala=signif(mavg[,2],2))
 
-kable(mtable, digits=2, col.names=c('Month', 'Minimum','p-value', 'Maximum', 'p-value','Average', 'p-value'), caption='Table 5. Average change per decade of Modesto minimum, maximum, and mean monthly temperatures from 1931-2014. Change is considered significant and given in bold if p-values are under 0.05.')
+#cell_spec(Month, italic=ifelse(Month='Annual', TRUE, FALSE))
+
+mtable %>% mutate(Month=Month,
+                  Minimum = cell_spec(Minimum, bold = sig(pvaln)),
+                  pvaln = cell_spec(pvaln, bold = sig(pvaln)),
+                  Maximum = cell_spec(Maximum, bold = sig(pvalx)),
+                  pvalx = cell_spec(pvalx, bold = sig(pvalx)),
+                  Average = cell_spec(Average, bold = sig(pvala)),
+                  pvala = cell_spec(pvala, bold = sig(pvala))) %>% 
+    kable(digits=2, booktabs=TRUE, 
+          col.names=c('Month', 'Minimum','p-value', 'Maximum', 'p-value',
+                  'Average', 'p-value'), 
+          caption='Average change per decade of Modesto minimum, maximum, and mean monthly temperatures from 1931-2014. Change is considered significant and given in bold if p-values are under 0.05.')
 
 ```
 
@@ -324,7 +362,7 @@ davg <- rbind(davg,dann[3,])
 
 dtable <- data.frame(Month=c(month.name,'*Annual*'), Minimum=sig2(dmin[,2], v2=dmin[,1]*10), pvaln=sig2(dmin[,2]), Maximum=sig2(dmax[,2], v2=dmax[,1]*10), pvalx=sig2(dmax[,2]), Average=sig2(davg[,2], v2=davg[,1]*10), pvala=sig2(davg[,2]))
 
-kable(dtable, digits=2, col.names=c('Month', 'Minimum','p-value', 'Maximum', 'p-value', "Average", "p-value"), caption='Table 16. Average change per decade of Davis minimum, maximum, and average monthly temperatures from 1931-2014. Change is considered significant and given in bold if p-values are under 0.05.')
+kable(dtable, digits=2, col.names=c('Month', 'Minimum','p-value', 'Maximum', 'p-value', "Average", "p-value"), caption='Average change per decade of Davis minimum, maximum, and average monthly temperatures from 1931-2014. Change is considered significant and given in bold if p-values are under 0.05.')
 
 ```
 
