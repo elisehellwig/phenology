@@ -5,7 +5,7 @@ library(phenoclim)
 #source('R/functions/generalfunctions.R')
 datapath <- '/Volumes/GoogleDrive/My Drive/Phenology/data/'
 source('functions/cleanTemps.R')
-options(stringsAsFactors = FALSE)
+options(stringsAsFactors = FALSE, na.rm=TRUE)
 
 #This script imports climate date from CIMIS and NOAA (NCDC) and cleans it up for further processing and analysis.
 #This script focuses on min and max temperatures.
@@ -14,7 +14,7 @@ options(stringsAsFactors = FALSE)
 
 # Davis-NOAA --------------------------------------------------------------
 
-
+#note I think this might be in fahrenheit but I'm not sure)
 n <- read.csv(file.path(datapath, 'raw/climate/noaadavisnew.csv'))
 
 #convert date number to date class
@@ -117,22 +117,27 @@ write.csv(cimdav, file.path(datapath, 'clean/cimisdavis.csv'),
 # Chico-NOAA --------------------------------------------------------------
 cn <- read.csv(file.path(datapath, 'raw/climate/noaachiconew.csv'))
 
-chico$DATE <- as.Date(chico$DATE)
+cn$DATE <- as.Date(cn$DATE)
 
-chico <- chico %>% select('loc'='NAME','date'='DATE', 'tmax'='TMAX', 
+cn <- cn %>% select('loc'='NAME','date'='DATE', 'tmax'='TMAX', 
                           'tmin'='TMIN')
 
 #gives them reasonable names
-chico$loc <- recode(chico$loc, "ORLAND, CA US"='orland', 
+cn$loc <- recode(cn$loc, "ORLAND, CA US"='orland', 
                 "OROVILLE MUNICIPAL AIRPORT, CA US"='orovilleAirport',
                 "CHICO UNIVERSITY FARM, CA US"='chico',
                 "OROVILLE 1 N, CA US"='oroville')
 
 
-chico$year <- year(chico$date)
-chico[which(chico$tmin > chico$tmax), 'tmin'] <- NA
-chico[which(chico$tmin > chico$tmax), 'tmax'] <- NA
-chico[which(chico$tmin>32 | chico$tmin<=-14), 'tmin'] <- NA
+cn$year <- year(cn$date)
+cn[which(cn$tmin > cn$tmax), 'tmin'] <- NA
+cn[which(cn$tmin > cn$tmax), 'tmax'] <- NA
+cn[which(cn$tmin>32 | cn$tmin<=-14), 'tmin'] <- NA
+
+cnmin <- fillinTemps(cn, 'tmin', c('orland','oroville','orovilleAirport'),
+                     'chico')
+cnmax <- fillinTemps(cn, 'tmax', c('orland','oroville','orovilleAirport'),
+                     'chico')
 
 
 chico$date <- as.Date(chico$date, format='%Y-%m-%d')
