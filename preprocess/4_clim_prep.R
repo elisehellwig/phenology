@@ -53,52 +53,38 @@ write.csv(nd, file=file.path(datapath, 'clean/noaadavis.csv'),
 
 
 # Davis-CIMIS -------------------------------------------------------------
-filenames <- list.files(file.path(datapath, 'raw/climate/cimis/davis'),
-                        pattern='.csv',
-                        full.names = TRUE)
 
+cdavis <- importCIMIS(file.path(datapath, 'raw/climate/cimis/davis'))
 
+cdavis[which(cdavis$name=="Bryte (experimental)"), 'name'] <- 'Bryte'
 
-cimis <- plyr::ldply(filenames, function(fn) {
-    read.csv(fn)[,c('Stn.Name','Date','Hour..PST.','Jul','Air.Temp..C.','qc')]
-    }) 
-
-names(cimis) <- c('name','date','hour','day','temp','qc')
-cimis[which(cimis$name=="Bryte (experimental)"), 'name'] <- 'Bryte'
-
-
-cimis$hour <- cimis$hour/100
-timestring <- paste(cimis$date, 
-                    paste0(sprintf('%02d', cimis$hour-1), ":00:00"))
-cimis$date <- as.POSIXct(timestring, format="%m/%d/%Y %H:%M:%OS")
-
-extremerows <- which(cimis$temp>50 | cimis$temp<=-14 | cimis$qc=='R')
+extremerows <- which(cdavis$temp>50 | cdavis$temp<=-14 | cdavis$qc=='R')
 cimis[extremerows, 'temp'] <- NA
 
-cd <- cimis[which(cimis$name=='Davis'),]
+cd <- cdavis[which(cdavis$name=='Davis'),]
 
 
-cim80 <- cimis[which(cimis$date<'1994-09-20 00:00:00'), ] 
+cim80 <- cdavis[which(cdavis$date<'1994-09-20 00:00:00'), ] 
 cim80d <- fillinTemps(cim80, 'temp','Zamora','Davis','name')
 
-row95 <- which(cimis$date>='1994-09-20 00:00:00' & 
-                   cimis$date<'1998-12-10 00:00:00')
+row95 <- which(cdavis$date>='1994-09-20 00:00:00' & 
+                   cdavis$date<'1998-12-10 00:00:00')
 cim95 <- cimis[row95, ] 
 cim95d <- fillinTemps(cim95, 'temp',c('Dixon','Zamora'),'Davis','name')
 
-row00 <- which(cimis$date>='1998-12-10 00:00:00' & 
-                   cimis$date<'2006-01-21 00:00:00')
-cim00 <- unique(cimis[row00, ]) 
+row00 <- which(cdavis$date>='1998-12-10 00:00:00' & 
+                   cdavis$date<'2006-01-21 00:00:00')
+cim00 <- unique(cdavis[row00, ]) 
 cim00d <- fillinTemps(cim00, 'temp',c('Dixon','Winters','Zamora','Bryte'),
                       'Davis','name')
 
 
-row10 <- which(cimis$date>='2006-01-21 00:00:00' & cimis$date<'2011-05-12 00:00:00')
+row10 <- which(cdavis$date>='2006-01-21 00:00:00' & cdavis$date<'2011-05-12 00:00:00')
 cim10 <- cimis[row10, ] 
 cim10d <- fillinTemps(cim10, 'temp',c('Dixon','Winters','Bryte'),
                       'Davis','name')
 
-row15 <- which(cimis$date>='2011-05-12 00:00:00')
+row15 <- which(cdavis$date>='2011-05-12 00:00:00')
 cim15 <- cimis[row15, ] 
 cim15d <- fillinTemps(cim15, 'temp',c('Dixon','Winters', 'Woodland','Bryte'),
                       'Davis','name') 
@@ -150,22 +136,8 @@ write.csv(cnd, file.path(datapath,'clean/noaachico'))
 
 # Chico-CIMIS --------------------------------------------------------------
 
-cfilenames <- list.files(file.path(datapath, 'raw/climate/cimis/chico'),
-                         pattern='.csv',
-                         full.names = TRUE)
 
-cchico <- plyr::ldply(cfilenames, function(fn) {
-    read.csv(fn)[,c('Stn.Name','Date','Hour..PST.','Jul','Air.Temp..C.',
-                    'qc')]
-}) 
-
-
-names(cchico) <- c('name','date','hour','day','temp','qc')
-
-cchico$hour <- cchico$hour/100
-chicotimestring <- paste(cchico$date, 
-                    paste0(sprintf('%02d', cchico$hour-1), ":00:00"))
-cchico$date <- as.POSIXct(chicotimestring, format="%m/%d/%Y %H:%M:%OS")
+cchico <- importCIMIS(file.path(datapath, 'raw/climate/cimis/chico'))
 
 extremerows <- which(cchico$temp <= -12 | cchico$temp > 48 |
                      cchico$qc=='R' | (cchico$temp > 41 & cchico$day < 80))
@@ -196,18 +168,9 @@ write.csv(cimdur, file.path(datapath, 'clean/cimischicodurham.csv'),
 # Parlier-NOAA ----------------------------------------------------------
 
 
-# Parlier-Cimis -----------------------------------------------------------
+# Parlier-CIMIS -----------------------------------------------------------
 
-pfilenames <- list.files(file.path(datapath, 'raw/climate/cimis/parlier'),
-                         pattern='.csv',
-                         full.names = TRUE)
-
-cparlier <- plyr::ldply(pfilenames, function(fn) {
-    read.csv(fn)[,c('Stn.Name','Date','Hour..PST.','Jul','Air.Temp..C.',
-                    'qc')]
-}) 
-
-names(cparlier) <- c('name','date','hour','day','temp','qc')
+cparlier <- importCIMIS(file.path(datapath, 'raw/climate/cimis/parlier'))
 
 cparlier$name <- recode(cparlier$name, "Fresno State"="FS",
                         "Fresno/F.S.U. USDA"="fresno",
@@ -215,12 +178,6 @@ cparlier$name <- recode(cparlier$name, "Fresno State"="FS",
                         "Parlier"="parlier",
                         "Caruthers"="caruthers",
                         "Visalia"="visalia")
-
-
-cparlier$hour <- cparlier$hour/100
-parliertimestring <- paste(cparlier$date, 
-                         paste0(sprintf('%02d', cparlier$hour-1), ":00:00"))
-cparlier$date <- as.POSIXct(parliertimestring, format="%m/%d/%Y %H:%M:%OS")
 
 extremerows <- which(cparlier$qc=='R' | cparlier$temp<= -8 | 
                     cparlier$temp > 45)
@@ -256,24 +213,10 @@ tsc <- timeSeriesCheck(cimpar, start="1982-06-07 00:00:00 PDT",
 
 # Modesto-CIMIS -----------------------------------------------------------
 
-mfilenames <- list.files(file.path(datapath, 'raw/climate/cimis/modesto'),
-                         pattern='.csv',
-                         full.names = TRUE)
 
-
-cmod <- plyr::ldply(mfilenames, function(fn) {
-    read.csv(fn)[,c('Stn.Name','Date','Hour..PST.','Jul','Air.Temp..C.',
-                    'qc')]
-}) 
-
-names(cmod) <- c('name','date','hour','day','temp','qc')
+cmod <- importCIMIS(file.path(datapath, 'raw/climate/cimis/modesto'))
 
 cmod[which(cmod$name=='Denair II'), 'name'] <- 'DenairII'
-
-cmod$hour <- cmod$hour/100
-modestotimestring <- paste(cmod$date, 
-                           paste0(sprintf('%02d', cmod$hour-1), ":00:00"))
-cmod$date <- as.POSIXct(modestotimestring, format="%m/%d/%Y %H:%M:%OS")
 
 extremerows <- which(cmod$qc=='R' | cmod$temp<= -8 | cmod$temp > 45 |
                          (cmod$temp > 38 & (cmod$day > 285| cmod$day<100)))
