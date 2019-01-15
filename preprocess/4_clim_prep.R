@@ -202,179 +202,64 @@ pfilenames <- list.files(file.path(datapath, 'raw/climate/cimis/parlier'),
                          pattern='.csv',
                          full.names = TRUE)
 
+cparlier <- plyr::ldply(pfilenames, function(fn) {
+    read.csv(fn)[,c('Stn.Name','Date','Hour..PST.','Jul','Air.Temp..C.',
+                    'qc')]
+}) 
+
+names(cparlier) <- c('name','date','hour','day','temp','qc')
+
+cparlier$name <- recode(cparlier$name, "Fresno State"="FS",
+                        "Fresno/F.S.U. USDA"="fresno",
+                        "Orange Cove"="orange",
+                        "Parlier"="parlier",
+                        "Caruthers"="caruthers",
+                        "Visalia"="visalia")
 
 
-cp <- read.csv('data/raw/climate/cimis/parlier.csv', stringsAsFactors=FALSE)
-cp <- cp[,c('Stn.Name','Date','Max.Air.Temp..C.','Min.Air.Temp..C.')]
-names(cp) <- c('loc','date','tmax','tmin')
+cparlier$hour <- cparlier$hour/100
+parliertimestring <- paste(cparlier$date, 
+                         paste0(sprintf('%02d', cparlier$hour-1), ":00:00"))
+cparlier$date <- as.POSIXct(parliertimestring, format="%m/%d/%Y %H:%M:%OS")
 
-cp$date <- as.Date(cp$date, format='%m/%d/%Y')
-cp$year <- year(cp$date)
-cp<- cp[cp$year %in% 1987:2013,]
+extremerows <- which(cparlier$qc=='R' | cparlier$temp<= -8 | 
+                    cparlier$temp > 45)
+cparlier[extremerows, 'temp'] <- NA
 
-nrows <- which(is.na(cp$tmin))
-xrows <- which(is.na(cp$tmax))
+cp <- cparlier[which(cparlier$name=='parlier'),]
 
-ndates <- cp[nrows, 'date']
-xdates <- cp[xrows, 'date']
+cp80 <- cparlier[which(cparlier$date<'1988-06-06 00:00:00'), ] 
+cp80d <- fillinTemps(cp80, 'temp',c('caruthers','fresno', 'visalia'),
+                     'parlier','name')
 
+cp90 <- cparlier[which(cparlier$date>='1988-06-06 00:00:00' &
+                       cparlier$date<'1999-01-01 00:00:00'), ] 
+cp90d <- fillinTemps(cp90, 'temp',c('FS', 'visalia'), 'parlier','name')
 
-####################
-#getting more data
-n <- rbind(nlist[[1]][,ivars],nlist[[2]][,ivars], nlist[[3]][,ivars],nlist[[4]][,ivars])
-names(n) <- c('loc', 'date','tmax', 'tmin')
+cp00 <- cparlier[which(cparlier$date>='1999-01-01 00:00:00' &
+                           cparlier$date<'2007-03-01 00:00:00'), ] 
+cp00d <- fillinTemps(cp00, 'temp',c('FS', 'orange', 'visalia'),
+                     'parlier','name')
 
-n$date <- as.Date(as.character(n$date), format='%Y%m%d')
-n$year <- year(n$date)
+cp10 <- cparlier[which(cparlier$date>='2007-03-01 00:00:00'), ] 
+cp10d <- fillinTemps(cp10, 'temp',c('FS', 'orange'), 'parlier','name')
 
-nlocs <- n[n$loc %in% c('VISALIA CA US', 'HANFORD 1 S CA US') &n$year %in% 1987:2013, ]
-nlocs[nlocs$tmin==-9999,'tmin'] <- NA
-nlocs[nlocs$tmax==-9999,'tmax'] <- NA
-
-nlocs$tmin <- nlocs$tmin/10
-nlocs$tmax <- nlocs$tmax/10
-
-mins <- as.data.frame(ndates)
-mins$vis <- nlocs[nlocs$date %in% ndates & nlocs$loc=='VISALIA CA US', 'tmin']
-mins$han <- nlocs[nlocs$date %in% ndates & nlocs$loc=='HANFORD 1 S CA US', 'tmin']
+cimpar <- do.call(rbind, list(cp80d, cp90d, cp00d, cp10d))
+tsc <- timeSeriesCheck(cimpar, start="1982-06-07 00:00:00 PDT", 
+                       end="2018-10-31 23:00:00 PDT", hours = TRUE,
+                       datename='date')
 
 
-mins$avg <- apply(mins[,2:3], 1, mean, na.rm=TRUE)
-cp[nrows,'tmin'] <- mins$avg
-
-
-#maximum vals
-maxs <- as.data.frame(xdates)
-maxs$vis <- nlocs[nlocs$date %in% xdates & nlocs$loc=='VISALIA CA US', 'tmax']
-maxs$han <- nlocs[nlocs$date %in% xdates & nlocs$loc=='HANFORD 1 S CA US', 'tmax']
-
-maxs$avg <- apply(maxs[,2:3], 1, mean, na.rm=TRUE)
-cp[xrows,'tmax'] <- maxs$avg
-
-cp$jday <- as.numeric(format(as.Date(cp$date), "%j"))
-
-#############################################################
-##############Manteca##########################################
-
-
-nums <- c('','2','3','4')
-nfils <- paste0('data/raw/climate/noaa',nums,'.csv')
-nlist <- lapply(nfils, function(f) read.csv(f, stringsAsFactors=FALSE))
-
-ivars <- c('STATION_NAME','DATE','TMAX','TMIN')
-
-#gets the variables wer are interested in from the various NOAA datasets
-n <- rbind(nlist[[1]][,ivars],nlist[[2]][,ivars], nlist[[3]][,ivars],nlist[[4]][,ivars])
-
-
-names(n) <- c('loc', 'date','tmax', 'tmin')
-
-n$date <- as.Date(as.character(n$date), format='%Y%m%d')
-n$year <- year(n$date)
-
-mstations <- c('MANTECA CA US')
-
-nm <- n[n$loc %in% mstations,]
+# Modesto-NOAA ------------------------------------------------------------
 
 
 
-nm[nm$tmin==-9999, 'tmin'] <- NA
-nm[nm$tmax==-9999, 'tmax'] <- NA
-
-####replace missing data
-nrows <- which(is.na(nm$tmin))
-
-nm[nrows,'tmin'] <- sapply(nrows, function(i) {
-	mean(nm[i+1,'tmin'],nm[i-1,'tmin'])
-	})
-
-
-xrows <- which(is.na(nm$tmax))
-xdates <- nm[xrows, 'date']
-
-
-#########################
-#get more data
-
-ns <- n[n$loc=="STOCKTON METROPOLITAN AIRPORT CA US" & n$date %in% xdates,]
-
-nm[nm$date %in% xdates, 'tmax'] <- ns[, 'tmax']
-
-nm$jday <- yday(nm$date)
-
-######
-
-nm$tmin <- nm$tmin/10
-nm$tmax <- nm$tmax/10
-
-# ########CIMIS#########################
-cm <- read.csv('data/raw/climate/cimis/manteca.csv', stringsAsFactors=FALSE)
-cm <- cm[,c('Stn.Name','Date','Max.Air.Temp..C.','Min.Air.Temp..C.')]
-names(cm) <- c('loc','date','tmax','tmin')
-
-
-numvars <- c('tmax','tmin')
-#converts numvars to numeric variables
-for (v in numvars) {
-	cm[,v] <- as.numeric(cm[,v])
-}
-
-cm$date <- as.Date(cm$date, format='%m/%d/%Y')
-cm$year <- year(cm$date)
-cm<- cm[cm$year %in% 1995:2013,]
-
-nrows <- which(is.na(cm$tmin))
-cm <- cm[-nrows, ]
-
-#xrows <- which(is.na(cm$tmax))
-#cm <- cm[-xrows, ]
+# Modesto-CIMIS -----------------------------------------------------------
 
 
 
+# Combine -----------------------------------------------------------------
 
-
-#############################################################
-##############Schafter######################################
-cs <- read.csv('data/raw/climate/cimis/shafter.csv', stringsAsFactors=FALSE)
-cs <- cs[,c('Stn.Name','Date','Max.Air.Temp..C.','Min.Air.Temp..C.')]
-names(cs) <- c('loc','date','tmax','tmin')
-
-numvars <- c('tmax','tmin')
-#converts numvars to numeric variables
-for (v in numvars) {
-	cm[,v] <- as.numeric(cm[,v])
-}
-
-cs$date <- as.Date(cs$date, format='%m/%d/%Y')
-cs$year <- year(cs$date)
-
-nrows <- which(is.na(cs$tmin))
-xrows <- which(is.na(cs$tmax))
-
-ndates <- cs$date[nrows]
-xdates <- cs$date[xrows]
-
-###########################
-#get more data
-n <- rbind(nlist[[1]][,ivars],nlist[[2]][,ivars], nlist[[3]][,ivars],nlist[[4]][,ivars])
-names(n) <- c('loc', 'date','tmax', 'tmin')
-
-n$date <- as.Date(as.character(n$date), format='%Y%m%d')
-n$year <- year(n$date)
-
-nwa <- n[n$loc== "WASCO CA US" & n$date %in% ndates,]
-nwa$tmin <- nwa$tmin/10
-nwa$tmax <- nwa$tmax/10
-
-cs[cs$date %in% ndates, 'tmin'] <- nwa$tmin
-cs[cs$date %in% xdates, 'tmax'] <- nwa[nwa$date %in% xdates, 'tmax']
-
-cs$jday <- yday(cs$date)
-
-######################################################################################
-######################################################################################
-######################################################################################
-#put it all together
 
 temp <- rbind(nd, nwi, chico, cs, nm, cp)
 
