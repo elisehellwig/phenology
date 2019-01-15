@@ -256,7 +256,65 @@ tsc <- timeSeriesCheck(cimpar, start="1982-06-07 00:00:00 PDT",
 
 # Modesto-CIMIS -----------------------------------------------------------
 
+mfilenames <- list.files(file.path(datapath, 'raw/climate/cimis/modesto'),
+                         pattern='.csv',
+                         full.names = TRUE)
 
+
+cmod <- plyr::ldply(mfilenames, function(fn) {
+    read.csv(fn)[,c('Stn.Name','Date','Hour..PST.','Jul','Air.Temp..C.',
+                    'qc')]
+}) 
+
+names(cmod) <- c('name','date','hour','day','temp','qc')
+
+cmod[which(cmod$name=='Denair II'), 'name'] <- 'DenairII'
+
+cmod$hour <- cmod$hour/100
+modestotimestring <- paste(cmod$date, 
+                           paste0(sprintf('%02d', cmod$hour-1), ":00:00"))
+cmod$date <- as.POSIXct(modestotimestring, format="%m/%d/%Y %H:%M:%OS")
+
+extremerows <- which(cmod$qc=='R' | cmod$temp<= -8 | cmod$temp > 45 |
+                         (cmod$temp > 38 & (cmod$day > 285| cmod$day<100)))
+cmod[extremerows, 'temp'] <- NA
+
+cm <- cmod[which(cmod$name=='Modesto'),]
+
+cm80 <- cmod[which(cmod$date<'1999-08-23 00:00:00'), ] 
+cm80d <- fillinTemps(cm80, 'temp',c('Manteca'), 'Modesto','name')
+
+cm00 <- cmod[which(cmod$date>='1999-08-23 00:00:00' &
+                   cmod$date<'2004-11-02 00:00:00'), ] 
+cm00d <- fillinTemps(cm00, 'temp',
+                     c('Manteca', 'Tracy','Patterson','Denair'),
+                     'Modesto','name')
+
+cm05 <- cmod[which(cmod$date>='2004-11-02 00:00:00' &
+                       cmod$date<'2009-04-09 00:00:00'), ] 
+cm05d <- fillinTemps(cm05, 'temp',
+                     c('Manteca', 'Tracy','Patterson','Denair','Oakdale'),
+                     'Modesto','name')
+
+cm10 <- cmod[which(cmod$date>='2009-04-09 00:00:00' &
+                       cmod$date<'2017-5-31 00:00:00'), ] 
+cm10d <- fillinTemps(cm10, 'temp',
+                    c('Manteca', 'Tracy','Patterson','DenairII','Oakdale'),
+                    'Modesto','name')
+
+cm15 <- cmod[which(cmod$date>='2017-5-31 00:00:00'), ] 
+cm15d <- fillinTemps(cm15, 'temp',
+                     c('Manteca','DenairII','Oakdale'), 'Modesto','name')
+
+
+cimmod <- do.call(rbind, list(cm80d, cm10d, cm00d, cm05d, cm15d))
+
+tsc <- timeSeriesCheck(cimmod, start="1987-06-25 23:00:00 PDT", 
+                       end="2018-10-31 23:00:00 PST", hours = TRUE,
+                       datename='date')
+
+write.csv(cimmod, file.path(datapath, 'clean/cimismodesto.csv'),
+          row.names=FALSE)
 
 # Combine -----------------------------------------------------------------
 
