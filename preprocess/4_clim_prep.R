@@ -134,24 +134,19 @@ cn[which(cn$tmin > cn$tmax), 'tmin'] <- NA
 cn[which(cn$tmin > cn$tmax), 'tmax'] <- NA
 cn[which(cn$tmin>32 | cn$tmin<=-14), 'tmin'] <- NA
 
-cnmin <- fillinTemps(cn, 'tmin', c('orland','oroville','orovilleAirport'),
-                     'chico')
-cnmax <- fillinTemps(cn, 'tmax', c('orland','oroville','orovilleAirport'),
-                     'chico')
+cnmin <- fillinTemps(cn, 'tmin', c('orland','oroville'), 'chico')
+cnmax <- fillinTemps(cn, 'tmax', c('orland','oroville'), 'chico')
+
+#note check issues with tmin on 1977-02-25 and 1980-10-25;
+#                       tmax on 1980-10-27
+#when NOAA is back up
+
+cnd <- merge(cnmin, cnmax)
+cnd$year <- year(cnd$date)
+cnd$day <- yday(cnd$date)
 
 
-chico$date <- as.Date(chico$date, format='%Y-%m-%d')
-chico$jday <- as.numeric(format(as.Date(chico$date), "%j"))
-chico <- subset(chico, select=-c(month,day))
-
-chico[chico$tmin>1000 | chico$tmin < -1000,'tmin'] <- NA
-chico[chico$tmax>1000 | chico$tmax < -1000,'tmax'] <- NA
-
-nrows <- which(is.na(chico[, 'tmin']))
-xrows <- which(is.na(chico[, 'tmax']))
-
-ndates <- chico$date[nrows]
-xdates <- chico$date[xrows]
+write.csv(cnd, file.path(datapath,'clean/noaachico'))
 
 # Chico-CIMIS --------------------------------------------------------------
 
@@ -159,95 +154,56 @@ cfilenames <- list.files(file.path(datapath, 'raw/climate/cimis/chico'),
                          pattern='.csv',
                          full.names = TRUE)
 
-#####################################
-#get more data
-cdat <- read.csv('data/raw/climate/cimis/durham.csv', stringsAsFactors=FALSE)
-
-#selects only the variables we are interested in
-c <- cdat[,c('Stn.Name','Date','Max.Air.Temp..C.','Min.Air.Temp..C.')]
-
-names(c) <- c('loc','date','tmax','tmin')
-cd <- c[c$loc=='Durham',]
-
-#creates a vector of the names of variables that are numeric variables
-numvars <- c('tmax','tmin')
-
-#converts numvars to numeric variables
-for (v in numvars) {
-	cd[,v] <- as.numeric(cd[,v])
-}
-
-#converts the string dates to Date class
-cd$date <- as.Date(as.character(cd$date), format='%m/%d/%Y')
-cd$year <- year(cd$date)
+cchico <- plyr::ldply(cfilenames, function(fn) {
+    read.csv(fn)[,c('Stn.Name','Date','Hour..PST.','Jul','Air.Temp..C.',
+                    'qc')]
+}) 
 
 
-cdn <- cd[cd$date %in% ndates, ]
-crows <- which(is.na(cdn$tmin))
-cndates <- cdn[-crows, 'date']
+names(cchico) <- c('name','date','hour','day','temp','qc')
 
-chico[chico$date %in% cndates, 'tmin'] <- cdn[cdn$date %in% cndates, 'tmin']*10
+cchico$hour <- cchico$hour/100
+chicotimestring <- paste(cchico$date, 
+                    paste0(sprintf('%02d', cchico$hour-1), ":00:00"))
+cchico$date <- as.POSIXct(chicotimestring, format="%m/%d/%Y %H:%M:%OS")
 
-cdx <- cd[cd$date %in% xdates, ]
-crows <- which(is.na(cdx$tmax))
-cxdates <- cdx[-crows, 'date']
+extremerows <- which(cchico$temp <= -12 | cchico$temp > 48 |
+                     cchico$qc=='R' | (cchico$temp > 41 & cchico$day < 80))
+cchico[extremerows, 'temp'] <- NA
 
-chico[chico$date %in% cxdates, 'tmax'] <- cdx[cdx$date %in% cxdates, 'tmax']*10
+cdu <- cchico[which(cchico$name=='Durham'),]
 
-##############################
-#get temps for when durham did not have data
+cc80 <- cchico[which(cchico$date<'1987-5-13 00:00:00'), ] 
+cc80d <- fillinTemps(cc80, 'temp','Orland','Durham','name')
 
-nrows <- which(is.na(chico$tmin))
-xrows  <- which(is.na(chico$tmax))
+cc90 <- cchico[which(cchico$date>='1987-5-13 00:00:00' & 
+                     cchico$date<'2015-6-18 00:00:00'), ] 
+cc90d <- fillinTemps(cc90, 'temp','Orland','Durham','name')
 
-ndates <- chico$date[nrows]
-xdates <- chico$date[xrows]
+cc15 <- cchico[which(cchico$date>='2015-6-18 00:00:00'), ] 
+cc15d <- fillinTemps(cc15, 'temp','Biggs','Durham','name')
 
-n <- rbind(nlist[[1]][,ivars],nlist[[2]][,ivars], nlist[[3]][,ivars],nlist[[4]][,ivars])
-names(n) <- c('loc', 'date','tmax', 'tmin')
+cimdur <- do.call(rbind, list(cc80d, cc90d, cc15d))
 
-#vector of names of stations
-station <- c("OROVILLE MUNICIPAL AIRPORT CA US", 'ORLAND CA US') 
-n <- n[n$loc %in% station,]
+tsc <- timeSeriesCheck(cimdur, start="1982-10-30 23:00:00 PDT", 
+                       end="2018-10-31 23:00:00 PST", hours = TRUE,
+                       datename='date')
 
-n[n$tmin< -1000 | n$tmin>1000, 'tmin'] <- NA
-n[n$tmax< -1000 | n$tmax>1000, 'tmax'] <- NA
-
-n$date <- as.Date(as.character(n$date), format='%Y%m%d')
-n$year <- year(n$date)
+write.csv(cimdur, file.path(datapath, 'clean/cimischicodurham.csv'),
+          row.names=FALSE)
 
 
-#rename stations
-n$loc <- as.factor(n$loc)
-levels(n$loc) <- c('orland', 'oroville')
-n$loc <- as.character(n$loc)
-nov <- n[n$loc=='oroville', ]
-nol <- n[n$loc=='orland', ]
+# Parlier-NOAA ----------------------------------------------------------
 
-missingdates <- as.Date(c("1980-11-27", "1980-11-28", "1980-11-29", "1980-11-30"))
 
-for (d in ndates[!(ndates %in% missingdates)]) {
-	chico[chico$date==d, 'tmin'] <- nol[nol$date==d, 'tmin']
-}
+# Parlier-Cimis -----------------------------------------------------------
 
-for (d in xdates[!(xdates %in% missingdates)]) {
-	chico[chico$date==d, 'tmax'] <- nol[nol$date==d, 'tmax']
-}
-
-ntemp <- c(-12, -3, 6, 15)
-xtemp <- c(147, 155, 163, 171)
-
-chico[chico$date %in% missingdates, 'tmin'] <- ntemp
-chico[chico$date %in% missingdates, 'tmax'] <- xtemp
+pfilenames <- list.files(file.path(datapath, 'raw/climate/cimis/parlier'),
+                         pattern='.csv',
+                         full.names = TRUE)
 
 
 
-chico$tmax <- chico$tmax/10
-chico$tmin <- chico$tmin/10
-
-chico <- chico[,c(1, 5,2, 3, 4, 6)]
-#################################################
-###################Parlier#######################
 cp <- read.csv('data/raw/climate/cimis/parlier.csv', stringsAsFactors=FALSE)
 cp <- cp[,c('Stn.Name','Date','Max.Air.Temp..C.','Min.Air.Temp..C.')]
 names(cp) <- c('loc','date','tmax','tmin')
