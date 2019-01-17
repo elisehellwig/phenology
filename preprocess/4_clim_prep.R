@@ -27,7 +27,10 @@ n$loc <- recode(n$loc, "WINTERS, CA US"='winters',
                 "WOODLAND 1 WNW, CA US"='woodland',
                 "DAVIS 2 WSW EXPERIMENTAL FARM, CA US"='davis')
 
-
+tscd <- timeSeriesCheck(n[n$loc=='davis', ], 
+                        start="1926-01-01 23:00:00 PDT", 
+                        end="2018-10-31 23:00:00 PST", hours = FALSE,
+                        datename='date')
 
 n$year <- year(n$date)
 n <- n[n$year > 1924, ]
@@ -114,7 +117,17 @@ cn$loc <- recode(cn$loc, "ORLAND, CA US"='orland',
                 "CHICO UNIVERSITY FARM, CA US"='chico',
                 "OROVILLE 1 N, CA US"='oroville')
 
+missingDates <- timeSeriesCheck(cn[cn$loc=='chico', ], 
+                                start="1930-01-01 23:00:00 PDT", 
+                                end="2018-10-31 23:00:00 PST", hours = FALSE,
+                                datename='date')
 
+missingDF <- data.frame(loc='chico',
+                        date=as.Date(missingDates),
+                        tmax=NA,
+                        tmin=NA)
+
+cn <- rbind(cn, missingDF)
 cn$year <- year(cn$date)
 cn[which(cn$tmin > cn$tmax), 'tmin'] <- NA
 cn[which(cn$tmin > cn$tmax), 'tmax'] <- NA
@@ -123,16 +136,25 @@ cn[which(cn$tmin>32 | cn$tmin<=-14), 'tmin'] <- NA
 cnmin <- fillinTemps(cn, 'tmin', c('orland','oroville'), 'chico')
 cnmax <- fillinTemps(cn, 'tmax', c('orland','oroville'), 'chico')
 
-#note check issues with tmin on 1977-02-25 and 1980-10-25;
-#                       tmax on 1980-10-27
-#when NOAA is back up
 
 cnd <- merge(cnmin, cnmax)
 cnd$year <- year(cnd$date)
 cnd$day <- yday(cnd$date)
 
+tsc <- timeSeriesCheck(cnd, start="1930-01-01 23:00:00 PDT", 
+                       end="2018-10-31 23:00:00 PST", hours = FALSE,
+                       datename='date')
 
-write.csv(cnd, file.path(datapath,'clean/noaachico'))
+#note check issues with tmin on 1977-02-25 and 1980-10-25;
+#                       tmax on 1980-10-27
+#when NOAA is back up. The fix for now is below:
+
+cnd[cnd$date=='1977-02-25', 'tmin'] <- cnd[cnd$date=='1977-02-24', 'tmin'] + 
+                                       cnd[cnd$date=='1977-02-26', 'tmin']
+
+
+write.csv(cnd, file.path(datapath,'clean/noaachico.csv'),
+          row.names=FALSE)
 
 # Chico-CIMIS --------------------------------------------------------------
 
