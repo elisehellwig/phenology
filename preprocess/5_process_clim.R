@@ -4,24 +4,31 @@ library(phenoclim)
 library(plyr)
 library(Interpol.T)
 
+source('functions/tempInterpolation.R')
 source('functions/datetime.R')
 #source('R/functions/generalfunctions.R')
 source('functions/diurnal_temperature2.R')
+options(stringsAsFactors = FALSE)
 
 #temp <- read.csv(file='data/clean/temp.csv')
-davis <- read.csv(file=file.path(datapath, 'clean/noaadavis.csv'),
-                 stringsAsFactors = FALSE)
 
-cim <- read.csv(file.path(datapath, 'clean/cimisdavis.csv'),
-                stringsAsFactors = FALSE)
+nchico <- read.csv(file=file.path(datapath,'clean/noaachico.csv') )
+ndavis <- read.csv(file=file.path(datapath, 'clean/noaadavis.csv'))
 
+cdavis <- read.csv(file.path(datapath, 'clean/cimisdavis.csv'))
+cchico <- read.csv(file.path(datapath, 'clean/cimischicodurham.csv'))
 
 #this script readies the climate data for analysis.
-#load('data/clean/hrly3.Rdata')
 
 
 
 # Calibrating temperature interpolation model -----------------------------
+
+
+dv <- InterpTemp(ndavis, cdavis, 'Davis', 1925, 2017)
+davisfinal <- mergeDailyHourly(ndavis, cdavis, dv)
+
+chicoInterp <- InterpTemp(nchico, cchico, 'Chico', 1930, 2018)
 
 la <- which(is.na(cim$temp))
 
