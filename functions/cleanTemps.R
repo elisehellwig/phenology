@@ -1,16 +1,45 @@
+importCIMIS <- function(path) {
+    
+    filenames <- list.files(path, pattern='.csv', full.names = TRUE)
+    
+    cimis <- plyr::ldply(filenames, function(fn) {
+        read.csv(fn)[,c('Stn.Name','Date','Hour..PST.','Jul','Air.Temp..C.',
+                        'qc')]
+    }) 
+    
+    
+    names(cimis) <- c('name','date','hour','day','temp','qc')
+    
+    cimis$hour <- cimis$hour/100
+    timestring <- paste(cimis$date, 
+                        paste0(sprintf('%02d', cimis$hour-1), ":00:00"))
+    cimis$date <- as.POSIXct(timestring, format="%m/%d/%Y %H:%M:%OS")
+    
+    return(cimis)
+    
+}
+
+
+
 fillinTemps <- function(df, variable, predictors, response, predname='loc',
                         printR2=TRUE) {
    require(reshape2)
     
     #print(1) 
-    fmla <- as.formula(paste('date ~', predname))
+    fmla <- as.formula('date ~ loc')
+    df <- unique(df)
+    
+    names(df)[which(names(df)==predname)] <- 'loc'
+    df <- df[df$loc %in% c(predictors, response), ]
     wide <- dcast(df, fmla, value.var = variable)
     #print(head(wide))
-        
+    
+    
+    
     #print(1.1)
     wc <- wide[complete.cases(wide),]
 
-    #print(head(wc))
+   # print(head(wc))
     eqns <- sapply(predictors, function(v) {
         paste(response, '~', v)
     })
@@ -25,7 +54,7 @@ fillinTemps <- function(df, variable, predictors, response, predname='loc',
         lapply(modlist, function(mod) print(summary(mod)$adj.r.squared))
     }
     
-   # print(2)
+    #print(2)
     missingResponse <- which(is.na(wide[,response]))
     mr <- wide[missingResponse,]
     
