@@ -28,12 +28,12 @@ n$loc <- recode(n$loc, "WINTERS, CA US"='winters',
                 "DAVIS 2 WSW EXPERIMENTAL FARM, CA US"='davis')
 
 tscd <- timeSeriesCheck(n[n$loc=='davis', ], 
-                        start="1926-01-01 23:00:00 PDT", 
+                        start="1930-01-01 23:00:00 PDT", 
                         end="2018-10-31 23:00:00 PST", hours = FALSE,
                         datename='date')
 
 n$year <- year(n$date)
-n <- n[n$year > 1924, ]
+n <- n[n$year >= 1930, ]
 n[which(n$tmin > n$tmax), 'tmin'] <- NA
 n[which(n$tmin > n$tmax), 'tmax'] <- NA
 n[which(n$tmax<28), 'tmax'] <- NA
@@ -118,10 +118,12 @@ cn <- cn %>% select('loc'='NAME','date'='DATE', 'tmax'='TMAX',
 cn$loc <- recode(cn$loc, "ORLAND, CA US"='orland', 
                 "OROVILLE MUNICIPAL AIRPORT, CA US"='orovilleAirport',
                 "CHICO UNIVERSITY FARM, CA US"='chico',
-                "OROVILLE 1 N, CA US"='oroville')
+                "OROVILLE 1 N, CA US"='oroville',
+                "MARYSVILLE, CA US"='marysville',
+                "COLUSA 2 SSW, CA US"='colusa')
 
 missingDates <- timeSeriesCheck(cn[cn$loc=='chico', ], 
-                                start="1930-01-01 23:00:00 PDT", 
+                                start="1925-01-01 23:00:00 PDT", 
                                 end="2018-10-31 23:00:00 PST", hours = FALSE,
                                 datename='date')
 
@@ -132,12 +134,15 @@ missingDF <- data.frame(loc='chico',
 
 cn <- rbind(cn, missingDF)
 cn$year <- year(cn$date)
+cn <- cn[cn$year >= 1930, ]
 cn[which(cn$tmin > cn$tmax), 'tmin'] <- NA
 cn[which(cn$tmin > cn$tmax), 'tmax'] <- NA
 cn[which(cn$tmin>32 | cn$tmin<=-14), 'tmin'] <- NA
 
-cnmin <- fillinTemps(cn, 'tmin', c('orland','oroville'), 'chico')
-cnmax <- fillinTemps(cn, 'tmax', c('orland','oroville'), 'chico')
+cnmin <- fillinTemps(cn, 'tmin', c('orland','oroville','marysville', 'colusa'), 
+                     'chico')
+cnmax <- fillinTemps(cn, 'tmax', c('orland','oroville', 'marysville', 'colusa'),
+                     'chico')
 
 
 cnd <- merge(cnmin, cnmax)
@@ -147,14 +152,6 @@ cnd$day <- yday(cnd$date)
 tsc <- timeSeriesCheck(cnd, start="1930-01-01 23:00:00 PDT", 
                        end="2018-10-31 23:00:00 PST", hours = FALSE,
                        datename='date')
-
-#note check issues with tmin on 1977-02-25 and 1980-10-25;
-#                       tmax on 1980-10-27
-#when NOAA is back up. The fix for now is below:
-
-cnd[cnd$date=='1977-02-25', 'tmin'] <- cnd[cnd$date=='1977-02-24', 'tmin'] + 
-                                       cnd[cnd$date=='1977-02-26', 'tmin']
-
 
 write.csv(cnd, file.path(datapath,'clean/noaachico.csv'),
           row.names=FALSE)
@@ -190,8 +187,6 @@ write.csv(cimdur, file.path(datapath, 'clean/cimischicodurham.csv'),
           row.names=FALSE)
 
 
-# Parlier-NOAA ----------------------------------------------------------
-pn1 <- read.csv(file.path(datapath, 'raw/climate/noaaparlier.csv'))
 
 
 # Parlier-CIMIS -----------------------------------------------------------
@@ -232,6 +227,70 @@ tsc <- timeSeriesCheck(cimpar, start="1982-06-07 00:00:00 PDT",
                        end="2018-10-31 23:00:00 PDT", hours = TRUE,
                        datename='date')
 
+write.csv(cimpar, file.path(datapath, 'clean/cimisparlier.csv'),
+          row.names=FALSE)
+
+
+# Parlier-NOAA ----------------------------------------------------------
+pn1 <- read.csv(file.path(datapath, 'raw/climate/noaaparlier.csv'))
+cimpar <- read.csv(file.path(datapath, 'clean/cimisparlier.csv'))
+
+pn1$DATE <- as.Date(pn1$DATE)
+cimpar$date <- as.POSIXct(cimpar$date)
+cimpar$dateOnly <- as.Date(cimpar$date)
+
+pn2 <- data.frame(loc='parlier',
+                  date=names(tapply(cimpar$temp, cimpar$dateOnly, min)),
+                  tmin=unname(tapply(cimpar$temp, cimpar$dateOnly, min)),
+                  tmax=unname(tapply(cimpar$temp, cimpar$dateOnly, max)))
+
+pn1 <- pn1 %>% select('loc'='NAME','date'='DATE', 'tmax'='TMAX', 'tmin'='TMIN')
+
+#gives them reasonable names
+pn1$loc <- recode(pn1$loc, 
+                "FRESNO YOSEMITE INTERNATIONAL, CA US"='fresno', 
+                "HANFORD 1 S, CA US"='hanford',
+                "ORANGE COVE, CA US"='orange',
+                "VISALIA, CA US"='visalia')
+
+pn <- rbind(pn1, pn2)
+
+pn$year <- year(pn$date)
+pn <- pn[pn$year >= 1930, ]
+pn[which(pn$tmin > pn$tmax), 'tmin'] <- NA
+pn[which(pn$tmin > pn$tmax), 'tmax'] <- NA
+pn[which(pn$tmax>46.1 | pn$tmax<=0), 'tmax'] <- NA
+pn[which(pn$tmin<=-8.4), 'tmin'] <- NA
+
+
+pndmin <- fillinTemps(pn, 'tmin', c('fresno','hanford','visalia'), 'parlier')
+pndmax <- fillinTemps(pn, 'tmax', c('fresno','hanford','visalia'), 'parlier')
+
+pnd <- merge(pndmin, pndmax)
+
+#update with lemon cove data when it becomes available
+#until then the fix for missing values is below
+
+pnd[pnd$date=='1930-11-09', 'tmax'] <- (pnd[pnd$date=='1930-11-08', 'tmax']+ 
+                                        pnd[pnd$date=='1930-11-10', 'tmax'])/2
+
+pnd[pnd$date=='1946-09-16', 'tmax'] <- pnd[pnd$date=='1946-09-17', 'tmax']
+
+pnd[pnd$date=='1946-09-15', 'tmax'] <- (pnd[pnd$date=='1946-09-17', 'tmax']+
+                                        pnd[pnd$date=='1946-09-14', 'tmax'])/2
+
+
+tscd <- timeSeriesCheck(pnd, 
+                        start="1930-01-01 23:00:00 PDT", 
+                        end="2018-10-31 23:00:00 PST", hours = FALSE,
+                        datename='date')
+
+pnd$year <- year(pnd$date)
+pnd$day <- yday(pnd$date)
+
+write.csv(pnd, file=file.path(datapath, 'clean/noaaparlier.csv'),
+          row.names = FALSE)
+
 
 # Modesto-NOAA ------------------------------------------------------------
 mn1 <- read.csv(file.path(datapath, 'raw/climate/noaamodesto.csv'))
@@ -257,16 +316,16 @@ tscd <- timeSeriesCheck(mn[mn$loc=='modesto', ],
 
 
 mn$year <- year(mn$date)
-mn <- mn[mn$year > 1925, ]
+mn <- mn[mn$year >= 1930, ]
 mn[which(mn$tmin > mn$tmax), 'tmin'] <- NA
 mn[which(mn$tmin > mn$tmax), 'tmax'] <- NA
 mn[which(mn$tmax>46.1 | mn$tmax<=-4), 'tmax'] <- NA
 mn[which(mn$tmin<=-9.0), 'tmin'] <- NA
 
 #note turlock should really start at 1985
-tapply(mn$date, mn$loc, range)
+#tapply(mn$date, mn$loc, range)
 
-mn25 <- mn[which(mn$date>='1926-01-01' & mn$date<'1949-10-01'),]
+mn25 <- mn[which(mn$date>='1930-01-01' & mn$date<'1949-10-01'),]
 mndmin25 <- fillinTemps(mn25,'tmin', c('denair','oakdale'), 'modesto')
 mndmax25 <- fillinTemps(mn25,'tmax', c('denair','oakdale'), 'modesto')
 
@@ -294,10 +353,15 @@ mndmax <- do.call(rbind, list(mndmax25,mndmax49,mndmax68,mndmax84))
 mnd <- merge(mndmin, mndmax)
 
 tscd <- timeSeriesCheck(mnd, 
-                        start="1926-01-01 23:00:00 PDT", 
+                        start="1930-01-01 23:00:00 PDT", 
                         end="2018-10-31 23:00:00 PST", hours = FALSE,
                         datename='date')
 
+mnd$year <- year(mnd$date)
+mnd$day <- yday(mnd$date)
+
+write.csv(mnd, file=file.path(datapath, 'clean/noaamodesto.csv'),
+          row.names = FALSE)
 
 # Modesto-CIMIS -----------------------------------------------------------
 
