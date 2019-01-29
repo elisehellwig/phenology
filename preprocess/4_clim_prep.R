@@ -104,7 +104,10 @@ write.csv(cimdav, file.path(datapath, 'clean/cimisdavis.csv'),
 
 
 # Chico-NOAA --------------------------------------------------------------
-cn <- read.csv(file.path(datapath, 'raw/climate/noaachiconew.csv'))
+cn1 <- read.csv(file.path(datapath, 'raw/climate/noaachiconew.csv'))
+cn2 <- read.csv(file.path(datapath, 'raw/climate/noaachiconew2.csv'))
+
+cn <- rbind(cn1, cn2[,c('STATION','NAME','DATE','TMAX','TMIN')])
 
 cn$DATE <- as.Date(cn$DATE)
 
@@ -188,6 +191,7 @@ write.csv(cimdur, file.path(datapath, 'clean/cimischicodurham.csv'),
 
 
 # Parlier-NOAA ----------------------------------------------------------
+pn1 <- read.csv(file.path(datapath, 'raw/climate/noaaparlier.csv'))
 
 
 # Parlier-CIMIS -----------------------------------------------------------
@@ -230,7 +234,69 @@ tsc <- timeSeriesCheck(cimpar, start="1982-06-07 00:00:00 PDT",
 
 
 # Modesto-NOAA ------------------------------------------------------------
+mn1 <- read.csv(file.path(datapath, 'raw/climate/noaamodesto.csv'))
+mn2 <- read.csv(file.path(datapath, 'raw/climate/noaamodesto2.csv'))
 
+mn <- rbind(mn1, mn2)
+
+mn$DATE <- as.Date(mn$DATE)
+
+mn <- mn %>% select('loc'='NAME','date'='DATE', 'tmax'='TMAX', 'tmin'='TMIN')
+
+mn$loc <- recode(mn$loc, "DENAIR 3 NNE, CA US"='denair', 
+                "OAKDALE WOODWARD DAM, CA US"='oakdale',
+                "TRACY CARBONA, CA US"='tracy',
+                "STOCKTON METROPOLITAN AIRPORT, CA US"='stockton',
+                "MODESTO CITY CO AIRPORT, CA US"='modesto',
+                "TURLOCK NUMBER 2, CA US"='turlock')
+
+tscd <- timeSeriesCheck(mn[mn$loc=='modesto', ], 
+                        start="1926-01-01 23:00:00 PDT", 
+                        end="2018-10-31 23:00:00 PST", hours = FALSE,
+                        datename='date')
+
+
+mn$year <- year(mn$date)
+mn <- mn[mn$year > 1925, ]
+mn[which(mn$tmin > mn$tmax), 'tmin'] <- NA
+mn[which(mn$tmin > mn$tmax), 'tmax'] <- NA
+mn[which(mn$tmax>46.1 | mn$tmax<=-4), 'tmax'] <- NA
+mn[which(mn$tmin<=-9.0), 'tmin'] <- NA
+
+#note turlock should really start at 1985
+tapply(mn$date, mn$loc, range)
+
+mn25 <- mn[which(mn$date>='1926-01-01' & mn$date<'1949-10-01'),]
+mndmin25 <- fillinTemps(mn25,'tmin', c('denair','oakdale'), 'modesto')
+mndmax25 <- fillinTemps(mn25,'tmax', c('denair','oakdale'), 'modesto')
+
+mn49 <- mn[which(mn$date>='1949-10-01' & mn$date<'1968-01-01'),]
+mndmin49 <- fillinTemps(mn49,'tmin', c('denair','oakdale','stockton'), 
+                        'modesto')
+mndmax49 <- fillinTemps(mn49,'tmax', c('denair','oakdale', 'stockton'), 
+                        'modesto')
+
+mn68 <-  mn[which(mn$date>='1968-01-01' & mn$date<'1984-07-01'),]
+mndmin68 <- fillinTemps(mn68,'tmin', c('denair','stockton'), 
+                        'modesto')
+mndmax68 <- fillinTemps(mn68,'tmax', c('denair','stockton'), 
+                        'modesto')
+
+mn84 <-  mn[which(mn$date>='1984-07-01' & mn$date<='2018-10-31'),]
+mndmin84 <- fillinTemps(mn84,'tmin', c('stockton','turlock'), 
+                        'modesto')
+mndmax84 <- fillinTemps(mn84,'tmax', c('stockton','turlock'), 
+                        'modesto')
+
+mndmin <- do.call(rbind, list(mndmin25,mndmin49,mndmin68,mndmin84))
+mndmax <- do.call(rbind, list(mndmax25,mndmax49,mndmax68,mndmax84))
+
+mnd <- merge(mndmin, mndmax)
+
+tscd <- timeSeriesCheck(mnd, 
+                        start="1926-01-01 23:00:00 PDT", 
+                        end="2018-10-31 23:00:00 PST", hours = FALSE,
+                        datename='date')
 
 
 # Modesto-CIMIS -----------------------------------------------------------
@@ -300,7 +366,7 @@ write.csv(temp, file='data/clean/temp.csv', row.names=FALSE)
 
 
 ############################
-###old
+
 
 
 
