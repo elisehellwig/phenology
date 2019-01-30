@@ -233,18 +233,21 @@ write.csv(cimpar, file.path(datapath, 'clean/cimisparlier.csv'),
 
 # Parlier-NOAA ----------------------------------------------------------
 pn1 <- read.csv(file.path(datapath, 'raw/climate/noaaparlier.csv'))
+pn2 <- read.csv(file.path(datapath, 'raw/climate/noaaparlier2.csv'))
 cimpar <- read.csv(file.path(datapath, 'clean/cimisparlier.csv'))
 
 pn1$DATE <- as.Date(pn1$DATE)
+pn2$DATE <- as.Date(pn2$DATE)
 cimpar$date <- as.POSIXct(cimpar$date)
 cimpar$dateOnly <- as.Date(cimpar$date)
 
-pn2 <- data.frame(loc='parlier',
+pn3 <- data.frame(loc='parlier',
                   date=names(tapply(cimpar$temp, cimpar$dateOnly, min)),
                   tmin=unname(tapply(cimpar$temp, cimpar$dateOnly, min)),
                   tmax=unname(tapply(cimpar$temp, cimpar$dateOnly, max)))
 
 pn1 <- pn1 %>% select('loc'='NAME','date'='DATE', 'tmax'='TMAX', 'tmin'='TMIN')
+pn2 <- pn2 %>% select('loc'='NAME','date'='DATE', 'tmax'='TMAX', 'tmin'='TMIN')
 
 #gives them reasonable names
 pn1$loc <- recode(pn1$loc, 
@@ -253,7 +256,9 @@ pn1$loc <- recode(pn1$loc,
                 "ORANGE COVE, CA US"='orange',
                 "VISALIA, CA US"='visalia')
 
-pn <- rbind(pn1, pn2)
+pn2$loc <- 'lemon'
+
+pn <- rbind(pn1, pn2, pn3)
 
 pn$year <- year(pn$date)
 pn <- pn[pn$year >= 1930, ]
@@ -263,22 +268,12 @@ pn[which(pn$tmax>46.1 | pn$tmax<=0), 'tmax'] <- NA
 pn[which(pn$tmin<=-8.4), 'tmin'] <- NA
 
 
-pndmin <- fillinTemps(pn, 'tmin', c('fresno','hanford','visalia'), 'parlier')
-pndmax <- fillinTemps(pn, 'tmax', c('fresno','hanford','visalia'), 'parlier')
+pndmin <- fillinTemps(pn, 'tmin', c('fresno','hanford','visalia','lemon'),
+                      'parlier')
+pndmax <- fillinTemps(pn, 'tmax', c('fresno','hanford','visalia','lemon'),
+                      'parlier')
 
 pnd <- merge(pndmin, pndmax)
-
-#update with lemon cove data when it becomes available
-#until then the fix for missing values is below
-
-pnd[pnd$date=='1930-11-09', 'tmax'] <- (pnd[pnd$date=='1930-11-08', 'tmax']+ 
-                                        pnd[pnd$date=='1930-11-10', 'tmax'])/2
-
-pnd[pnd$date=='1946-09-16', 'tmax'] <- pnd[pnd$date=='1946-09-17', 'tmax']
-
-pnd[pnd$date=='1946-09-15', 'tmax'] <- (pnd[pnd$date=='1946-09-17', 'tmax']+
-                                        pnd[pnd$date=='1946-09-14', 'tmax'])/2
-
 
 tscd <- timeSeriesCheck(pnd, 
                         start="1930-01-01 23:00:00 PDT", 
