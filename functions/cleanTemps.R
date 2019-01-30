@@ -95,3 +95,38 @@ FtoC <- function(v) {
     return(cv)
 }
 
+
+AverageTemps <- function(temps, variable, monthly=TRUE, datename='dt', 
+                         placename='loc', namelength=5) {
+    
+    
+    if (monthly) {
+        stringID <- paste0(substr(temps[,datename], 1, 7), temps[,placename])
+    } else {
+        stringID <- paste0(substr(temps[,datename], 1, 4), temps[,placename])
+    }
+    
+    
+    avgs <- tapply(temps[,variable], stringID, mean)
+    
+    mtemps <- data.frame(string=names(avgs),
+                         temp=unname(avgs))
+    
+    mtemps$year <- substr(mtemps$string, 1, 4)
+    
+    if (monthly) {
+        mtemps$month <- as.numeric(substr(mtemps$string, 6,7))
+        mtemps$loc <- substr(mtemps$string, 8, 8+namelength)
+    } else {
+        mtemps$loc <- substr(mtemps$string, 5, 5+namelength)
+    }
+    
+    
+    names(mtemps)[2] <- variable
+    
+    return(mtemps)
+    
+    
+}
+
+
