@@ -14,10 +14,13 @@ options(stringsAsFactors = FALSE)
 
 nchico <- read.csv(file=file.path(datapath,'clean/noaachico.csv') )
 ndavis <- read.csv(file=file.path(datapath, 'clean/noaadavis.csv'))
+nmod <- read.csv(file=file.path(datapath, 'clean/noaamodesto.csv'))
+nparlier <- read.csv(file=file.path(datapath, 'clean/noaaparlier.csv'))
 
 cdavis <- read.csv(file.path(datapath, 'clean/cimisdavis.csv'))
 cchico <- read.csv(file.path(datapath, 'clean/cimischicodurham.csv'))
-
+cmod <- read.csv(file.path(datapath, 'clean/cimismodesto.csv'))
+cparlier <- read.csv(file.path(datapath, 'clean/cimisparlier.csv'))
 #this script readies the climate data for analysis.
 
 
@@ -25,84 +28,28 @@ cchico <- read.csv(file.path(datapath, 'clean/cimischicodurham.csv'))
 # Calibrating temperature interpolation model -----------------------------
 
 
-dv <- InterpTemp(ndavis, cdavis, 'Davis', 1925, 2017)
+dv <- InterpTemp(ndavis, cdavis, 'Davis', 1930, 2017)
 davisfinal <- mergeDailyHourly(ndavis, cdavis, dv)
+davisfinal$loc <- 'davis'
 
-chicoInterp <- InterpTemp(nchico, cchico, 'Chico', 1930, 2018)
+chicoInterp <- InterpTemp(nchico, cchico, 'Chico', 1930, 2017)
+chicofinal <- mergeDailyHourly(nchico, cchico, chicoInterp)
+chicofinal$loc <- 'chico'
 
-la <- which(is.na(cim$temp))
+modestoInterp <- InterpTemp(nmod, cmod, 'Modesto', 1930, 2017)
+modestofinal <- mergeDailyHourly(nmod, cmod, modestoInterp)
+modestofinal$loc <- 'modesto'
 
-calibdat <- data.frame(ID='Davis',
-                       date=gsub('-', '/', as.character(date(cim$date))),
-                       hour=hour(cim$date),
-                       temp=cim$temp)
-
-
-cpar <- par_calibration(calibdat, band_min = 3:9, band_max = 12:20, 
-                        band_suns = 13:21)
-
-cshape <- shape_calibration(calibdat, cal_times_list = cpar)
-
-# Running the temp interpolation ------------------------------------------
-
-davis$date <- as.Date(davis$date)
-
-dtmin <- data.frame(year=davis$year,
-                    month=month(davis$date),
-                    day=davis$day,
-                    Davis=davis$tmin)
-
-dtmax <- data.frame(year=davis$year,
-                    month=month(davis$date),
-                    day=davis$day,
-                    Davis=davis$tmax)
-
-davhourly <- Th_int_series(cal_times=cpar, 
-                           cal_shape = cshape,
-                           TMIN=dtmin, 
-                           TMAX=dtmax, 
-                           start_year=1925, 
-                           end_year=2017,
-                           active_IDs = 'Davis')
-
-dh <- davhourly$Date
-dh$temp <- davhourly$Davis
-#write.csv(dh, file.path(datapath, 'clean/interpolatedDavis.csv'),
-         # row.names = FALSE)
-
-dhdt <- convertToDT(dh, c('dt','temp'))
-dhdt$date <- POSIXtoDate(dhdt$dt)
-#locs <- c('Chico','Davis', 'Manteca','Parlier')
+parlierInterp <- InterpTemp(nparlier, cparlier, 'Parlier', 1930, 2017)
+parlierfinal <- mergeDailyHourly(nparlier, cparlier, parlierInterp)
+parlierfinal$loc <- 'parlier'
 
 
-# Merge with daily temperatures -------------------------------------------
+# Combine -----------------------------------------------------------------
 
-dt <- merge(dhdt, davis, by='date')
-dtfinal <- dt[,c('dt','year','day','temp','tmin','tmax')]
-dtfinal$hour <- hour(dtfinal$dt)
-dtfinal <- dtfinal[order(dtfinal$dt), ]
+dailyhourlytemps <- do.call(rbind, list(davisfinal, chicofinal, modestofinal,
+                                        parlierfinal)) 
 
-
-cim$date <- toPOSIX(cim$date)
-
-dtfinal$temp <- sapply(1:nrow(dtfinal), function(i) {
-    dtdate <- dtfinal[i, 'dt']
-    
-    if (dtdate %in% cim$date) {
-        if (!is.na(cim[which(cim$date==dtdate),'temp'])) {
-            cim[which(cim$date==dtdate),'temp']
-        } else {
-            dtfinal[i, 'temp']
-        }
-        
-    } else {
-        dtfinal[i, 'temp']
-        
-    }
-})
-
-
-
-write.csv(dtfinal, file.path(datapath, 'clean/davisdailyhourlytemp.csv'), 
+write.csv(dailyhourlytemps, file.path(datapath, 'clean/dailyhourlytemp.csv'),
           row.names = FALSE)
-
+saveRDS(dailyhourlytemps, file.path(datapath, 'clean/dailyhourlytemp.RDS'))
