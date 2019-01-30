@@ -25,30 +25,44 @@ cparlier <- read.csv(file.path(datapath, 'clean/cimisparlier.csv'))
 
 
 
-# Calibrating temperature interpolation model -----------------------------
+# Calibrating and running the Temp Interpolation -----------------------------
 
-
-dv <- InterpTemp(ndavis, cdavis, 'Davis', 1930, 2017)
-davisfinal <- mergeDailyHourly(ndavis, cdavis, dv)
-davisfinal$loc <- 'davis'
-
+davisInterp <- InterpTemp(ndavis, cdavis, 'Davis', 1930, 2017)
 chicoInterp <- InterpTemp(nchico, cchico, 'Chico', 1930, 2017)
-chicofinal <- mergeDailyHourly(nchico, cchico, chicoInterp)
-chicofinal$loc <- 'chico'
-
 modestoInterp <- InterpTemp(nmod, cmod, 'Modesto', 1930, 2017)
-modestofinal <- mergeDailyHourly(nmod, cmod, modestoInterp)
-modestofinal$loc <- 'modesto'
-
 parlierInterp <- InterpTemp(nparlier, cparlier, 'Parlier', 1930, 2017)
+
+
+# Merging daily and hourly temperatures -----------------------------------
+
+davisfinal <- mergeDailyHourly(ndavis, cdavis, davisInterp)
+chicofinal <- mergeDailyHourly(nchico, cchico, chicoInterp)
+modestofinal <- mergeDailyHourly(nmod, cmod, modestoInterp)
 parlierfinal <- mergeDailyHourly(nparlier, cparlier, parlierInterp)
-parlierfinal$loc <- 'parlier'
 
 
 # Combine -----------------------------------------------------------------
 
+davisfinal$loc <- 'davis'
+chicofinal$loc <- 'chico'
+modestofinal$loc <- 'modesto'
+parlierfinal$loc <- 'parlier'
+
+
 dailyhourlytemps <- do.call(rbind, list(davisfinal, chicofinal, modestofinal,
                                         parlierfinal)) 
+
+
+# Save data ---------------------------------------------------------------
+
+write.csv(davisfinal, file.path(datapath, 'clean/dailyhourlytempdavis.csv'),
+          row.names = FALSE)
+write.csv(chicofinal, file.path(datapath, 'clean/dailyhourlytempchico.csv'),
+          row.names = FALSE)
+write.csv(modestofinal, file.path(datapath, 'clean/dailyhourlytempmodesto.csv'),
+          row.names = FALSE)
+write.csv(parlierfinal, file.path(datapath, 'clean/dailyhourlytempparlier.csv'),
+          row.names = FALSE)
 
 write.csv(dailyhourlytemps, file.path(datapath, 'clean/dailyhourlytemp.csv'),
           row.names = FALSE)
