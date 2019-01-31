@@ -5,8 +5,9 @@ library(phenoclim)
 library(plyr)
 library(dplyr)
 library(raster)
+library(reshape2)
 source('functions/cleanTemps.R')
-
+options(stringsAsFactors = FALSE)
 
 dht <- readRDS(file.path(datapath, 'clean/dailyhourlytemp.RDS'))
 
@@ -24,7 +25,7 @@ monthly$tmin <- round(monthly$tmin, 1)
 monthly$tmax <- round(monthly$tmax, 1)
 monthly$tavg <- round(monthly$tavg, 1)
 
-monthly$loc <- recode(monthly$loc, 'modest'='modesto', 'parlie'='parlier')
+monthly$loc <- recode(monthly$loc, 'modes'='modesto', 'parli'='parlier')
 monthly$nmonth <- month.name[monthly$month]
 
 monthly <- monthly[,c('loc','year','month','nmonth','tmin','tmax','tavg')]
@@ -43,7 +44,7 @@ annual$tmin <- round(annual$tmin, 1)
 annual$tmax <- round(annual$tmax, 1)
 annual$tavg <- round(annual$tavg, 1)
 
-annual$loc <- recode(annual$loc, 'modest'='modesto', 'parlie'='parlier')
+annual$loc <- recode(annual$loc, 'modes'='modesto', 'parli'='parlier')
 
 annual <- annual[,c('loc','year','tmin','tmax','tavg')]
 
@@ -65,7 +66,7 @@ for (i in unique(annual$loc)) {
     }  
 }
 
-
+annualm <- melt(annual, id.vars=c('loc','year'), value.name = 'temp')
 
 # Saving data -------------------------------------------------------------
 
