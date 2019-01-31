@@ -85,5 +85,8 @@ a <- rbind(a1, a2, a3)
 
 a$year <- as.numeric(a$year)
 
+a$loc <- recode(a$loc, 'Manteca'='Modesto', 'Mission '='Mission')
+a$cultivar <- recode(a$cultivar, 'Mission '='Mission')
+
 write.csv(a, file.path(drivepath,'data/historydata/almondclean.csv'),
           row.names = FALSE)
