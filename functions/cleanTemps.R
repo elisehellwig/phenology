@@ -101,9 +101,11 @@ AverageTemps <- function(temps, variable, monthly=TRUE, datename='dt',
     
     
     if (monthly) {
-        stringID <- paste0(substr(temps[,datename], 1, 7), temps[,placename])
+        stringID <- paste0(substr(temps[,placename], 1, namelength), 
+                           substr(temps[,datename], 1, 7))
     } else {
-        stringID <- paste0(substr(temps[,datename], 1, 4), temps[,placename])
+        stringID <- paste0(substr(temps[,placename], 1, namelength), 
+                           substr(temps[,datename], 1, 4))
     }
     
     
@@ -112,15 +114,16 @@ AverageTemps <- function(temps, variable, monthly=TRUE, datename='dt',
     mtemps <- data.frame(string=names(avgs),
                          temp=unname(avgs))
     
-    mtemps$year <- substr(mtemps$string, 1, 4)
+    mtemps$year <- substr(mtemps$string, namelength+1, namelength+4)
     
     if (monthly) {
-        mtemps$month <- as.numeric(substr(mtemps$string, 6,7))
-        mtemps$loc <- substr(mtemps$string, 8, 8+namelength)
-    } else {
-        mtemps$loc <- substr(mtemps$string, 5, 5+namelength)
+        mtemps$month <- as.numeric(substr(mtemps$string, namelength+6,
+                                          namelength+7))
+        
     }
-    
+
+    mtemps$loc <- substr(mtemps$string, 1, namelength)
+
     
     names(mtemps)[2] <- variable
     
