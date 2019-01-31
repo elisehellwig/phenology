@@ -6,11 +6,8 @@ library(Interpol.T)
 
 source('functions/tempInterpolation.R')
 source('functions/datetime.R')
-#source('R/functions/generalfunctions.R')
-source('functions/diurnal_temperature2.R')
 options(stringsAsFactors = FALSE)
 
-#temp <- read.csv(file='data/clean/temp.csv')
 
 nchico <- read.csv(file=file.path(datapath,'clean/noaachico.csv') )
 ndavis <- read.csv(file=file.path(datapath, 'clean/noaadavis.csv'))
@@ -41,7 +38,7 @@ modestofinal <- mergeDailyHourly(nmod, cmod, modestoInterp)
 parlierfinal <- mergeDailyHourly(nparlier, cparlier, parlierInterp)
 
 
-# Combine -----------------------------------------------------------------
+ # Combine -----------------------------------------------------------------
 
 davisfinal$loc <- 'davis'
 chicofinal$loc <- 'chico'
