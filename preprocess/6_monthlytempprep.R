@@ -70,7 +70,7 @@ annualm <- melt(annual, id.vars=c('loc','year'), value.name = 'temp')
 
 # Saving data -------------------------------------------------------------
 
-write.csv(annual, file.path(datapath, 'clean/annualtemperatures.csv'), 
+write.csv(annualm, file.path(datapath, 'clean/annualtemperatures.csv'), 
           row.names = FALSE)
 
 write.csv(monthly, file.path(datapath, 'clean/monthlytemperatures.csv'),
