@@ -30,17 +30,18 @@ p1melt$Date <- as.Date(p1melt$date, format="%m/%d/%y")
 p1melt$day <- yday(p1melt$Date)
 p1melt$event <- as.character(p1melt$event)
 
-p1 <- p1melt[which(p1melt$event !='bend'),]
+p1 <- p1melt[which(p1melt$event !='bend' & p1melt$loc=='KAC'),]
+p1$loc <- 'Parlier'
 ####################Praw2#############################
 vars <- c('French','Gerren','Imperial','General')
 
-p2 <- reform(praw2, vars)
+p2 <- reform(praw2, 'French')
 
 p2$Date <- as.Date(paste(p2$date, p2$year, sep='/'), format='%m/%d/%Y')
 p2$day <- yday(p2$Date) # gives the day of the year (julian day)
 p2$year <- as.integer(p2$year)
 p2$cultivar <- as.character(p2$cultivar)
-p2$loc <- 'NSacValley'
+p2$loc <- 'Chico'
 
 p2 <- p2[p2$event=='First_Flower', ]
 
