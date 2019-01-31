@@ -40,10 +40,10 @@ parlierfinal <- mergeDailyHourly(nparlier, cparlier, parlierInterp)
 
  # Combine -----------------------------------------------------------------
 
-davisfinal$loc <- 'davis'
-chicofinal$loc <- 'chico'
-modestofinal$loc <- 'modesto'
-parlierfinal$loc <- 'parlier'
+davisfinal$loc <- 'Davis'
+chicofinal$loc <- 'Chico'
+modestofinal$loc <- 'Modesto'
+parlierfinal$loc <- 'Parlier'
 
 
 dailyhourlytemps <- do.call(rbind, list(davisfinal, chicofinal, modestofinal,
