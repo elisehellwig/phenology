@@ -52,6 +52,8 @@ voi <- c('cultivar','year','loc','event','day')
 
 p <- rbind(p1[,voi], p2[,voi])
 
+p <- p[complete.cases(p), ]
+
 write.csv(p, file.path(drivepath,'data/historydata/pruneclean.csv'),
           row.names = FALSE)
 
