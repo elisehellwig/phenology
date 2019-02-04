@@ -2,11 +2,9 @@
 drivepath <- '/Users/echellwig/Drive/Phenology'
 importpath <- file.path(drivepath, 'data/raw/crop/')
 
-source('functions/generalfunctions.R')
+library(reshape2)
+library(lubridate)
 source('functions/preprocessfunctions.R')
-
-pkgs <- c('reshape2','lubridate','dismo')
-checkpacks(pkgs)
 
 
 #This script cleans prune data for further processing and analysis.
@@ -54,7 +52,7 @@ p <- rbind(p1[,voi], p2[,voi])
 
 p <- p[complete.cases(p), ]
 
-write.csv(p, file.path(drivepath,'data/historydata/pruneclean.csv'),
+write.csv(p, file.path(drivepath,'data/phenology/pruneclean.csv'),
           row.names = FALSE)
 
 
