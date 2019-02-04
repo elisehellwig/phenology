@@ -406,28 +406,5 @@ tsc <- timeSeriesCheck(cimmod, start="1987-06-25 23:00:00 PDT",
 write.csv(cimmod, file.path(datapath, 'clean/cimismodesto.csv'),
           row.names=FALSE)
 
-# Combine -----------------------------------------------------------------
-
-
-temp <- rbind(nd, nwi, chico, cs, nm, cp)
-
-temp[temp$loc=='davis', 'loc'] <- 'Davis'
-temp[temp$loc=='chico', 'loc'] <- 'Chico'
-temp[temp$loc=='MANTECA CA US', 'loc'] <- 'Manteca'
-
-
-names(temp)[1] <- 'nearest'
-
-write.csv(temp, file='data/clean/temp.csv', row.names=FALSE)
-
-
-
-
-
-############################
-
-
-
-
 
 
