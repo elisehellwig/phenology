@@ -17,9 +17,26 @@ __Required R Packages:__ phenoclim, tidyverse, knitr, reshape2, grid, segmented,
     * 6_monthlytempprep.R
 * __1_prediction/__
     * 1_optimize.R
-    * *2_surface_DT/*
-    * *3_surface_TTT/*
-    * *4_length/*
+    * __2_surface_DT/__
+    	* DTflat.R
+    	* DTlinear.R
+    	* DTtriangle.R
+    * __3_surface_TTT/__
+    	* dayflat.R
+    	* daylinear.R
+    	* daytriangle.R
+    * __4_length/__
+    	* DTlength.R
+    	* DTtemps.R
+    	* farm_length.sh
+    	* TTTlengthGDD.R
+    	* TTTlengthGDH1.R
+    	* TTTlengthGDH2.R
+    	* TTTlengthGDH3.R
+    	* TTTtempsGDD.R
+    	* TTTtempsGDH1.R
+    	* TTTtempsGDH2.R
+    	* TTTtempsGDH3.R
     * 5_model_summary.R
     * 6_length_summary.R
     * 7_functionalform_assessment.R
@@ -28,8 +45,27 @@ __Required R Packages:__ phenoclim, tidyverse, knitr, reshape2, grid, segmented,
     * 10_walnutsummary.R
     * 11_tempsummary.R
 * __2_history/__
+	* 1_cropclimMerge.R
+	* 2_thermaltime.R
 * __3_flowering/__
+	* __1_farm/__
+	* 2_extractparameters.R
+	* walnut.R
 * __functions/__
+	* accumulatedtemps.R
+	* autogregressivefunction.R
+	* chill.R
+	* cleanTemps.R
+	* datetime.R
+	* extractlm.R
+	* generalfunctions.R
+	* helperfunctions.R
+	* packagetesting.R
+	* preprocessfunctions.R
+	* reportfunctions.R
+	* tempInterpolation.R
+	* thermaltimesupport.R
+
 
 ## File Descriptions
 
