@@ -4,7 +4,7 @@ This repository stores the code for my dissertation on climate change and phenol
 
 All data is stored in Phenology/data. Documentation for data can be found in the __Data Descriptions__ section.
 
-__Required R Packages:__ phenoclim, tidyverse, knitr, reshape2, grid, segmented, kableExtra, dismo
+__Required R Packages:__ phenoclim, Interpol.T, tidyverse, plyr, knitr, reshape2, grid, segmented, kableExtra, dismo
 
 ## Table of Contents
 
@@ -81,7 +81,21 @@ __4_clim_prep.R:__ This script cleans daily temperature data (min, max) from the
         * CIMIS: Caruthers, Fresno/F.S.U. USDA, Fresno State, Orange Cove, Visalia 
 
 
-__5_process_clim.R__
+__5_process_clim.R:__ This script calibrates temperature interpolation functions for each of the 4 locations using the hourly temperature data from CIMIS. It then uses those functions to interpolate the daily temperature data from the NCDC. Finally, it merges the hourly temperatures and interpolated hourly temperatures together into a data.frame where there is hourly temperature for all days in the time series but CIMIS data is picked preferentially over interpolated NCDC data. Finally the temperature time series for the four locations are merged and saved. Required source files: functions/tempInterpolation.R, functions/datetime.R
+
+* Input Files:
+    * clean/noaachico.csv
+    * clean/noaadavis.csv
+    * clean/noaamodesto.csv
+    * clean/noaaparlier.csv
+    * clean/cimischicodurham.csv
+    * clean/cimisdavis.csv
+    * clean/cimismodesto.csv
+    * clean/cimisparlier.csv
+
+* Output Files:
+    * phenology/dailyhourlytemp.RDS
+    * phenology/dailyhourlytemp.csv
 
 ## Data Descriptions
 
