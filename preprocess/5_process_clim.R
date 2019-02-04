@@ -61,6 +61,6 @@ write.csv(modestofinal, file.path(datapath, 'clean/dailyhourlytempmodesto.csv'),
 write.csv(parlierfinal, file.path(datapath, 'clean/dailyhourlytempparlier.csv'),
           row.names = FALSE)
 
-write.csv(dailyhourlytemps, file.path(datapath, 'clean/dailyhourlytemp.csv'),
+write.csv(dailyhourlytemps, file.path(datapath, 'phenology/dailyhourlytemp.csv'),
           row.names = FALSE)
-saveRDS(dailyhourlytemps, file.path(datapath, 'clean/dailyhourlytemp.RDS'))
+saveRDS(dailyhourlytemps, file.path(datapath, 'phenology/dailyhourlytemp.RDS'))
