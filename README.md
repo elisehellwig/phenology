@@ -8,9 +8,41 @@ All data is stored in Phenology/data. Documentation for data can be found in the
 
 __Required R Packages:__ phenoclim, tidyverse, knitr, reshape2, grid, segmented, kableExtra
 
+
+## File Descriptions
+
+### Preprocess <a name="preprocess"></a>
+
+__1_walnut_prep.R:__ This script imports raw walnut flowering and harvest data from a number of files. The data is merged and then reformatted. Year-cultivars with multiple dates for a given phenological event have the dates averaged so there is one date for each event, for each cultivar, for each year. Specific cultivars of interest are selected and the data is saved as a csv. 
+	
+* Input Files:
+	* raw/crop/WalnutBreedProgram_Locations.csv
+	* raw/crop/walnut1954.csv
+	* raw/crop/walnutpope2.csv
+	* raw/crop/walnutbloompope.csv
+	* raw/crop/WalnutJarvisSheanData2018_10.csv
+* Output Files: phenology/walnutclean.csv
+
+
+__2_almond_prep.R:__ This script imports raw almond flowering and harvest data from three files. The data is reformatted so it all has the same form. Columns are renamed as are some of the locations and phenological events. Specifically, 10% flowering is selected as the flowering event (event1) because it is most consistently reported across the data. Specific cultivars are also extracted. Finally, the data from the three sources is merged together and saved as a csv. Required source file: functions/preprocessfunctions.R
+
+* Input Files:
+	* clean/croploc.csv
+	* raw/crop/AlmondChicoModestoBloom.csv
+	* raw/crop/NSVAlmond.csv
+	* raw/crop/RAVTHullsplitandBloom.csv
+* Output Files: phenology/almondclean.csv
+
+
+__3_prune_prep.R:__ 
+
+
+
+## Data Descriptions
+
 ## File Structure
 
-* [__preprocess/__](#markdown-header-Preprocess)
+* [__preprocess/__](#preprocess)
     * 1_walnut_prep.R
     * 2_almond_prep.R
     * 3_prune_prep.R
@@ -68,34 +100,3 @@ __Required R Packages:__ phenoclim, tidyverse, knitr, reshape2, grid, segmented,
 	* tempInterpolation.R
 	* thermaltimesupport.R
 
-
-## File Descriptions
-
-# Preprocess
-
-__1_walnut_prep.R:__ This script imports raw walnut flowering and harvest data from a number of files. The data is merged and then reformatted. Year-cultivars with multiple dates for a given phenological event have the dates averaged so there is one date for each event, for each cultivar, for each year. Specific cultivars of interest are selected and the data is saved as a csv. 
-	
-* Input Files:
-	* raw/crop/WalnutBreedProgram_Locations.csv
-	* raw/crop/walnut1954.csv
-	* raw/crop/walnutpope2.csv
-	* raw/crop/walnutbloompope.csv
-	* raw/crop/WalnutJarvisSheanData2018_10.csv
-* Output Files: phenology/walnutclean.csv
-
-
-__2_almond_prep.R:__ This script imports raw almond flowering and harvest data from three files. The data is reformatted so it all has the same form. Columns are renamed as are some of the locations and phenological events. Specifically, 10% flowering is selected as the flowering event (event1) because it is most consistently reported across the data. Specific cultivars are also extracted. Finally, the data from the three sources is merged together and saved as a csv. Required source file: functions/preprocessfunctions.R
-
-* Input Files:
-	* clean/croploc.csv
-	* raw/crop/AlmondChicoModestoBloom.csv
-	* raw/crop/NSVAlmond.csv
-	* raw/crop/RAVTHullsplitandBloom.csv
-* Output Files: phenology/almondclean.csv
-
-
-__3_prune_prep.R:__ 
-
-
-
-## Data Descriptions
