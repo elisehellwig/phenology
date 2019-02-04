@@ -4,7 +4,9 @@ This repository stores the code for my dissertation on climate change and phenol
 
 All data is stored in Phenology/data. Documentation for data can be found in the __Data Descriptions__ section.
 
-__Required R Packages:__ phenoclim, tidyverse, knitr, reshape2, grid, segmented, kableExtra
+__Required R Packages:__ phenoclim, tidyverse, knitr, reshape2, grid, segmented, kableExtra, dismo
+
+## Table of Contents
 
 [TOC]
 
@@ -34,9 +36,52 @@ __2_almond_prep.R:__ This script imports raw almond flowering and harvest data f
 * Output Files: phenology/almondclean.csv
 
 
-__3_prune_prep.R:__ 
+__3_prune_prep.R:__ This script imports raw prune flowering and harvest data from two files. The data is reformatted so it all has the same form. Specific cultivars are also extracted. Finally, the data from the two sources is merged together and saved as a csv. Required source file: functions/preprocessfunctions.R
+
+* Input Files:
+    * clean/croploc.csv
+    * raw/crop/french1988.csv
+    * raw/crop/NSVPrune.csv
+* Output Files: phenology/pruneclean.csv
+
+__4_clim_prep.R:__ This script cleans daily temperature data (min, max) from the [NCDC](https://www.ncdc.noaa.gov/cdo-web/)(Daily Summaries) and hourly temperature data from [CIMIS](https://cimis.water.ca.gov/WSNReportCriteria.aspx) for Chico, Davis, Modesto and Parlier. This included removing data that was clearly incorrect, and filling in missing data. To fill in missing data, temperature data from surrounding weather stations was downloaded for each primary location. This data was then related to the primary location data using a series of linear models. The linear models were then used to predict temperatures for the missing days using model averaging, using R^2 as the measure of goodness of fit (see function fillinTemps() in functions/cleanTemps.R). Daily and hourly temperature time series were then saved as csv files, for later temperature interpolation. Required source file: functions/cleanTemps.R
+
+* Input Files:
+    * raw/climate/noaachiconew.csv
+    * raw/climate/noaachiconew2.csv
+    * raw/climate/noaadavisnew.csv
+    * raw/climate/noaamodesto.csv
+    * raw/climate/noaamodesto2.csv
+    * raw/climate/noaaparlier.csv
+    * raw/climate/noaaparlier2.csv
+    * All Files in raw/climate/cimis/
+
+* Output Files:
+    * clean/noaadavis.csv
+    * clean/cimisdavis.csv
+    * clean/noaachico.csv
+    * clean/cimischicodurham.csv
+    * clean/noaaparlier.csv
+    * clean/cimisparlier.csv
+    * clean/noaamodesto.csv
+    * clean/cimismodesto.csv
+
+ * Secondary weather station locations
+    * Davis
+        * NCDC: Winters, Woodland
+        * CIMIS: Bryte, Dixon, Winters, Woodland, Zamora
+    * Chico
+        * NCDC: Colusa, Marysville, Oroville, Orland
+        * CIMIS: Biggs, Orland
+    * Modesto
+        * NCDC: Denair, Oakdale Woodward Dam, Stockton Metropolitan Airport, Turlock
+        * CIMIS: Denair (II), Manteca, Oakdale, Patterson, Tracy 
+    * Parlier
+        * NCDC: Fresno Yosemite International, Hanford, Lemon Cove, Orange Cove, Visalia 
+        * CIMIS: Caruthers, Fresno/F.S.U. USDA, Fresno State, Orange Cove, Visalia 
 
 
+__5_process_clim.R__
 
 ## Data Descriptions
 
