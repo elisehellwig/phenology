@@ -47,9 +47,8 @@ library(kableExtra)
 opts_chunk$set(tidy.opts=list(width.cutoff=60), 
                stringsAsFactors=FALSE,
                knitr.table.format = "latex",
-               #cache=TRUE,
-               echo = FALSE,
-               kableExtra.latex.load_packages = FALSE)
+               cache=TRUE,
+               echo = FALSE)
 options(warn=0)
 #this makes it so numbers aren't put into scientific notation
 #options(scipen=999)
@@ -82,23 +81,33 @@ fp <- readRDS(file.path(data1, 'floweringpredictors.RDS'))
 slp <- readRDS(file.path(data1, 'seasonlengthpredictors.RDS'))
 
 
-am <- read.csv(file.path(data1, 'data/annualtemperatures.csv'))
+am <- read.csv(file.path(data2, 'annualtemperatures.csv'))
+#am <- read.csv(file.path(data1, 'data/annualtemperatures.csv'))
+
 amlabs <- read.csv(file.path(data2, 'temptrendlabels.csv'))
-mtc <- read.csv(file.path(data1, 'data/monthlytemperatures.csv'))
+names(amlabs)[2] <- 'loc'
+
+mtc <- read.csv(file.path(data2, 'monthlytemperatures.csv'))
+mtcAvg <- dcast(mtc[,c('loc', 'year', 'nmonth', 'tavg')],
+                loc + year ~ nmonth, value.var = 'tavg')
 
 spring <- read.csv(file.path(data3, 'spring.csv'))
 
-af <- spring %>% filter(crop=='almond') 
-pf <- spring %>% filter(crop=='prune')
-wf <- spring %>% filter(crop=='walnut')
+a <- read.csv(file.path(data2, 'almondclean.csv'))
+af <- a %>% filter(event=='event1', cultivar %in% c('Nonpareil', 'Mission'),
+                   loc %in% c('Chico','Modesto'))
+asl <- a %>% filter(event=='event2', cultivar %in% c('Nonpareil', 'Mission'))
 
 
-fall <- read.csv(file.path(data3, 'fall.csv'))
+p <- read.csv(file.path(data2, 'pruneclean.csv'))
+pf <- p %>% filter(event=='event1')
+psl <- p %>% filter(event=='event2')
 
-asl <- fall %>% filter(crop=='almond') 
-psl <- fall %>% filter(crop=='prune')
-wsl <- fall %>% filter(crop=='walnut')
-
+w <- read.csv(file.path(data2, 'walnutclean.csv'))
+wf <- w %>% filter(event=='event1',
+                   cultivar %in% c('Chandler', 'Payne','Franquette'))
+wsl <- w %>% filter(event=='event2',
+                    cultivar %in% c('Chandler', 'Payne','Franquette'))
 
 #Katherine's data
 
@@ -112,6 +121,8 @@ mos <- 1:12
 
 
 ```
+
+
 
 ## Notes
 
@@ -202,7 +213,7 @@ am_min <- am[am$variable=='tmin',]
 labs_min <- amlabs[amlabs$variable=='tmin', ]
 
 minplot <- ggplot(data=am_min) + ylim(5,13) +
-    geom_line(aes(x=year, y=temp), color='blue3') + facet_wrap(~nearest) +
+    geom_line(aes(x=year, y=temp), color='blue3') + facet_wrap(~loc) +
     geom_smooth(aes(x=year, y=temp), size=1, method='lm', se=FALSE,
                 color="black", formula = y ~ x) + 
      geom_segment(data=labs_min, aes(x=start, y=segy, xend=end, yend=segy),
@@ -222,7 +233,7 @@ am_max <- am[am$variable=='tmax',]
 labs_max <- amlabs[amlabs$variable=='tmax', ]
 
 maxplot <- ggplot(data=am_max) + ylim(21,28) +
-    geom_line(aes(x=year, y=temp), color='red3') + facet_wrap(~nearest) +
+    geom_line(aes(x=year, y=temp), color='red3') + facet_wrap(~loc) +
     geom_smooth(aes(x=year, y=temp), size=1, method='lm', se=FALSE,
                 color="black", formula = y ~ x) + 
      geom_segment(data=labs_max, aes(x=start, y=segy, xend=end, yend=segy),
@@ -244,8 +255,8 @@ Modesto minimum temperatures show the strongest warming trends of all the locati
 
 
 ```{r chico_table, warning=FALSE,echo=FALSE}
-chico <- filter(mtc, nearest=='Chico')
-achico <- am[am$nearest=='Chico', ]
+chico <- filter(mtc, loc=='Chico')
+achico <- am[am$loc=='Chico', ]
 
 
 #running linear model and extracting coefficients and pvalues for monthly values
@@ -293,8 +304,8 @@ Modesto minimum temperatures show the strongest warming trends of all the locati
 
 
 ```{r modesto_table,warning=FALSE, echo=FALSE}
-modesto <- filter(mtc, nearest=='Modesto')
-amodesto <- filter(am, nearest=='Modesto')
+modesto <- filter(mtc, loc=='Modesto')
+amodesto <- filter(am, loc=='Modesto')
 
 #running AR model and extracting coefficients and pvalues
 
@@ -343,8 +354,8 @@ Davis monthly minimum temperatures exhibit strong warming trends in the spring, 
 
 
 ```{r davis_table, echo=FALSE, warning=FALSE}
-davis <- mtc[mtc$nearest=='Davis', ]
-adavis <-  am[am$nearest=='Davis', ]
+davis <- mtc[mtc$loc=='Davis', ]
+adavis <-  am[am$loc=='Davis', ]
 
 #running AR model and extracting coefficients and pvalues
 dmin <-  t(sapply(mos, function(m) arf('tmin', 'year', m, davis) ))
@@ -370,8 +381,8 @@ kable(dtable, digits=2, col.names=c('Month', 'Minimum','p-value', 'Maximum', 'p-
 Annually Parlier exhibits warming minimum temperatures and cooling maximum temperatures (Figures 2-3) based on an autoregressive linear model of data since 1931. While the cooling trend in the mean annual maximum temperature is stronger (-0.36°C per decade), the warming trend in the mean annual minimum temperature is still highly significant (Table 8). Minimum monthly temperatures are increasing year round based on autoregression analysis, but only spring, summer, and fall maximum temperatures are cooling significantly (Table 8).
 
 ```{r parlier_table, warning=FALSE,echo=FALSE}
-parlier <- mtc[mtc$nearest=='Parlier', ]
-aparlier <- am[am$nearest=='Parlier', ]
+parlier <- mtc[mtc$loc=='Parlier', ]
+aparlier <- am[am$loc=='Parlier', ]
 
 #running AR model and extracting coefficients and pvalues
 pmin <-  t(sapply(mos, function(m) arf('tmin', 'year', m, parlier) ))
@@ -421,38 +432,35 @@ The fact that the heat metrics for Sonora and Nonpareil almonds have shown signi
 
 ```{r almondbloom_time, fig.cap='Almond bloom over the past 70 years in Chico and Modesto, California.'}
 
+
+
 aby <- ggplot(data=af) + labs(x='Year', y='Bloom Day (Julian)') +
-    geom_point(aes(x=year, y=bloom), size = 1.5, color=almondcol) +
-    facet_grid(cultivar~location) + theme_bw() 
+    geom_point(aes(x=year, y=day), size = 1.5, color=almondcol) +
+    facet_grid(cultivar~loc) + theme_bw() 
 
 aby
 
-```
-
-
-
-
-```{r almondbloom_heat, fig.cap='Bloom day by heat sum for two cultivars in Chico and Modesto, California.'}
-
-ab <- ggplot(data=af) + labs(x='Heat Sum', y='Bloom Day (Julian)') +
-    geom_point(aes(x=Heat, y=bloom), size = 1.5, color=almondcol) +
-    facet_grid(cultivar~location) + theme_bw() 
-
-ab
+#note there were some plots with heat sums below this but I am saving that for 
+#the flowering paper.
 
 ```
 
 
-```{r almondheat_time, fig.cap='Change in head sums over time for two cultivars in Chico and Modesto, California.'}
 
-ahs <- ggplot(data=af) + labs(x='Year', y='Heat Sum') +
-    geom_point(aes(x=year, y=Heat), size = 1.5, color=almondcol) +
-    facet_grid(cultivar~location) + theme_bw() 
 
-ahs
+```{r almondbloom_month}
+
+afmonth <- merge(af, mtc, by=c('loc', 'year'))
+afmonth <- filter(afmonth, nmonth %in% c('January'))
+
+aftemp <- ggplot(data=afmonth) + 
+    labs(x='Average January Temp', y='Bloom Day (Julian)') +
+    geom_point(aes(x=tavg, y=day), size = 1.5, color=almondcol) +
+    facet_grid(cultivar~loc) + theme_bw() 
+
+aftemp
 
 ```
-
 
 
 ## Prunes
@@ -466,35 +474,31 @@ In addition to examining chill accumulation, we analyzed when chill and heat req
 
 However, prune flowering dates are getting later instead of earlier, which is contradictory to what the chill and heat accumulation, as well as the monthly temperatures imply. The fact that none of these metrics on their own explain the changing timing of bloom suggests that the influence of temperature on bloom is more complex than previously thought, or that something else entirely is influencing the flowering dates. More research is necessary to adequately explain this phenomenon.
 
-```{r prunebloom_time, fig.cap='Improved French prune bloom over 25 years in Parlier, California.', fig.height=2.5, fig.width=4}
+```{r prunebloom_time, fig.cap='Improved French prune bloom over 25 years in Parlier and Chico California.', fig.height=3}
 
 pby <- ggplot(data=pf) + labs(x='Year', y='Bloom Day (Julian)') +
-    geom_point(aes(x=year, y=bloom), size = 1.5, color=prunecol) +
-    theme_bw() 
+    geom_point(aes(x=year, y=day), size = 1.5, color=prunecol) +
+    facet_wrap(~loc) + theme_bw() 
 
 pby
 
 ```
 
+And some things happen in between these two plots.
 
+```{r prunebloom_month, fig.cap="Prune flowering in Chico as a function of February Temperatures", fig.height=3, fig.width=4}
 
-```{r prunebloom, fig.cap='Prune flowering day by winter heat sum in Parlier, California.', fig.height=2.5, fig.width=4}
+pfmonth <- merge(pf, mtc, by=c('loc', 'year'))
+pfmonth <- filter(pfmonth, loc=='Chico',nmonth %in% c('February'))
 
-pb <- ggplot(data=pf) + theme_bw() +
-    geom_point(aes(x=Heat, y=bloom), size=1.5, color=prunecol) +
-    labs(x='Heat Sum', y='Flowering (Julian Day)')
+#nmonth %in% c('January','February')
 
-pb
+pftemp <- ggplot(data=pfmonth) + 
+    labs(x='Average February Temp', y='Bloom Day (Julian)') +
+    geom_point(aes(x=tavg, y=day), size = 1.5, color=prunecol) +
+    facet_grid(~cultivar) + theme_bw() 
 
-```
-
-```{r pruneheatsum_time, fig.cap='Improved French prune bloom over 25 years in Parlier, California.', fig.height=2.5, fig.width=4}
-
-phs <- ggplot(data=pf) + labs(x='Year', y='Heat Sum') +
-    geom_point(aes(x=year, y=Heat), size = 1.5, color=prunecol) +
-    theme_bw() 
-
-phs
+pftemp
 
 ```
 
@@ -512,15 +516,37 @@ A more conceptually simple way to look at these results is by limiting the years
 
 
 
-```{r Walnutbloom_time, fig.cap='Walnut leaf out over the past 60 years in Davis, California.', fig.height=2.5}
+```{r Walnutbloom_time, fig.cap='Walnut leaf-out over the past 60 years in Davis, California.', fig.height=2.5}
 
-wby <- ggplot(data=wf) + labs(x='Year', y='Bloom Day (Julian)') +
-    geom_point(aes(x=year, y=bloom), size = 1.5, color=walnutcol) +
+wby <- ggplot(data=wf) + labs(x='Year', y='Leaf-out Day (Julian)') +
+    geom_point(aes(x=year, y=day), size = 1.5, color=walnutcol) +
     facet_grid(~cultivar) + theme_bw() 
 
 wby
 
 ```
+
+
+
+```{r walnutLeaf_month, fig.cap="Walnut Leaf-out in Davis as a function of February Temperatures", fig.height=3, fig.width=6}
+
+wf$loc <- 'Davis'
+mtcm <- melt(mtc[,-3], id.vars = c('year', 'loc','nmonth'), 
+             measure.vars = c('tmin','tmax', 'tavg'), value.name = 'temp')
+wfmonth <- merge(wf, mtc, by=c('loc', 'year'))
+wfmonth <- filter(wfmonth, loc=='Chico',nmonth %in% c('February'))
+
+#nmonth %in% c('January','February')
+
+pftemp <- ggplot(data=pfmonth) + 
+    labs(x='Average February Temp', y='Bloom Day (Julian)') +
+    geom_point(aes(x=tavg, y=day), size = 1.5, color=prunecol) +
+    facet_grid(~cultivar) + theme_bw() 
+
+pftemp
+
+```
+
 
 
 
