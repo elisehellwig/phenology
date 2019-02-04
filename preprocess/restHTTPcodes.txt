@@ -1,0 +1,3 @@
+Key: 91aec8af-5495-4dfa-b72a-bc2ecd714450
+
+http://et.water.ca.gov/api/data?appKey=91aec8af-5495-4dfa-b72a-bc2ecd714450&targets=6,121,139,226&startDate=1982-01-01&endDate=2018-11-10&dataItems=hly-air-tmp&unitOfMeasure='M'
