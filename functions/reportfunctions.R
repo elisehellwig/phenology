@@ -132,13 +132,12 @@ arf <- function(response, predictor, mo, data) {
   return(pval)
 }
 
-sig <- function(v, p1=0.05, p2=0.01, p3=0.001) {
-  v[v>p1] <- 'NS'
-  v[v<p3] <- paste0('p<', p3)
-  v[v<p2] <- paste0('p<',p2)
-  v[v<p1] <- paste0('p<',p1)
-  return(v)
+sig <- function(v, p=0.05) {
+  bold <- ifelse(v <= p, TRUE, FALSE)
+  return(bold)
 }
+
+
 
 sig2 <- function(v, p1=0.05, sf=2, snn=5, v2=NA) {
   #v is the vector of the numbers
