@@ -88,5 +88,5 @@ a$year <- as.numeric(a$year)
 a$loc <- recode(a$loc, 'Manteca'='Modesto', 'Mission '='Mission')
 a$cultivar <- recode(a$cultivar, 'Mission '='Mission')
 
-write.csv(a, file.path(drivepath,'data/historydata/almondclean.csv'),
+write.csv(a, file.path(drivepath,'data/phenology/almondclean.csv'),
           row.names = FALSE)
