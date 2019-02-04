@@ -15,7 +15,7 @@ __Required R Packages:__ phenoclim, Interpol.T, tidyverse, plyr, knitr, reshape2
 
 ### Preprocess
 
-__1_walnut_prep.R:__ This script imports raw walnut flowering and harvest data from a number of files. The data is merged and then reformatted. Year-cultivars with multiple dates for a given phenological event have the dates averaged so there is one date for each event, for each cultivar, for each year. Specific cultivars of interest are selected and the data is saved as a csv. 
+#### __1_walnut_prep.R:__ This script imports raw walnut flowering and harvest data from a number of files. The data is merged and then reformatted. Year-cultivars with multiple dates for a given phenological event have the dates averaged so there is one date for each event, for each cultivar, for each year. Specific cultivars of interest are selected and the data is saved as a csv. 
 	
 * Input Files:
 	* raw/crop/WalnutBreedProgram_Locations.csv
