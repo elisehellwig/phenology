@@ -1,5 +1,3 @@
-[TOC]
-
 # phenology: Analyzing the effects of climate change on almond, prune, and walnut phenology
 
 This repository stores the code for my dissertation on climate change and phenology in California.
@@ -8,10 +6,12 @@ All data is stored in Phenology/data. Documentation for data can be found in the
 
 __Required R Packages:__ phenoclim, tidyverse, knitr, reshape2, grid, segmented, kableExtra
 
+[TOC]
+
 
 ## File Descriptions
 
-### Preprocess <a name="preprocess"></a>
+### Preprocess
 
 __1_walnut_prep.R:__ This script imports raw walnut flowering and harvest data from a number of files. The data is merged and then reformatted. Year-cultivars with multiple dates for a given phenological event have the dates averaged so there is one date for each event, for each cultivar, for each year. Specific cultivars of interest are selected and the data is saved as a csv. 
 	
@@ -42,7 +42,7 @@ __3_prune_prep.R:__
 
 ## File Structure
 
-* [__preprocess/__](#preprocess)
+* __preprocess/__
     * 1_walnut_prep.R
     * 2_almond_prep.R
     * 3_prune_prep.R
