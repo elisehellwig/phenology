@@ -19,9 +19,8 @@ v <- as.integer(cv)
 
 #v <- 1
 
-forms <- c('chillbasic','linear','gdd','anderson')
-initpars <- initialparlist(c(1,1,1,3))
-initpars[[1]][[1]] <- 7.2
+forms <- c('utahalt')
+initpars <- list(NA)
 ###########################
 vars <- sort(unique(w$cultivar))
 variety <- vars[v]
@@ -42,7 +41,7 @@ pl <- lapply(seq_along(forms), function(i) {
                   mt='TTT',
                   simple=TRUE,
                   ff=forms[i],
-                  ct=initpars[[i]],
+                  ct=initpars[i],
                   varyingparameters = NA, 
                   modelthreshold=100, 
                   start=300, 
@@ -55,12 +54,12 @@ fm <- flowermodel(phenology=wv,
                   parlist=pl, 
                   lbounds=c(1,1), 
                   ubounds=c(365, 45000),
-                  iterations=400, 
+                  iterations=800, 
                   cores = 12L)
 
 warnings()
 
-saveRDS(fm, paste0('TTT', variety ,'simple.RDS'))
+saveRDS(fm, paste0('TTT', variety ,'simpleutah.RDS'))
 
 
 fmcv <- crossval(object=fm, 
@@ -71,8 +70,8 @@ fmcv <- crossval(object=fm,
                  lbounds=c(1,1),
                  ubounds=c(365, 45000),
                  cores=12L, 
-                 iterations=400)
+                 iterations=800)
 
-saveRDS(fmcv, paste0('TTT', variety ,'CVsimple.RDS'))
+saveRDS(fmcv, paste0('TTT', variety ,'CVsimpleutah.RDS'))
 
 

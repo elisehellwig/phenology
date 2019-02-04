@@ -4,7 +4,7 @@ library(reshape2)
 library(DEoptim)
 source('functions/helperfunctions.R')
 
-rpath <- '/Volumes/GoogleDrive/My Drive/Phenology/Results/flowering'
+rpath <- '/Volumes/GoogleDrive/My Drive/Phenology/Results/flowering/flowermodels'
 dpath <- '/Volumes/GoogleDrive/My Drive/Phenology/data/flowering'
 
 w <- read.csv(file.path(dpath, 'walnutclean.csv'), stringsAsFactors = FALSE)
