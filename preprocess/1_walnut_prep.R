@@ -111,6 +111,6 @@ wcults <- wm2[wm2$cultivar %in% cults, ]
 
 
 write.csv(wcults, 
-          file=file.path(drivepath, 'data/walnutdata/walnutclean.csv'), 
+          file=file.path(drivepath, 'data/phenology/walnutclean.csv'), 
           row.names=FALSE)
 
