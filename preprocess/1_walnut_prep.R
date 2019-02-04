@@ -12,15 +12,11 @@ library(plyr)
 library(dplyr)
 library(phenoclim)
 
-source('functions/general.R')
-source('functions/preprocessfunctions.R')
-
-
 #This script cleans up walnut data for further processing and analysis.
 
 options(stringsAsFactors = FALSE)
 
-cl <- read.csv(file.path(drivepath,
+cl2 <- read.csv(file.path(drivepath,
                          'data/raw/crop/WalnutBreedProgram_Locations.csv'))
 
 names(cl)[1:2] <- c('loc','nearest')
