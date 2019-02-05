@@ -114,6 +114,14 @@ This script takes the min and max daily temperatures from phenology/dailyhourly.
     * history/annualtemperatures.csv
     * history/monthlytemperatures.csv
 
+#### __7_precipprep.R__
+THis script takes precipitation data from the NCDC and prepares it for use predicting flowering. It creates two variables by aggregating the monthly data, annual precipitation and winter precipitation (precip in Nov, Dec, and Jan). Additionally, it sets the year to start at March 1 so that flowering that happens in the spring is predicted by winter precipitation the previous year.
+
+* Input File: raw/climate/precipNOAA.csv
+* Output File: history/precipitation.csv
+
+
+
 ### 1_prediction/
 
 ### 2_history/
