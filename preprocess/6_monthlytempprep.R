@@ -9,7 +9,7 @@ library(reshape2)
 source('functions/cleanTemps.R')
 options(stringsAsFactors = FALSE)
 
-dht <- readRDS(file.path(datapath, 'clean/dailyhourlytemp.RDS'))
+dht <- readRDS(file.path(datapath, 'phenology/dailyhourlytemp.RDS'))
 
 
 # Calculating Monthly Temps -----------------------------------------------
@@ -70,10 +70,10 @@ annualm <- melt(annual, id.vars=c('loc','year'), value.name = 'temp')
 
 # Saving data -------------------------------------------------------------
 
-write.csv(annualm, file.path(datapath, 'clean/annualtemperatures.csv'), 
+write.csv(annualm, file.path(datapath, 'history/annualtemperatures.csv'), 
           row.names = FALSE)
 
-write.csv(monthly, file.path(datapath, 'clean/monthlytemperatures.csv'),
+write.csv(monthly, file.path(datapath, 'history/monthlytemperatures.csv'),
           row.names = FALSE)
 
 
