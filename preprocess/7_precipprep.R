@@ -1,10 +1,9 @@
-data <- '/Volumes/GoogleDrive/My Drive/Phenology/data/historydata'
-source('functions/general.R')
-loadtidyverse()
+data <- '/Volumes/GoogleDrive/My Drive/Phenology/data'
+library(tidyverse)
 options(stringsAsFactors = FALSE)
 
-noaa <- read.csv(file.path(data, 'precipNOAA.csv')) %>%
-    as.tibble()
+noaa <- read.csv(file.path(data, 'raw/climate/precipNOAA.csv')) %>%
+    as_tibble()
 
 oldvars <- c('NAME', 'DATE','PRCP')
 newvars <- c('location','date','precip')
@@ -46,4 +45,5 @@ precipitation <- inner_join(seasonalnoaa, annualnoaa,
 
 names(precipitation)[2] <- 'year'
 
-write.csv(precipitation, file.path(data,'precipitation.csv'), row.names=FALSE)
+write.csv(precipitation, file.path(data,'history/precipitation.csv'), 
+          row.names=FALSE)
