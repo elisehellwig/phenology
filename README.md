@@ -14,7 +14,9 @@ __Required R Packages:__ dismo, grid, Interpol.T, kableExtra, knitr, phenoclim, 
 
 ## File Descriptions
 
-### Preprocess
+This section constitutes descriptions of all the files in this repository, what they do, what other files are required to run them, as well as their data inputs and outputs. These descrptions are general overviews and to not go into specific discussions of the code in each file. For more detailed documentation, please review the comments in the file of interest.
+
+### Preprocess/
 
 #### __1_walnut_prep.R__ 
 This script imports raw walnut flowering and harvest data from a number of files. The data is merged and then reformatted. Year-cultivars with multiple dates for a given phenological event have the dates averaged so there is one date for each event, for each cultivar, for each year. Specific cultivars of interest are selected and the data is saved as a csv. 
@@ -112,11 +114,13 @@ This script takes the min and max daily temperatures from phenology/dailyhourly.
     * history/annualtemperatures.csv
     * history/monthlytemperatures.csv
 
-### 1_prediction
+### 1_prediction/
 
-### 2_history
+### 2_history/
 
-### 3_flowering
+####
+
+### 3_flowering/
 
 ## Data Descriptions
 
