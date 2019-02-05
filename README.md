@@ -4,7 +4,8 @@ This repository stores the code for my dissertation on climate change and phenol
 
 All data is stored in Phenology/data. Documentation for data can be found in the __Data Descriptions__ section.
 
-__Required R Packages:__ phenoclim, Interpol.T, tidyverse, plyr, knitr, reshape2, grid, segmented, kableExtra, dismo
+__Required R Packages:__ dismo, grid, Interpol.T, kableExtra, knitr, phenoclim, plyr, raster, reshape2, segmented, tidyverse
+
 
 ## Table of Contents
 
@@ -15,7 +16,8 @@ __Required R Packages:__ phenoclim, Interpol.T, tidyverse, plyr, knitr, reshape2
 
 ### Preprocess
 
-#### __1_walnut_prep.R:__ This script imports raw walnut flowering and harvest data from a number of files. The data is merged and then reformatted. Year-cultivars with multiple dates for a given phenological event have the dates averaged so there is one date for each event, for each cultivar, for each year. Specific cultivars of interest are selected and the data is saved as a csv. 
+#### __1_walnut_prep.R__ 
+This script imports raw walnut flowering and harvest data from a number of files. The data is merged and then reformatted. Year-cultivars with multiple dates for a given phenological event have the dates averaged so there is one date for each event, for each cultivar, for each year. Specific cultivars of interest are selected and the data is saved as a csv. 
 	
 * Input Files:
 	* raw/crop/WalnutBreedProgram_Locations.csv
@@ -26,7 +28,8 @@ __Required R Packages:__ phenoclim, Interpol.T, tidyverse, plyr, knitr, reshape2
 * Output Files: phenology/walnutclean.csv
 
 
-__2_almond_prep.R:__ This script imports raw almond flowering and harvest data from three files. The data is reformatted so it all has the same form. Columns are renamed as are some of the locations and phenological events. Specifically, 10% flowering is selected as the flowering event (event1) because it is most consistently reported across the data. Specific cultivars are also extracted. Finally, the data from the three sources is merged together and saved as a csv. Required source file: functions/preprocessfunctions.R
+#### __2_almond_prep.R__ 
+This script imports raw almond flowering and harvest data from three files. The data is reformatted so it all has the same form. Columns are renamed as are some of the locations and phenological events. Specifically, 10% flowering is selected as the flowering event (event1) because it is most consistently reported across the data. Specific cultivars are also extracted. Finally, the data from the three sources is merged together and saved as a csv. Required source file: functions/preprocessfunctions.R
 
 * Input Files:
 	* clean/croploc.csv
@@ -36,7 +39,8 @@ __2_almond_prep.R:__ This script imports raw almond flowering and harvest data f
 * Output Files: phenology/almondclean.csv
 
 
-__3_prune_prep.R:__ This script imports raw prune flowering and harvest data from two files. The data is reformatted so it all has the same form. Specific cultivars are also extracted. Finally, the data from the two sources is merged together and saved as a csv. Required source file: functions/preprocessfunctions.R
+#### __3_prune_prep.R__ 
+This script imports raw prune flowering and harvest data from two files. The data is reformatted so it all has the same form. Specific cultivars are also extracted. Finally, the data from the two sources is merged together and saved as a csv. Required source file: functions/preprocessfunctions.R
 
 * Input Files:
     * clean/croploc.csv
@@ -44,7 +48,8 @@ __3_prune_prep.R:__ This script imports raw prune flowering and harvest data fro
     * raw/crop/NSVPrune.csv
 * Output Files: phenology/pruneclean.csv
 
-__4_clim_prep.R:__ This script cleans daily temperature data (min, max) from the [NCDC](https://www.ncdc.noaa.gov/cdo-web/)(Daily Summaries) and hourly temperature data from [CIMIS](https://cimis.water.ca.gov/WSNReportCriteria.aspx) for Chico, Davis, Modesto and Parlier. This included removing data that was clearly incorrect, and filling in missing data. To fill in missing data, temperature data from surrounding weather stations was downloaded for each primary location. This data was then related to the primary location data using a series of linear models. The linear models were then used to predict temperatures for the missing days using model averaging, using R^2 as the measure of goodness of fit (see function fillinTemps() in functions/cleanTemps.R). Daily and hourly temperature time series were then saved as csv files, for later temperature interpolation. Required source file: functions/cleanTemps.R
+#### __4_clim_prep.R__ 
+This script cleans daily temperature data (min, max) from the [NCDC](https://www.ncdc.noaa.gov/cdo-web/)(Daily Summaries) and hourly temperature data from [CIMIS](https://cimis.water.ca.gov/WSNReportCriteria.aspx) for Chico, Davis, Modesto and Parlier. This included removing data that was clearly incorrect, and filling in missing data. To fill in missing data, temperature data from surrounding weather stations was downloaded for each primary location. This data was then related to the primary location data using a series of linear models. The linear models were then used to predict temperatures for the missing days using model averaging, using R^2 as the measure of goodness of fit (see function fillinTemps() in functions/cleanTemps.R). Daily and hourly temperature time series were then saved as csv files, for later temperature interpolation. Required source file: functions/cleanTemps.R
 
 * Input Files:
     * raw/climate/noaachiconew.csv
@@ -81,7 +86,8 @@ __4_clim_prep.R:__ This script cleans daily temperature data (min, max) from the
         * CIMIS: Caruthers, Fresno/F.S.U. USDA, Fresno State, Orange Cove, Visalia 
 
 
-__5_process_clim.R:__ This script calibrates temperature interpolation functions for each of the 4 locations using the hourly temperature data from CIMIS. It then uses those functions to interpolate the daily temperature data from the NCDC. Finally, it merges the hourly temperatures and interpolated hourly temperatures together into a data.frame where there is hourly temperature for all days in the time series but CIMIS data is picked preferentially over interpolated NCDC data. Finally the temperature time series for the four locations are merged and saved. Required source files: functions/tempInterpolation.R, functions/datetime.R
+#### __5_process_clim.R__ 
+This script uses the hourly temperature data.frames from __4_prep_clim.R__ to calibrate temperature interpolation functions for each of the 4 locations. It then uses those functions to interpolate the daily temperature data __4_prep_clim.R__. Finally, it merges the hourly temperatures and interpolated hourly temperatures together into a data.frame where there is hourly temperature for all days in the time series but CIMIS data is picked preferentially over interpolated NCDC data. Finally the temperature time series for the four locations are merged and saved. Required source files: functions/tempInterpolation.R, functions/datetime.R
 
 * Input Files:
     * clean/noaachico.csv
@@ -97,7 +103,24 @@ __5_process_clim.R:__ This script calibrates temperature interpolation functions
     * phenology/dailyhourlytemp.RDS
     * phenology/dailyhourlytemp.csv
 
+#### __6_monthlytempprep.R__
+This script takes the min and max daily temperatures from phenology/dailyhourly.RDS and averages them by month to create a time series of average min and max temperatures for each month (same method as NCDC monthly averages). It also does this for the annual average min and max temperatures. Finally, it creates a 5 year moving average for the annual temperatures and saves all generated data. Required source file:  functions/cleanTemps.R
+
+* Input File: phenology/dailyhourlytemp.RDS
+
+* Output Files:
+    * history/annualtemperatures.csv
+    * history/monthlytemperatures.csv
+
+### 1_prediction
+
+### 2_history
+
+### 3_flowering
+
 ## Data Descriptions
+
+Data used by multiple chapters (Walnut, History or Flowering) is stored in data/phenology. Data used in only one chapter is stored in the data file associated with that chapter.
 
 ## File Structure
 
