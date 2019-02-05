@@ -126,7 +126,7 @@ THis script takes precipitation data from the NCDC and prepares it for use predi
 
 ### 2_history/
 
-#### __1_springMerge.R__
+#### __2_springMerge.R__
 
 ### 3_flowering/
 
