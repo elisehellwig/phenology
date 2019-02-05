@@ -4,7 +4,7 @@ This repository stores the code for my dissertation on climate change and phenol
 
 All data is stored in Phenology/data. Documentation for data can be found in the __Data Descriptions__ section.
 
-__Required R Packages:__ dismo, grid, Interpol.T, kableExtra, knitr, phenoclim, plyr, raster, reshape2, segmented, tidyverse
+__Required R Packages:__ dismo, dplyr, ggplot2, grid, Interpol.T, kableExtra, knitr, lubridate, phenoclim, plyr, raster, reshape2, segmented, tidyverse
 
 
 ## Table of Contents
@@ -118,7 +118,7 @@ This script takes the min and max daily temperatures from phenology/dailyhourly.
 
 ### 2_history/
 
-#### 
+#### __1_springMerge.R__
 
 ### 3_flowering/
 
