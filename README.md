@@ -118,7 +118,7 @@ This script takes the min and max daily temperatures from phenology/dailyhourly.
 
 ### 2_history/
 
-####
+#### 
 
 ### 3_flowering/
 
@@ -165,8 +165,8 @@ Data used by multiple chapters (Walnut, History or Flowering) is stored in data/
     * 10_walnutsummary.R
     * 11_tempsummary.R
 * __2_history/__
-	* 1_cropclimMerge.R
-	* 2_thermaltime.R
+	* 1_springMerge.R
+	* 2_fallMerge.R
 * __3_flowering/__
 	* __1_farm/__
 	* 2_extractparameters.R
