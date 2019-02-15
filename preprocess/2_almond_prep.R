@@ -15,7 +15,7 @@ options(stringsAsFactors = FALSE)
 
 cl <- read.csv(file.path(drivepath,'data/clean/croploc.csv'))
 
-voi <- c('cultivar','year','loc','event','day')
+voi <- c('cultivar','year','loc','source','event','day')
 ########################Almonds###################################
 
 #importing data from 3 different sources
@@ -29,7 +29,7 @@ araw3 <-  read.csv(file.path(importpath, 'RAVTHullsplitandBloom.csv'))
 a1 <- araw1 %>% 
     select(c(Cultivar, Location, Year, JD)) %>% 
     rename(cultivar=Cultivar, loc=Location, year=Year, day=JD) %>% 
-    add_column(event='event1')
+    add_column(event='event1', source='FF')
 
 
 #########restucturing the NSV Almond data (araw2)#####################
@@ -51,7 +51,8 @@ a2$day <- yday(a2$Date)
 
 a2 <- a2[complete.cases(a2),]
 
-a2$loc <- 'NSacValley'
+a2$loc <- 'Chico'
+a2$source <-'NSV'
 
 a2 <- a2[a2$event=='First_Flower', voi]
 a2$event <- 'event1'
@@ -63,11 +64,12 @@ voi3 <- c('Year','Location','X','Hull.Split.Start','X10..bloom')
 adat3 <- araw3 %>% 
     select(voi3) %>% 
     rename('year'='Year', 'loc'='Location', 'cultivar'='X', 
-           'event2'='Hull.Split.Start', 'event1'='X10..bloom') 
+           'event2'='Hull.Split.Start', 'event1'='X10..bloom') %>% 
+    add_column(source='RAVT')
 
-adat3$loc <- recode(adat3$loc, 'Chico','Manteca', 'Shafter')
+adat3$loc <- recode(adat3$loc, `1`='Chico',`2`='Manteca', `3`='Shafter')
 
-adat3 <- melt(adat3, id.vars = c('year','loc','cultivar'),
+adat3 <- melt(adat3, id.vars = c('year','loc','cultivar','source'),
               measure.vars = c('event1','event2'),
               variable.name = 'event',value.name = 'date')
 
@@ -87,6 +89,8 @@ a$year <- as.numeric(a$year)
 
 a$loc <- recode(a$loc, 'Manteca'='Modesto', 'Mission '='Mission')
 a$cultivar <- recode(a$cultivar, 'Mission '='Mission')
+
+#a <- unique(a)
 
 write.csv(a, file.path(drivepath,'data/phenology/almondclean.csv'),
           row.names = FALSE)
