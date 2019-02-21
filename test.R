@@ -21,6 +21,11 @@ w <- read.csv(file.path(drivepath,'data/walnutdata/walnutclean.csv'),
 vars <- sapply(wk, function(d) d[1,'cultivar'])
 ##############################################################################
 
+an <- ap[which(ap$cultivar=='Nonpareil' & ap$loc=='Modesto'),]
+
+mod <- lm(length1 ~ DTasymcur, data=an)
+
+
 #'backwards' way
 ys <- yearsums(c(2), w, dtemps, cult='Payne', typ='gddsimple', sumlen=50)
 mr <- minrmse(c(2, 35), w, htemps, cult="Payne", type='nocrit', sumlength=50,

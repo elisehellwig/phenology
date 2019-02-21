@@ -1,5 +1,6 @@
 
 # Setup -------------------------------------------------------------------
+library(dismo)
 library(reshape2)
 library(lubridate)
 library(phenoclim)
@@ -9,6 +10,7 @@ library(DEoptim)
 options(stringsAsFactors = FALSE)
 
 datapath <- '/Users/echellwig/Drive/Phenology/data/flowering'
+resultspath <- '/Users/echellwig/Drive/Phenology/Results/test'
 funpath <- '/Users/echellwig/Research/phenoclim/R'
 
 dav <- read.csv(file.path(datapath, 'davisdailyhourlytemp.csv'))
@@ -16,7 +18,7 @@ wall <- read.csv(file.path(datapath, 'walnutclean.csv'))
 
 dav$dt <- as.POSIXct(dav$dt, format="%Y-%m-%d %H:%M:%OS")
 
-ww <- which( wall$cultivar=='Chandler' & wall$year %in% 2013:2016)
+ww <- which( wall$cultivar=='Chandler' & wall$year %in% 2003:2016)
 w <- wall[ww,]
 
 wc <- dcast(w, year + cultivar~ event, value.var = 'day')
@@ -25,6 +27,7 @@ set.seed(2938)
 wc$event3 <- wc$event2 + round(wc$length1/3) + 
     sample((-3):3, nrow(wc), replace=TRUE)
 wc$length2 <- wc$event3 - wc$event2
+wc$event0 <- 300
 
 # wf <- data.frame(year=wc$year,
 #                  event1=wc$event1,
@@ -35,24 +38,93 @@ wc$length2 <- wc$event3 - wc$event2
 # Plant Model Stuff -------------------------------------------------------
 
 parlist <- lapply(c('gdd', 'linear'), function(form) {
-    parameterlist(n=2,
-                  mt='DT',
-                  simple=FALSE,
+    parameterlist(n=1,
+                  mt='TTT',
+                  simple=TRUE,
                   ff=form,
                   ct=list(4,0), 
-                  modelthreshold=c(50,20),
+                  modelthreshold=c(10000,20),
                   start=c(0,0),
-                  varyingparameters=c('start', 'threshold'),
+                  varyingparameters=c('start'),
                   optimized=c('threshold', 'cardinaltemps'),
                   ModelClass='PlantModel')
 })
 
 
-pmDT <- plantmodel(wc, dav, parlist, c(0,0), c(200, 40), cores=4L)
+
 
 minrmse(c(124,13.47), wc, dav, 'DT', 'gdd', 2, TRUE, 0, TRUE, FALSE, 
-        c('start','threshold'), 'PlantModel', firstevent = 'event2',
-        startingevent=wc$event2)
+        c('start','threshold'), 'PlantModel', firstevent = 'event1',
+        startingevent=wc$event1)
+
+
+# Testing Utah --------------------------------------------------------
+
+threshs <- seq(20, 110, length.out=5)
+
+FMutah <- lapply(1:length(threshs), function(i) {
+    print(i)
+    parlist <- lapply(c('utah'), function(form) {
+        parameterlist(n=1,
+                      mt='TTT',
+                      simple=FALSE,
+                      ff=form,
+                      ct=list(NA), 
+                      modelthreshold=threshs[i],
+                      start=c(300),
+                      varyingparameters=c(NA),
+                      optimized=c('threshold'),
+                      ModelClass='FlowerModel')
+    })
+    
+    flowermodel(wc, dav, parlist, 0, 500, 4L)
+})
+
+
+threshs <- seq(20, 110, length.out=5)
+
+FMcp <- lapply(1:length(threshs), function(i) {
+    print(i)
+    parlist <- lapply(c('chillPortions'), function(form) {
+        parameterlist(n=1,
+                      mt='TTT',
+                      simple=FALSE,
+                      ff=form,
+                      ct=list(NA), 
+                      modelthreshold=threshs[i],
+                      start=c(300),
+                      varyingparameters=c(NA),
+                      optimized=c('threshold'),
+                      ModelClass='FlowerModel')
+    })
+    
+    flowermodel(wc, dav, parlist, 0, 500, 4L)
+})
+
+
+
+parlist <- lapply(c('chillPortions'), function(form) {
+    parameterlist(n=1,
+                  mt='TTT',
+                  simple=FALSE,
+                  ff=form,
+                  ct=list(0), 
+                  modelthreshold=c(90),
+                  start=c(300),
+                  varyingparameters=c(NA),
+                  optimized=c('threshold'),
+                  ModelClass='FlowerModel')
+})
+
+CPfm <- flowermodel(wc, dav, parlist, 0, 500, 4L)
+
+
+
+
+
+minrmse(c(10), wc, dav, 'TTT', 'chillPortions', 1, NA, 350, TRUE, FALSE, 
+        c(NA), 'FlowerModel', firstevent = 'event0',
+        startingevent=wc$event0)
 
 # Troubleshooting thermal sums --------------------------------------------
 
@@ -67,14 +139,14 @@ ds <- dualsum(pars=list(7.2, 4),
                 startingevent=wf$event0)
 
 
- flowerSums <- thermalsum(list(4), wf$year, dav, 'TTT', 'linear', 50,                       300, varying=NA, 'FlowerModel', wf$event0)
+ flowerSums <- thermalsum(list(7), wc$year, dav, 'TTT', "utahalt", 1,                       150, varying=NA, 'FlowerModel', wc$event0)
 #
 #
 # # troubleshooting minrmse -------------------------------------------------
 #
 #
  errordual <- minrmseDual(pars=list(7.2,4), 
-                          fdat=wf, 
+                          fdat=wc, 
                           tdat=dav, 
                           c('chillbasic','linear'), 
                           start=1, 
@@ -82,23 +154,23 @@ ds <- dualsum(pars=list(7.2, 4),
                           stage=1,
                           varying=NA,
                           modclass='FlowerModel',
-                          startingevent = wf$event0)  
+                          startingevent = wc$event0)  
  
  
 errordual <- minrmse(pars=list(7.2,4),
-                     fdat=wf,
+                     fdat=wc,
                      tdat=dav, 
                      modtype='Dual', 
                      form=c('chillbasic','linear'), 
                      stage=1,
                      CT=list(7.2, 4), 
                      S=1, 
-                     TH=c(100, 500),
+                     TH=c(200, 500),
                      simple=TRUE,
                      varying=NA, 
                      modclass='FlowerModel',
                      firstevent='event0',
-                     startingevent=wf$event0) 
+                     startingevent=wc$event0) 
  
  
 #
@@ -164,3 +236,20 @@ fmc <- crossval(object=chandler,
                 ubounds=c(365, 1000), 
                 iterations=50,
                 cores=4L)
+
+
+
+# Old stuff ---------------------------------------------------------------
+
+pmTTTs <- plantmodel(wc, dav, parlist, c(0,0), c(90000, 40), cores=4L)
+
+#saveRDS(pmDT, file.path(resultspath, 'plantmodelDT.RDS'))
+pmDT <- readRDS(file.path(resultspath, 'plantmodelDT.RDS'))
+pmTTT <- readRDS(file.path(resultspath, 'plantmodelTTT.RDS'))
+
+pmDTcv <- crossval(pmDT, dav, 3, 100, 'rmse', c(0,0), c(200, 40), 4L)
+pmTTTcv <- crossval(pmTTT, dav, 3, 100, 'rmse', c(0,0), c(200, 40), 4L)
+pmTTTscv <- crossval(pmTTTs, dav, 3, 100, 'rmse', c(0,0), c(200, 40), 4L)
+
+
+
