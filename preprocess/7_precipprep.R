@@ -30,9 +30,10 @@ noaa$winter <- noaa$month %>%
     recode('11'='winter','12'='winter','1'='winter', .default='not_winter')
 noaa$spring <- noaa$month %>% 
     as.character() %>% 
-    recode('11'='spring','12'='spring','1'='spring', '2'='spring',
-           .default='not_spring')
-
+    recode('2'='spring','3'='spring', '4'='spring', .default='not_spring')
+noaa$summer <- noaa$month %>% 
+    as.character() %>% 
+    recode('5'='summer','6'='summer', '7'='summer', .default='not_summer')
 
 winternoaa <- noaa %>%
     filter(winter=='winter', winter_year>1914) %>%
@@ -44,6 +45,11 @@ springnoaa <- noaa %>%
     group_by(location, winter_year) %>%
     summarise(spring=sum(precip))
 
+summernoaa <- noaa %>%
+    filter(summer=='summer', winter_year>1914) %>%
+    group_by(location, winter_year) %>%
+    summarise(summer=sum(precip))
+
 annualnoaa <- noaa %>%
     filter(annual_year>1914) %>%
     group_by(location, annual_year) %>%
@@ -52,7 +58,9 @@ annualnoaa <- noaa %>%
 
 seasonalnoaa <- inner_join(winternoaa, springnoaa, 
                            by=c('location', 'winter_year'))
-precipitation <- inner_join(seasonalnoaa, annualnoaa, 
+seasonalnoaa2 <- inner_join(seasonalnoaa, summernoaa, 
+                            by=c('location', 'winter_year'))
+precipitation <- inner_join(seasonalnoaa2, annualnoaa, 
                             by=c('location', 'winter_year'='annual_year'))
 
 names(precipitation)[2] <- 'year'
