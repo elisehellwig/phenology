@@ -1,6 +1,14 @@
+
+# Setup -------------------------------------------------------------------
+
 library(tidyverse)
 library(lubridate)
+library(reshape2)
+library(plyr)
+library(phenoclim)
 
+source('functions/datetime.R')
+source('functions/thermaltimesupport.R')
 options(stringsAsFactors = FALSE)
 
 historypath <- '/Volumes/GoogleDrive/My Drive/Phenology/data/history'
@@ -10,14 +18,19 @@ inpath <- '/Volumes/GoogleDrive/My Drive/Phenology/CA_Results/data'
 outpath <- '/Volumes/GoogleDrive/My Drive/Phenology/Results/history'
 #precippath <- '/Volumes/GoogleDrive/My Drive/Phenology/data/historydata'
 
-a <- read.csv(file.path(phenologypath, 'almondclean.csv')) %>% 
-    filter(event=='event1')
+options(stringsAsFactors = FALSE)
 
-p <- read.csv(file.path(phenologypath, 'pruneclean.csv')) %>% 
-    filter(event=='event1')
+historypath <- '/Volumes/GoogleDrive/My Drive/Phenology/data/history'
+phenologypath <- '/Volumes/GoogleDrive/My Drive/Phenology/data/phenology'
 
-w <- read.csv(file.path(phenologypath, 'walnutclean.csv')) %>% 
-    filter(event=='event1')
+a <- unique(read.csv(file.path(phenologypath,'almondclean.csv')))
+p <- unique(read.csv(file.path(phenologypath,'pruneclean.csv')))
+w <- read.csv(file.path(phenologypath,'walnutclean.csv'))
+precip <- read.csv(file.path(historypath, 'precipitation.csv'))
+
+temp <- readRDS(file.path(phenologypath, 'dailyhourlytemp.RDS'))
+temp$dt <- as.POSIXct(temp$dt, format="%Y-%m-%d %H:%M:%OS")
+
 
 almondK <- read.csv(file.path(inpath, 'Almond_CrCragHrJD.csv'))
 pruneK <- read_csv(file.path(inpath, 'Prune_Cr38JD_Crag49JD_HrJD.csv')) 
@@ -28,8 +41,14 @@ pruneK <- read_csv(file.path(inpath, 'Prune_Cr38JD_Crag49JD_HrJD.csv'))
 
 walnutK <- read_csv(file.path(outpath, 'walnutchill.csv'))
 
-precip <- read.csv(file.path(historypath, 'precipitation.csv'))
-    
+
+# Almonds -----------------------------------------------------------------
+
+af <- a %>% filter(source=='FF', loc=='Chico', 
+                   cultivar %in% c('Nonpareil','Mission'))
+
+
+
 
 ######################################################################
 ##############################ALMONDS###############################
@@ -105,4 +124,11 @@ write.csv(spring, file.path(historypath, 'spring.csv'), row.names = FALSE)
 
 
 
+t2 <- filter(spring, cultivar=='Payne')
+
+mod2 <- lm(bloom ~ Chill + Heat, data=t2)
+
+t3 <- filter(spring, cultivar=='French')
+
+mod3 <- lm(bloom ~ Chill + Heat, data=t2)
 
