@@ -24,7 +24,7 @@ extendphenology <- function(fdat, firstyear, lastyear=NA) {
 }
 
 
-calcThermalTime <- function(events, temperatures, modtype, form, 
+calcThermalTime <- function(events, temperatures, step, modtype, form, 
                             cardinal, start, thresh, varying, 
                             location=NA, var=NA, datename='dt') {
     source('functions/datetime.R')
@@ -46,7 +46,6 @@ calcThermalTime <- function(events, temperatures, modtype, form,
     }
     
     events <- unique(events)
-    
     yrtable <- table(events[,'year'])
     
     if (any(ifelse(yrtable>1, TRUE, FALSE))) {
@@ -61,27 +60,51 @@ calcThermalTime <- function(events, temperatures, modtype, form,
     
     
     years <- eventsC[,'year']
-    startdays <- eventsC[,'event1']
     
-    startdates <- dayToDate(years, startdays, 'PlantModel', varying)
+    if (step=='harvest') {
+        
+        startdays <- eventsC[,'event1']
+        
+        startdates <- dayToDate(years, startdays, 'PlantModel', varying)
+        
+        if (modtype=='DT') {
+            threshvalues <- startdates + days(thresh)
+        } else {
+            threshvalues <- thresh
+        }
+        
+        
+        result <- thermalsum(cardinal, years, temperatures, modtype, form,
+                             startdates, threshvalues, varying, 'PlantModel',
+                             startdays)
+        
+        
+        
+    } else if (step=='flowering') {
+        
+        startdates <- dayToDate(years, start, 'FlowerModel', varying)
+        startdates <- ifelse(leap_year(startdates), startdates + ddays(1),
+                             startdates)
+        startdates <- as.POSIXct(startdates, origin = '1970-01-01 00:00.00 UTC')
+        
+        sums <- thermalsum(cardinal, years, temperatures, 'TTT', form,
+                           startdates, thresh, varying, 'FlowerModel',
+                           start)
+        
+        
+        enddates <- startdates + ddays(sums)
+        enddays <- yday(enddates)
+        
+        yearlengths <- ifelse(leap_year(years), 366, 365)
+        result <- ifelse(enddays>100, enddays-yearlengths, enddays)
+    } 
     
-    if (modtype=='DT') {
-        threshvalues <- startdates + days(thresh)
-    } else {
-        threshvalues <- thresh
-    }
-    
-    
-    sums <- thermalsum(cardinal, years, temperatures, modtype, form,
-                       startdates, threshvalues, varying, 'PlantModel',
-                       startdays)
     
     
   
-    eventsC[,paste0(modtype, form)] <- sums
+    eventsC[,paste0(modtype, form)] <- result
     
     return(eventsC)
     
 }
-
 
