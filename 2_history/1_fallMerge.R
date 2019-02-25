@@ -32,7 +32,7 @@ LocVar <- expand.grid(unique(ah$loc), unique(ah$cultivar))
 names(LocVar) <- c('loc','cultivar')
 
 asl <- ldply(1:nrow(LocVar), function(i) {
-    calcThermalTime(ah, temp, 'DT', 'asymcur', c(4,25,36), 0, 60, 
+    calcThermalTime(ah, temp, 'harvest', 'DT', 'asymcur', c(4,25,36), 0, 60, 
                     c('start','threshold'), location = LocVar[i,'loc'],
                     var=LocVar[i,'cultivar'])
 
@@ -43,7 +43,7 @@ asl$crop <- 'almond'
 
 # Prune harvest -----------------------------------------------------------
 
-psl <- calcThermalTime(p, temp, 'DT', 'asymcur', c(4,25,36), 0, 60, 
+psl <- calcThermalTime(p, temp, 'harvest', 'DT', 'asymcur', c(4,25,36), 0, 60, 
                     c('start','threshold'), location = 'Parlier',
                     var='French')
 
@@ -58,7 +58,7 @@ cv <- c('Chandler','Payne','Franquette')
 w$loc <- 'Davis'
 
 wsl <- ldply(cv, function(v) {
-    calcThermalTime(w, temp, 'DT', 'asymcur', c(4,25,36), 0, 40, 
+    calcThermalTime(w, temp, 'harvest', 'DT', 'asymcur', c(4,25,36), 0, 40, 
                        c('start','threshold'), var=v)
     })
 
