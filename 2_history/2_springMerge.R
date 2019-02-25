@@ -44,12 +44,13 @@ walnutK <- read_csv(file.path(outpath, 'walnutchill.csv'))
 
 # Almonds -----------------------------------------------------------------
 
-af <- a %>% filter(source=='FF', loc=='Chico', 
-                   cultivar %in% c('Nonpareil','Mission'))
+a <- a %>% filter(source=='FF', loc=='Chico', 
+                  cultivar %in% c('Nonpareil','Mission'))
 
 
-
-
+af <- ldply(c('Nonpareil','Mission'), function(cv) {
+    calcThermalTime(a, temp, 'flowering', 'TTT', 'chillbasic','')
+})
 ######################################################################
 ##############################ALMONDS###############################
 
