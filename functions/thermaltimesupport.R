@@ -57,8 +57,6 @@ calcThermalTime <- function(events, temperatures, step, modtype, form,
         eventsC <- events
     } 
     
-    
-    
     years <- eventsC[,'year']
     
     if (step=='harvest') {
@@ -83,10 +81,14 @@ calcThermalTime <- function(events, temperatures, step, modtype, form,
     } else if (step=='flowering') {
         
         startdates <- dayToDate(years, start, 'FlowerModel', varying)
-        startdates <- ifelse(leap_year(startdates), startdates + ddays(1),
+        
+        startdates <- ifelse(leap_year(startdates) & start>59,
+                             startdates + ddays(1),
                              startdates)
         startdates <- as.POSIXct(startdates, origin = '1970-01-01 00:00.00 UTC')
         
+        
+        #print(startdates)
         sums <- thermalsum(cardinal, years, temperatures, 'TTT', form,
                            startdates, thresh, varying, 'FlowerModel',
                            start)
@@ -107,4 +109,15 @@ calcThermalTime <- function(events, temperatures, step, modtype, form,
     return(eventsC)
     
 }
+
+
+startHeat <- function(days, years) {
+    
+    daymod <- ifelse(days>0, days, days + 365)
+    
+    return(daymod)
+    
+}
+
+
 
