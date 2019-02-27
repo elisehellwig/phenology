@@ -16,7 +16,7 @@ library(phenoclim)
 
 options(stringsAsFactors = FALSE)
 
-cl2 <- read.csv(file.path(drivepath,
+cl <- read.csv(file.path(drivepath,
                          'data/raw/crop/WalnutBreedProgram_Locations.csv'))
 
 names(cl)[1:2] <- c('loc','nearest')
