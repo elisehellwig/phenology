@@ -25,7 +25,7 @@ phenologypath <- '/Volumes/GoogleDrive/My Drive/Phenology/data/phenology'
 
 a <- unique(read.csv(file.path(phenologypath,'almondclean.csv')))
 p <- unique(read.csv(file.path(phenologypath,'pruneclean.csv')))
-w <- read.csv(file.path(phenologypath,'walnutclean.csv'))
+walnut <- read.csv(file.path(phenologypath,'walnutclean.csv'))
 precip <- read.csv(file.path(historypath, 'precipitation.csv'))
 
 temp <- readRDS(file.path(phenologypath, 'dailyhourlytemp.RDS'))
@@ -98,45 +98,31 @@ pf <- merge(pf1, pf2)
 
 
 # Walnuts -----------------------------------------------------------------
+wcults <- c('Ivanhoe','Hartley','Chandler','Payne','Franquette')
+wchill <- c(70.4, 66)
+wheat <- c(,5139)
+
+w <- walnut %>% 
+    filter(cultivar %in% wcults, event=='event1') %>% 
+    add_column(loc='Davis')
+
+wf1 <- ldply(seq_along(wcults), function(i) {
+    calcThermalTime(w, temp, 'flowering', 'TTT', 'chillPortions', NA, 305,
+                    wchill[i], NA, 'Davis', wcults[i])
+})
 
 
+startheatW <- lapply(wcults, function(cv) {
+    wff <- filter(wf1, cultivar==cv)
+    startHeat(wff$TTTchillPortions, wff$year)
+})
 
-######################################################################
-##############################ALMONDS###############################
-
-
-almondEH <- select(a, -contains('_')) %>% 
-    rename(location=loc, bloom=day) %>% 
-    add_column(crop='almond') %>% 
-    select(-event)
-
-almondKJS <- almondK %>% 
-    spread(requ, jd) %>% 
-    select(-`Agronomic Chill`, -Bloom)
-
-almond <- inner_join(almondEH, almondKJS)
-
-#afrain <- inner_join(afnew, precip)
-#write.csv(afnew, file.path(outpath, 'almondspring.csv'), row.names = FALSE)
+wf2 <- ldply(seq_along(wcults), function(i) {
+    calcThermalTime(w, temp, 'flowering', 'TTT', 'linear', 4.5, 
+                    startheatW[[i]], 10500, NA, 'Davis', wcults[i])
+})
 
 
-######################################################################
-##############################PRUNES##################################
-
-#note to remove the filtering to only parlier when I calculate chill for chico
-#for prunes
-pruneEH <- p %>% 
-    filter(loc=='Parlier') %>%
-    select(-contains('_'), -event) %>% 
-    add_column(crop='prune') %>% 
-    rename(location=loc, bloom=day)
-
-
-pruneKJS <- pruneK %>% 
-    spread(requ, jd) %>% 
-    select(-`Agronomic Chill`, -Bloom)
-
-prune <- inner_join(pruneEH, pruneKJS)
 
 #write.csv(pfnew, file.path(outpath, 'prunespring.csv'), row.names = FALSE)
 
