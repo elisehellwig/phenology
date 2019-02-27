@@ -43,14 +43,64 @@ walnutK <- read_csv(file.path(outpath, 'walnutchill.csv'))
 
 
 # Almonds -----------------------------------------------------------------
+acults <- c('Nonpareil','Mission')
 
 a <- a %>% filter(source=='FF', loc=='Chico', 
-                  cultivar %in% c('Nonpareil','Mission'))
+                  cultivar %in% acults)
 
 
-af <- ldply(c('Nonpareil','Mission'), function(cv) {
-    calcThermalTime(a, temp, 'flowering', 'TTT', 'chillbasic','')
+af1 <- ldply(acults, function(cv) {
+    calcThermalTime(a, temp, 'flowering', 'TTT', 'chillPortions', NA, 305,
+                          22, NA, 'Chico', cv)
 })
+
+startheatA <- lapply(acults, function(cv) {
+    aff <- filter(af1, cultivar==cv)
+    startHeat(aff$TTTchillPortions, aff$year)
+})
+
+
+names(startheatA) <- acults
+
+af2 <- ldply(acults, function(cv) {
+    calcThermalTime(a, temp, 'flowering', 'TTT', 'linear', 4.5, 
+                    startheatA[[cv]], 6000, NA, 'Chico', cv)
+})
+
+af <- merge(af1, af2)
+
+
+# Prunes ------------------------------------------------------------------
+plocs <- unique(p$loc)
+
+p <- filter(p, event=='event1')
+
+pf1 <- ldply(plocs, function(l) {
+    calcThermalTime(p, temp, 'flowering', 'TTT', 'chillPortions', NA, 305,
+                    35, NA, l, 'French')
+})
+
+startheatP <- lapply(plocs, function(l) {
+    pff <- filter(pf1, loc==l)
+    startHeat(pff$TTTchillPortions, pff$year)
+})
+
+names(startheatP) <- plocs
+
+pf2 <- ldply(plocs, function(l) {
+    calcThermalTime(p, temp, 'flowering', 'TTT', 'linear', 4.5,
+                    startheatP[[l]], 5000, NA, l, 'French')
+})
+
+
+pf <- merge(pf1, pf2)
+
+
+
+# Walnuts -----------------------------------------------------------------
+
+
+
 ######################################################################
 ##############################ALMONDS###############################
 
