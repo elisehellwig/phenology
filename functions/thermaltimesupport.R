@@ -98,7 +98,7 @@ calcThermalTime <- function(events, temperatures, step, modtype, form,
         enddays <- yday(enddates)
         
         yearlengths <- ifelse(leap_year(years), 366, 365)
-        result <- ifelse(enddays>100, enddays-yearlengths, enddays)
+        result <- ifelse(enddays>200, enddays-yearlengths, enddays)
     } 
     
     
