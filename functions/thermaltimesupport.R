@@ -45,6 +45,7 @@ calcThermalTime <- function(events, temperatures, step, modtype, form,
         events <- filter(events, cultivar==var)
     }
     
+
     events <- unique(events)
     yrtable <- table(events[,'year'])
     
@@ -58,7 +59,6 @@ calcThermalTime <- function(events, temperatures, step, modtype, form,
     } 
     
     years <- eventsC[,'year']
-    
     if (step=='harvest') {
         
         startdays <- eventsC[,'event1']
