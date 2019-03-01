@@ -1,4 +1,9 @@
 
+#This script cleans prune data for further processing and analysis.
+
+# Setup -------------------------------------------------------------------
+
+
 drivepath <- '/Users/echellwig/Drive/Phenology'
 importpath <- file.path(drivepath, 'data/raw/crop/')
 
@@ -7,7 +12,6 @@ library(lubridate)
 source('functions/generalfunctions.R')
 
 
-#This script cleans prune data for further processing and analysis.
 options(stringsAsFactors = FALSE)
 
 

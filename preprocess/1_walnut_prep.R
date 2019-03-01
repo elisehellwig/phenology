@@ -1,4 +1,7 @@
 
+#This script cleans up walnut data for further processing analysis. 
+
+
 # Setup -------------------------------------------------------------------
 
 
@@ -12,7 +15,6 @@ library(plyr)
 library(dplyr)
 library(phenoclim)
 
-#This script cleans up walnut data for further processing and analysis.
 
 options(stringsAsFactors = FALSE)
 

@@ -1,3 +1,21 @@
+#This script imports climate date from CIMIS and NOAA Climate Data Center and
+#cleans it up for further processing and analysis.
+
+#NOAA:
+# https://www.ncdc.noaa.gov/cdo-web/datasets
+# Daily Summaries Data Set
+# Measured variables: TMIN and TMAX
+
+#CIMIS: 
+# https://cimis.water.ca.gov/WSNReportCriteria.aspx
+# Hourly CSV Report
+# Measured variables: Air Temperatures
+# Station List: Davis 
+
+
+# Setup -------------------------------------------------------------------
+
+
 library(tidyverse)
 library(lubridate)
 library(reshape2)
@@ -5,23 +23,6 @@ library(phenoclim)
 datapath <- '/Volumes/GoogleDrive/My Drive/Phenology/data/'
 source('functions/cleanTemps.R')
 options(stringsAsFactors = FALSE, na.rm=TRUE)
-
-#This script imports climate date from CIMIS and NOAA Climate Data Center and
-    #cleans it up for further processing and analysis.
-
-#NOAA:
-    # https://www.ncdc.noaa.gov/cdo-web/datasets
-    # Daily Summaries Data Set
-    # Measured variables: TMIN and TMAX
-
-#CIMIS: 
-    # https://cimis.water.ca.gov/WSNReportCriteria.aspx
-    # Hourly CSV Report
-    # Measured variables: Air Temperatures
-    # Station List: Davis 
-
-#This script focuses on min and max temperatures.
-
 
 
 # Davis-NOAA --------------------------------------------------------------
@@ -59,6 +60,7 @@ n[which(n$tmin > n$tmax), 'tmax'] <- NA
 #removing data that is outside the range of reasonable temperature expections
 n[which(n$tmax<28), 'tmax'] <- NA
 n[which(n$tmin>90 | n$tmin<10), 'tmin'] <- NA
+
 
 #fill in missing temperatures 
 ndmin <- fillinTemps(n, 'tmin', c('winters','woodland'), 'davis')

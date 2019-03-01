@@ -1,4 +1,10 @@
 
+#This script cleans almond data for further processing and analysis.
+#note I use first flower and flower 10% as flowering
+
+# Setup -------------------------------------------------------------------
+
+
 drivepath <- '/Volumes/GoogleDrive/My Drive/Phenology'
 importpath <- file.path(drivepath, 'data/raw/crop/')
 
@@ -10,8 +16,6 @@ source('functions/generalfunctions.R')
 
 options(stringsAsFactors = FALSE)
 
-#This script cleans almond data for further processing and analysis.
-#note I use first flower and flower 10% as flowering
 
 cl <- read.csv(file.path(drivepath,'data/clean/croploc.csv'))
 
