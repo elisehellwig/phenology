@@ -2,7 +2,6 @@ library(tidyverse)
 library(lubridate)
 library(reshape2)
 library(phenoclim)
-#source('R/functions/generalfunctions.R')
 datapath <- '/Volumes/GoogleDrive/My Drive/Phenology/data/'
 source('functions/cleanTemps.R')
 options(stringsAsFactors = FALSE, na.rm=TRUE)
@@ -14,40 +13,52 @@ options(stringsAsFactors = FALSE, na.rm=TRUE)
 
 # Davis-NOAA --------------------------------------------------------------
 
-#note I think this might be in fahrenheit but I'm not sure)
+#note this data is in F, it is converted to C later on
 n <- read.csv(file.path(datapath, 'raw/climate/noaadavisnew.csv'))
 
 #convert date number to date class
 n$DATE <- as.Date(n$DATE)
 
+#select and rename some of the columns
 n <- n %>% select('loc'='NAME','date'='DATE', 'tmax'='TMAX', 'tmin'='TMIN')
 
-#gives them reasonable names
+#gives locations reasonable names
 n$loc <- recode(n$loc, "WINTERS, CA US"='winters', 
                 "WOODLAND 1 WNW, CA US"='woodland',
                 "DAVIS 2 WSW EXPERIMENTAL FARM, CA US"='davis')
 
+#check to see if we are missing dates in our time series
 tscd <- timeSeriesCheck(n[n$loc=='davis', ], 
                         start="1930-01-01 23:00:00 PDT", 
                         end="2018-10-31 23:00:00 PST", hours = FALSE,
                         datename='date')
 
+#adding a year column
 n$year <- year(n$date)
+
+#subsetting to later than 1930 of too much missing data before then
 n <- n[n$year >= 1930, ]
+
+#setting temps to NA if tmax is less than tmin
 n[which(n$tmin > n$tmax), 'tmin'] <- NA
 n[which(n$tmin > n$tmax), 'tmax'] <- NA
+
+#removing data that is outside the range of reasonable temperature expections
 n[which(n$tmax<28), 'tmax'] <- NA
 n[which(n$tmin>90 | n$tmin<10), 'tmin'] <- NA
 
+#fill in missing temperatures 
 ndmin <- fillinTemps(n, 'tmin', c('winters','woodland'), 'davis')
 ndmax <- fillinTemps(n, 'tmax', c('winters','woodland'), 'davis')
 
+#merge tmin and tmax filled in data frames
 nd <- merge(ndmin, ndmax)
 
 #convert to celcius
 nd$tmax <- round(FtoC(nd$tmax))
 nd$tmin <- round(FtoC(nd$tmin))
 
+#add year and day columns
 nd$year <- year(nd$date)
 nd$day <- yday(nd$date)
 
@@ -57,13 +68,17 @@ write.csv(nd, file=file.path(datapath, 'clean/noaadavis.csv'),
 
 # Davis-CIMIS -------------------------------------------------------------
 
+#import data
 cdavis <- importCIMIS(file.path(datapath, 'raw/climate/cimis/davis'))
 
+#rename a location so no spaces in it
 cdavis[which(cdavis$name=="Bryte (experimental)"), 'name'] <- 'Bryte'
 
+#remove observations outside of reasonable temp expectations
 extremerows <- which(cdavis$temp>50 | cdavis$temp<=-14 | cdavis$qc=='R')
 cimis[extremerows, 'temp'] <- NA
 
+#select only 
 cd <- cdavis[which(cdavis$name=='Davis'),]
 
 
