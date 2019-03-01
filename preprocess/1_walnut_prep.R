@@ -88,6 +88,10 @@ for (i in 1:length(uy[,1])) {
 	w[w$cultivar==uy[i,2] & w$year==uy[i,1] & w$variable==uy[i,3], 'date'] <- avgdate(w[w$cultivar==uy[i,2] & w$year==uy[i,1] & w$variable==uy[i,3], 'date'])
 }
 
+
+
+# Format and subset -------------------------------------------------------
+
 #removing duplicates
 w <- unique(w)
 w$day <- yday(w$date)
@@ -114,7 +118,11 @@ cults <- c('Chandler','Franquette','Hartley','Howard','Ivanhoe','Payne','Serr',
 #cults <- names(which(table(wm2$cultivar)>=70))
 wcults <- wm2[wm2$cultivar %in% cults, ]
 
-# save file
+
+
+# Save --------------------------------------------------------------------
+
+
 write.csv(wcults, 
           file=file.path(drivepath, 'data/phenology/walnutclean.csv'), 
           row.names=FALSE)
