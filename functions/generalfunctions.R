@@ -1,5 +1,25 @@
 #requires the lubridate package to use some of the functions
 
+reform <- function(df, cultivars) {
+    
+    dft <- as.data.frame(t(df))[-1,]
+    names(dft) <- c('year', cultivars)
+    
+    vnames <- names(df)[-1]
+    
+    namesplit <- strsplit(vnames, '[.]') 
+    
+    dft$event <- sapply(seq_along(namesplit), function(i) namesplit[[i]][1])
+    
+    dfmelt <- melt(dft, id.vars=c('year','event'), measure.vars=cultivars,
+                   variable.name = 'cultivar', value.name = 'date')
+    
+    return(dfmelt)
+    
+} 
+
+
+
 fit <- function(a, b, dat) {
 	f <- a + b*dat
 	return(f)
