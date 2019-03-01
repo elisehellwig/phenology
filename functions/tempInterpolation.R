@@ -82,34 +82,46 @@ InterpTemp <- function(daily, hourly, name, start, end) {
 
 mergeDailyHourly <- function(daily, hourly, interpolated) {
     #Merges daily and hourly data.frames so that there is only one dataframe to
-        #load when running plantmodel() or flowermodel()
-    # daily - data.frame, contains daily temp data
+        #load when running plantmodel() or flowermodel(). Note: dt is a POSIXct
+        #column
+    # daily - data.frame, contains daily temp data with columns: dt, date, year,
+        # day, tmin, tmax
+    # hourly - data.frame, contains original hourly temp data with columns: dt,
+        # date, year, day, temp
+    # interpolated - data.frame, contains interpolated hourly temp data with 
+        # columns: dt, date, year, day, temp
     
+    #converting date (string) column to Date column
     daily$date <- as.Date(daily$date)
     
+    #merging interpolated data with daily data
     dt <- merge(interpolated, daily, by='date')
+    
+    #selecting only the columns we want
     dtfinal <- dt[,c('dt','year','day','temp','tmin','tmax')]
-    dtfinal$hour <- hour(dtfinal$dt)
-    dtfinal <- dtfinal[order(dtfinal$dt), ]
+    dtfinal$hour <- hour(dtfinal$dt) #creating hour variable
+    dtfinal <- dtfinal[order(dtfinal$dt), ] #ordering rows by dt
     
     
-    hourly$date <- toPOSIX(hourly$date)
+    hourly$date <- toPOSIX(hourly$date) #creating POSIXct out of date column
     
     #print(length(which(is.na(dtfinal$dt))))
+    #inserting original hourly data back into the data frame where we have it
     dtfinal$temp <- sapply(1:nrow(dtfinal), function(i) {
-        dtdate <- dtfinal[i, 'dt']
+        dtdate <- dtfinal[i, 'dt'] #select a single row of data.frame
         
         #print(dtdate)
         #print(head(hourly$date))
-        if (dtdate %in% hourly$date) {
-            if (!is.na(hourly[which(hourly$date==dtdate),'temp'])) {
-                hourly[which(hourly$date==dtdate),'temp']
+        if (dtdate %in% hourly$date) { #if it exists in hourly
+            if (!is.na(hourly[which(hourly$date==dtdate),'temp'])) {#and is not
+                                                                    #NA
+                hourly[which(hourly$date==dtdate),'temp'] #insert that data
             } else {
-                dtfinal[i, 'temp']
+                dtfinal[i, 'temp'] #otherwise use the interpolated data
             }
             
         } else {
-            dtfinal[i, 'temp']
+            dtfinal[i, 'temp']#otherwise use the interpolated data
             
         }
     })
