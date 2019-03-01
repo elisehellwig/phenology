@@ -78,54 +78,69 @@ cdavis[which(cdavis$name=="Bryte (experimental)"), 'name'] <- 'Bryte'
 extremerows <- which(cdavis$temp>50 | cdavis$temp<=-14 | cdavis$qc=='R')
 cimis[extremerows, 'temp'] <- NA
 
-#select only 
+#select only observations in davis
 cd <- cdavis[which(cdavis$name=='Davis'),]
 
+#Fill in steps are broken up by year because you need to have data for most if
+    #not all of the entire time series for the secondary stations for 
+    #fillinTemps() to work well.
 
+#filling in temps before 94
 cim80 <- cdavis[which(cdavis$date<'1994-09-20 00:00:00'), ] 
 cim80d <- fillinTemps(cim80, 'temp','Zamora','Davis','name')
 
+#fillling in temps between 94 and 98
 row95 <- which(cdavis$date>='1994-09-20 00:00:00' & 
                    cdavis$date<'1998-12-10 00:00:00')
 cim95 <- cimis[row95, ] 
 cim95d <- fillinTemps(cim95, 'temp',c('Dixon','Zamora'),'Davis','name')
 
+#filling in temps between 98 and 06
 row00 <- which(cdavis$date>='1998-12-10 00:00:00' & 
                    cdavis$date<'2006-01-21 00:00:00')
 cim00 <- unique(cdavis[row00, ]) 
 cim00d <- fillinTemps(cim00, 'temp',c('Dixon','Winters','Zamora','Bryte'),
                       'Davis','name')
 
-
+#filling in temps between 06 and 11
 row10 <- which(cdavis$date>='2006-01-21 00:00:00' & cdavis$date<'2011-05-12 00:00:00')
 cim10 <- cimis[row10, ] 
 cim10d <- fillinTemps(cim10, 'temp',c('Dixon','Winters','Bryte'),
                       'Davis','name')
 
+#filling in temps between after 2011
 row15 <- which(cdavis$date>='2011-05-12 00:00:00')
 cim15 <- cimis[row15, ] 
 cim15d <- fillinTemps(cim15, 'temp',c('Dixon','Winters', 'Woodland','Bryte'),
                       'Davis','name') 
 
-
+#merging all the filled in temp data
 cimdav <- do.call(rbind, list(cim80d, cim95d, cim00d, cim10d, cim15d))
+
+#checking to see if we are missing dates from our time series
 tsc <- timeSeriesCheck(cimdav, start="1982-07-17 23:00:00 PDT", 
                 end="2018-11-13 23:00:00 PST", hours = TRUE,
                 datename='date')
 
+#save data
 write.csv(cimdav, file.path(datapath, 'clean/cimisdavis.csv'),
           row.names=FALSE)
 
 
 
 # Chico-NOAA --------------------------------------------------------------
+
+#import data
 cn1 <- read.csv(file.path(datapath, 'raw/climate/noaachiconew.csv'))
 cn2 <- read.csv(file.path(datapath, 'raw/climate/noaachiconew2.csv'))
 
+#merge two data sources together
 cn <- rbind(cn1, cn2[,c('STATION','NAME','DATE','TMAX','TMIN')])
 
+#converting date string to Date
 cn$DATE <- as.Date(cn$DATE)
 
+#selecting only the columns we want
 cn <- cn %>% select('loc'='NAME','date'='DATE', 'tmax'='TMAX', 
                           'tmin'='TMIN')
 
@@ -137,67 +152,91 @@ cn$loc <- recode(cn$loc, "ORLAND, CA US"='orland',
                 "MARYSVILLE, CA US"='marysville',
                 "COLUSA 2 SSW, CA US"='colusa')
 
+#checking to see which dates are missing
 missingDates <- timeSeriesCheck(cn[cn$loc=='chico', ], 
                                 start="1925-01-01 23:00:00 PDT", 
                                 end="2018-10-31 23:00:00 PST", hours = FALSE,
                                 datename='date')
 
+#creating a data.frame with the missing dates and temps as NA
 missingDF <- data.frame(loc='chico',
                         date=as.Date(missingDates),
                         tmax=NA,
                         tmin=NA)
 
+#adding the df of the missing dates to the main data frame
 cn <- rbind(cn, missingDF)
+
+#adding year column
 cn$year <- year(cn$date)
+
+#subsetting to later than 1930 of too much missing data before then
 cn <- cn[cn$year >= 1930, ]
+
+#setting temps to NA if tmax is less than tmin
 cn[which(cn$tmin > cn$tmax), 'tmin'] <- NA
 cn[which(cn$tmin > cn$tmax), 'tmax'] <- NA
+
+#removing temp data that is outside of reasonable expectations
 cn[which(cn$tmin>32 | cn$tmin<=-14), 'tmin'] <- NA
 
+#filling in missing temperatures
 cnmin <- fillinTemps(cn, 'tmin', c('orland','oroville','marysville', 'colusa'), 
                      'chico')
 cnmax <- fillinTemps(cn, 'tmax', c('orland','oroville', 'marysville', 'colusa'),
                      'chico')
 
-
+#merging filled in temps
 cnd <- merge(cnmin, cnmax)
+
+#adding date information
 cnd$year <- year(cnd$date)
 cnd$day <- yday(cnd$date)
 
+#checking to see if we have any missing  dates
 tsc <- timeSeriesCheck(cnd, start="1930-01-01 23:00:00 PDT", 
                        end="2018-10-31 23:00:00 PST", hours = FALSE,
                        datename='date')
 
+#saving data
 write.csv(cnd, file.path(datapath,'clean/noaachico.csv'),
           row.names=FALSE)
 
 # Chico-CIMIS --------------------------------------------------------------
 
-
+#importing data
 cchico <- importCIMIS(file.path(datapath, 'raw/climate/cimis/chico'))
 
+#selecting and removing rows with temperatures outside reasonable range
 extremerows <- which(cchico$temp <= -12 | cchico$temp > 48 |
                      cchico$qc=='R' | (cchico$temp > 41 & cchico$day < 80))
 cchico[extremerows, 'temp'] <- NA
 
+#selecting primary station data
 cdu <- cchico[which(cchico$name=='Durham'),]
 
+#filling in data before 1987
 cc80 <- cchico[which(cchico$date<'1987-5-13 00:00:00'), ] 
 cc80d <- fillinTemps(cc80, 'temp','Orland','Durham','name')
 
+#filling in data from 87 to 2015
 cc90 <- cchico[which(cchico$date>='1987-5-13 00:00:00' & 
                      cchico$date<'2015-6-18 00:00:00'), ] 
 cc90d <- fillinTemps(cc90, 'temp','Orland','Durham','name')
 
+#filling in data after 2015
 cc15 <- cchico[which(cchico$date>='2015-6-18 00:00:00'), ] 
 cc15d <- fillinTemps(cc15, 'temp','Biggs','Durham','name')
 
+#merging all filled in data together
 cimdur <- do.call(rbind, list(cc80d, cc90d, cc15d))
 
+#checking to see if there are any dates missing
 tsc <- timeSeriesCheck(cimdur, start="1982-10-30 23:00:00 PDT", 
                        end="2018-10-31 23:00:00 PST", hours = TRUE,
                        datename='date')
 
+#saving data.
 write.csv(cimdur, file.path(datapath, 'clean/cimischicodurham.csv'),
           row.names=FALSE)
 
@@ -206,8 +245,10 @@ write.csv(cimdur, file.path(datapath, 'clean/cimischicodurham.csv'),
 
 # Parlier-CIMIS -----------------------------------------------------------
 
+#loading data
 cparlier <- importCIMIS(file.path(datapath, 'raw/climate/cimis/parlier'))
 
+#giving locations reasonable names
 cparlier$name <- recode(cparlier$name, "Fresno State"="FS",
                         "Fresno/F.S.U. USDA"="fresno",
                         "Orange Cove"="orange",
@@ -215,6 +256,7 @@ cparlier$name <- recode(cparlier$name, "Fresno State"="FS",
                         "Caruthers"="caruthers",
                         "Visalia"="visalia")
 
+#removing 
 extremerows <- which(cparlier$qc=='R' | cparlier$temp<= -8 | 
                     cparlier$temp > 45)
 cparlier[extremerows, 'temp'] <- NA
