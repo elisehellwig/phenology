@@ -1,16 +1,25 @@
 #requires the lubridate package to use some of the functions
 
 reform <- function(df, cultivars) {
+    #converts data where the 'variables' are rows and observations are 
+        #columns to variables being the the columns and observations the rows
+    # df - data.frame containing the data
+    # cultivars - character, the names of the cultivars in the data (in the
+        # order they are in the data)
     
+    #transpose dataframe and remove first row (cultivar names)
     dft <- as.data.frame(t(df))[-1,]
-    names(dft) <- c('year', cultivars)
+    names(dft) <- c('year', cultivars) #give rows appropriate names
     
-    vnames <- names(df)[-1]
+    vnames <- names(df)[-1] #get the names of the columns
     
-    namesplit <- strsplit(vnames, '[.]') 
+    namesplit <- strsplit(vnames, '[.]') #split names by '.'
     
+    #select the first element in each column name which is the phenological
+        #event
     dft$event <- sapply(seq_along(namesplit), function(i) namesplit[[i]][1])
     
+    #convert data to long format
     dfmelt <- melt(dft, id.vars=c('year','event'), measure.vars=cultivars,
                    variable.name = 'cultivar', value.name = 'date')
     
