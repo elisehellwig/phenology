@@ -68,7 +68,8 @@ af2 <- ldply(acults, function(cv) {
 })
 
 af <- merge(af1, af2)
-
+af$crop <- 'almond'
+af$source <- NULL
 
 # Prunes ------------------------------------------------------------------
 plocs <- unique(p$loc)
@@ -94,13 +95,13 @@ pf2 <- ldply(plocs, function(l) {
 
 
 pf <- merge(pf1, pf2)
-
+pf$crop <- 'prune'
 
 
 # Walnuts -----------------------------------------------------------------
-wcults <- c('Ivanhoe','Hartley','Chandler','Payne','Franquette')
-wchill <- c(70.4, 66)
-wheat <- c(,5139)
+wcults <- c('Chandler','Hartley','Ivanhoe','Payne','Franquette')
+wchill <- c(70.4,68.4, 66.1, 66.1, 70.2)
+wheat <- c(8573,8551,5139, 5139, 10705)
 
 w <- walnut %>% 
     filter(cultivar %in% wcults, event=='event1') %>% 
@@ -122,50 +123,15 @@ wf2 <- ldply(seq_along(wcults), function(i) {
                     startheatW[[i]], 10500, NA, 'Davis', wcults[i])
 })
 
+wf <- merge(wf1, wf2)
+wf$crop <- 'walnut'
 
 
-#write.csv(pfnew, file.path(outpath, 'prunespring.csv'), row.names = FALSE)
+#####################Putting it Together##########################
 
-######################################################################
-##############################Walnuts###############################
-
-####merge cultivars#######
-
-# chandK$cultivar <- 'Chandler'
-# franqK$cultivar <- 'Franquette'
-# payneK$cultivar <- 'Payne'
-# 
-# walnutK <- rbind(chandK, franqK, payneK)
-# write.csv(walnutK, file.path(outpath,'walnutchill.csv'), row.names = FALSE)
-
-##########################
-
-walnutEH <- w %>% 
-    select(-contains("_"), bloom=day, -event) %>% 
-    add_column(crop='walnut', location='Davis')
-
-walnutKJS <- walnutK %>% 
-    spread(requ, jd) %>% 
-    select(-`Agronomic Chill`, -`Leaf-Out`)
-
-walnut <- inner_join(walnutEH, walnutKJS)
-######################################################################
-#########################Putting it Together##########################
-
-fruits <- rbind(almond, prune, walnut)
-spring <- inner_join(fruits, precip)
+fruits <- rbind(af, pf, wf)
+spring <- inner_join(fruits, precip, by=c('year', 'loc'='location'))
 
 write.csv(spring, file.path(historypath, 'spring.csv'), row.names = FALSE)
 
-#write.csv(wfnew, file.path(outpath, 'walnutspring.csv'), row.names = FALSE)
-
-
-
-t2 <- filter(spring, cultivar=='Payne')
-
-mod2 <- lm(bloom ~ Chill + Heat, data=t2)
-
-t3 <- filter(spring, cultivar=='French')
-
-mod3 <- lm(bloom ~ Chill + Heat, data=t2)
 
