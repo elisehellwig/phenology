@@ -5,7 +5,7 @@ importpath <- file.path(drivepath, 'data/raw/crop/')
 library(lubridate)
 library(reshape2)
 library(tidyverse)
-source('functions/preprocessfunctions.R')
+source('functions/generalfunctions.R')
 
 
 options(stringsAsFactors = FALSE)

@@ -4,7 +4,7 @@ importpath <- file.path(drivepath, 'data/raw/crop/')
 
 library(reshape2)
 library(lubridate)
-source('functions/preprocessfunctions.R')
+source('functions/generalfunctions.R')
 
 
 #This script cleans prune data for further processing and analysis.
