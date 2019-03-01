@@ -1,3 +1,13 @@
+
+#This script takes uses hourly temperature data to fit temporal interpolation 
+    #models which it then uses to interpolate daily temperature data for a 
+    #much longer time series. It then combines the daily hourly (original and
+    #interpolated) into one data.frame that can be used to fit FlowerModels and
+    #plant models with any functional form and model type.
+
+# Setup -------------------------------------------------------------------
+
+
 datapath <- '/Volumes/GoogleDrive/My Drive/Phenology/data/'
 library(lubridate)	
 library(phenoclim)
@@ -9,11 +19,16 @@ source('functions/datetime.R')
 options(stringsAsFactors = FALSE)
 
 
+# Import data -------------------------------------------------------------
+
+
+#cleaned NOAA data
 nchico <- read.csv(file=file.path(datapath,'clean/noaachico.csv') )
 ndavis <- read.csv(file=file.path(datapath, 'clean/noaadavis.csv'))
 nmod <- read.csv(file=file.path(datapath, 'clean/noaamodesto.csv'))
 nparlier <- read.csv(file=file.path(datapath, 'clean/noaaparlier.csv'))
 
+#cleaned CIMIS data
 cdavis <- read.csv(file.path(datapath, 'clean/cimisdavis.csv'))
 cchico <- read.csv(file.path(datapath, 'clean/cimischicodurham.csv'))
 cmod <- read.csv(file.path(datapath, 'clean/cimismodesto.csv'))
