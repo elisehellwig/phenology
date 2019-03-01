@@ -1,5 +1,9 @@
 initialpars <- function(n) {
-    if (n==1) {
+    #creates a list of initial cardinal temperatures given the number of
+        #parameters in the model
+    # n - numeric, number of parameters in the model
+    
+    if (n==1) { 
         p <- list(4)
     } else if (n==2) {
         p <- list(c(4,25))
@@ -17,6 +21,7 @@ initialparlist <- function(v) {
 }
 
 extractslots <- function(slot, object) {
+    #extracts values from
     
     if (is.list(object[[1]])) {
         n <- length(object)
