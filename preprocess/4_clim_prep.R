@@ -6,7 +6,20 @@ datapath <- '/Volumes/GoogleDrive/My Drive/Phenology/data/'
 source('functions/cleanTemps.R')
 options(stringsAsFactors = FALSE, na.rm=TRUE)
 
-#This script imports climate date from CIMIS and NOAA (NCDC) and cleans it up for further processing and analysis.
+#This script imports climate date from CIMIS and NOAA Climate Data Center and
+    #cleans it up for further processing and analysis.
+
+#NOAA:
+    # https://www.ncdc.noaa.gov/cdo-web/datasets
+    # Daily Summaries Data Set
+    # Measured variables: TMIN and TMAX
+
+#CIMIS: 
+    # https://cimis.water.ca.gov/WSNReportCriteria.aspx
+    # Hourly CSV Report
+    # Measured variables: Air Temperatures
+    # Station List: Davis 
+
 #This script focuses on min and max temperatures.
 
 
@@ -256,57 +269,71 @@ cparlier$name <- recode(cparlier$name, "Fresno State"="FS",
                         "Caruthers"="caruthers",
                         "Visalia"="visalia")
 
-#removing 
+#removing data that are outside the possible range of temperatures
 extremerows <- which(cparlier$qc=='R' | cparlier$temp<= -8 | 
                     cparlier$temp > 45)
 cparlier[extremerows, 'temp'] <- NA
 
+#selecting data from the primary weather station
 cp <- cparlier[which(cparlier$name=='parlier'),]
 
+#filling in temperatures from before 1988
 cp80 <- cparlier[which(cparlier$date<'1988-06-06 00:00:00'), ] 
 cp80d <- fillinTemps(cp80, 'temp',c('caruthers','fresno', 'visalia'),
                      'parlier','name')
 
+#filling in temps between 88 and 99
 cp90 <- cparlier[which(cparlier$date>='1988-06-06 00:00:00' &
                        cparlier$date<'1999-01-01 00:00:00'), ] 
 cp90d <- fillinTemps(cp90, 'temp',c('FS', 'visalia'), 'parlier','name')
 
+#filing in temps between 99 and 07
 cp00 <- cparlier[which(cparlier$date>='1999-01-01 00:00:00' &
                            cparlier$date<'2007-03-01 00:00:00'), ] 
 cp00d <- fillinTemps(cp00, 'temp',c('FS', 'orange', 'visalia'),
                      'parlier','name')
 
+#filling in temps after 07
 cp10 <- cparlier[which(cparlier$date>='2007-03-01 00:00:00'), ] 
 cp10d <- fillinTemps(cp10, 'temp',c('FS', 'orange'), 'parlier','name')
 
+#combining the filled in temperatures
 cimpar <- do.call(rbind, list(cp80d, cp90d, cp00d, cp10d))
+
+#checking for any missing dates
 tsc <- timeSeriesCheck(cimpar, start="1982-06-07 00:00:00 PDT", 
                        end="2018-10-31 23:00:00 PDT", hours = TRUE,
                        datename='date')
 
+#saving data
 write.csv(cimpar, file.path(datapath, 'clean/cimisparlier.csv'),
           row.names=FALSE)
 
 
 # Parlier-NOAA ----------------------------------------------------------
+#importing data
 pn1 <- read.csv(file.path(datapath, 'raw/climate/noaaparlier.csv'))
 pn2 <- read.csv(file.path(datapath, 'raw/climate/noaaparlier2.csv'))
 cimpar <- read.csv(file.path(datapath, 'clean/cimisparlier.csv'))
 
+#converting date and datetime strings to their respective classes
 pn1$DATE <- as.Date(pn1$DATE)
 pn2$DATE <- as.Date(pn2$DATE)
 cimpar$date <- as.POSIXct(cimpar$date)
 cimpar$dateOnly <- as.Date(cimpar$date)
 
+#creating a dataframe with with min and max daily temp values for parlier
+#this is because there is no noaa station in parlier, only a cimis station 
 pn3 <- data.frame(loc='parlier',
                   date=names(tapply(cimpar$temp, cimpar$dateOnly, min)),
                   tmin=unname(tapply(cimpar$temp, cimpar$dateOnly, min)),
                   tmax=unname(tapply(cimpar$temp, cimpar$dateOnly, max)))
 
+#renaming and selecting columns from both NOAA data sources
 pn1 <- pn1 %>% select('loc'='NAME','date'='DATE', 'tmax'='TMAX', 'tmin'='TMIN')
 pn2 <- pn2 %>% select('loc'='NAME','date'='DATE', 'tmax'='TMAX', 'tmin'='TMIN')
 
-#gives them reasonable names
+#gives locations reasonable names
 pn1$loc <- recode(pn1$loc, 
                 "FRESNO YOSEMITE INTERNATIONAL, CA US"='fresno', 
                 "HANFORD 1 S, CA US"='hanford',
@@ -315,45 +342,62 @@ pn1$loc <- recode(pn1$loc,
 
 pn2$loc <- 'lemon'
 
+#combine all three data.frames
 pn <- rbind(pn1, pn2, pn3)
 
+#create year variable
 pn$year <- year(pn$date)
+
+#select only data after 1930 because too many missing days before 1930
 pn <- pn[pn$year >= 1930, ]
+
+#setting temps to NA where min temp > max temp
 pn[which(pn$tmin > pn$tmax), 'tmin'] <- NA
 pn[which(pn$tmin > pn$tmax), 'tmax'] <- NA
+
+#setting temps to NA if they are higher or lower than most extreme values
 pn[which(pn$tmax>46.1 | pn$tmax<=0), 'tmax'] <- NA
 pn[which(pn$tmin<=-8.4), 'tmin'] <- NA
 
-
+#filling in data for the entire parlier time series
 pndmin <- fillinTemps(pn, 'tmin', c('fresno','hanford','visalia','lemon'),
                       'parlier')
 pndmax <- fillinTemps(pn, 'tmax', c('fresno','hanford','visalia','lemon'),
                       'parlier')
 
+#merging the filled in data
 pnd <- merge(pndmin, pndmax)
 
+#checking for missing dates
 tscd <- timeSeriesCheck(pnd, 
                         start="1930-01-01 23:00:00 PDT", 
                         end="2018-10-31 23:00:00 PST", hours = FALSE,
                         datename='date')
 
+#creating year and julian day variables
 pnd$year <- year(pnd$date)
 pnd$day <- yday(pnd$date)
 
+#saving data
 write.csv(pnd, file=file.path(datapath, 'clean/noaaparlier.csv'),
           row.names = FALSE)
 
 
 # Modesto-NOAA ------------------------------------------------------------
+#importing modesto noaa data
 mn1 <- read.csv(file.path(datapath, 'raw/climate/noaamodesto.csv'))
 mn2 <- read.csv(file.path(datapath, 'raw/climate/noaamodesto2.csv'))
 
+#merging 2 data frames
 mn <- rbind(mn1, mn2)
 
+#converting date string to Date class
 mn$DATE <- as.Date(mn$DATE)
 
+#selecting and renaming columns
 mn <- mn %>% select('loc'='NAME','date'='DATE', 'tmax'='TMAX', 'tmin'='TMIN')
 
+#giving stations more reasonable names
 mn$loc <- recode(mn$loc, "DENAIR 3 NNE, CA US"='denair', 
                 "OAKDALE WOODWARD DAM, CA US"='oakdale',
                 "TRACY CARBONA, CA US"='tracy',
@@ -361,105 +405,130 @@ mn$loc <- recode(mn$loc, "DENAIR 3 NNE, CA US"='denair',
                 "MODESTO CITY CO AIRPORT, CA US"='modesto',
                 "TURLOCK NUMBER 2, CA US"='turlock')
 
+#checking for missing dates
 tscd <- timeSeriesCheck(mn[mn$loc=='modesto', ], 
                         start="1926-01-01 23:00:00 PDT", 
                         end="2018-10-31 23:00:00 PST", hours = FALSE,
                         datename='date')
 
-
+#creating year variable
 mn$year <- year(mn$date)
+
+#selecting only data after 1930 due to data missingness
 mn <- mn[mn$year >= 1930, ]
+
+#Setting temps to NA where min temp > max temp
 mn[which(mn$tmin > mn$tmax), 'tmin'] <- NA
 mn[which(mn$tmin > mn$tmax), 'tmax'] <- NA
+
+#Setting temps to NA if they were outside of historical extrema
 mn[which(mn$tmax>46.1 | mn$tmax<=-4), 'tmax'] <- NA
 mn[which(mn$tmin<=-9.0), 'tmin'] <- NA
 
 #note turlock should really start at 1985
 #tapply(mn$date, mn$loc, range)
 
+#filling in data between 1930 and 49
 mn25 <- mn[which(mn$date>='1930-01-01' & mn$date<'1949-10-01'),]
 mndmin25 <- fillinTemps(mn25,'tmin', c('denair','oakdale'), 'modesto')
 mndmax25 <- fillinTemps(mn25,'tmax', c('denair','oakdale'), 'modesto')
 
+#filling in data between 49 and 68
 mn49 <- mn[which(mn$date>='1949-10-01' & mn$date<'1968-01-01'),]
 mndmin49 <- fillinTemps(mn49,'tmin', c('denair','oakdale','stockton'), 
                         'modesto')
 mndmax49 <- fillinTemps(mn49,'tmax', c('denair','oakdale', 'stockton'), 
                         'modesto')
 
+#filling in data between 68 and 84
 mn68 <-  mn[which(mn$date>='1968-01-01' & mn$date<'1984-07-01'),]
 mndmin68 <- fillinTemps(mn68,'tmin', c('denair','stockton'), 
                         'modesto')
 mndmax68 <- fillinTemps(mn68,'tmax', c('denair','stockton'), 
                         'modesto')
 
+#filling in data after 1984
 mn84 <-  mn[which(mn$date>='1984-07-01' & mn$date<='2018-10-31'),]
 mndmin84 <- fillinTemps(mn84,'tmin', c('stockton','turlock'), 
                         'modesto')
 mndmax84 <- fillinTemps(mn84,'tmax', c('stockton','turlock'), 
                         'modesto')
 
+#combining all the filled in data
 mndmin <- do.call(rbind, list(mndmin25,mndmin49,mndmin68,mndmin84))
 mndmax <- do.call(rbind, list(mndmax25,mndmax49,mndmax68,mndmax84))
 
 mnd <- merge(mndmin, mndmax)
 
+#checking to see if there are any missing dates
 tscd <- timeSeriesCheck(mnd, 
                         start="1930-01-01 23:00:00 PDT", 
                         end="2018-10-31 23:00:00 PST", hours = FALSE,
                         datename='date')
 
+#creating year and julian day variables
 mnd$year <- year(mnd$date)
 mnd$day <- yday(mnd$date)
 
+#saving data
 write.csv(mnd, file=file.path(datapath, 'clean/noaamodesto.csv'),
           row.names = FALSE)
 
 # Modesto-CIMIS -----------------------------------------------------------
 
-
+#importing CIMIS data for modesto
 cmod <- importCIMIS(file.path(datapath, 'raw/climate/cimis/modesto'))
 
+#renaming a station with a space in the name
 cmod[which(cmod$name=='Denair II'), 'name'] <- 'DenairII'
 
+#setting temps outside of historical extrema to NA
 extremerows <- which(cmod$qc=='R' | cmod$temp<= -8 | cmod$temp > 45 |
                          (cmod$temp > 38 & (cmod$day > 285| cmod$day<100)))
 cmod[extremerows, 'temp'] <- NA
 
+#selecting only data from the primary station
 cm <- cmod[which(cmod$name=='Modesto'),]
 
+#fill in data from before 1999
 cm80 <- cmod[which(cmod$date<'1999-08-23 00:00:00'), ] 
 cm80d <- fillinTemps(cm80, 'temp',c('Manteca'), 'Modesto','name')
 
+#filling in data between 99 and 04
 cm00 <- cmod[which(cmod$date>='1999-08-23 00:00:00' &
                    cmod$date<'2004-11-02 00:00:00'), ] 
 cm00d <- fillinTemps(cm00, 'temp',
                      c('Manteca', 'Tracy','Patterson','Denair'),
                      'Modesto','name')
 
+#filling in data between 04 and 09
 cm05 <- cmod[which(cmod$date>='2004-11-02 00:00:00' &
                        cmod$date<'2009-04-09 00:00:00'), ] 
 cm05d <- fillinTemps(cm05, 'temp',
                      c('Manteca', 'Tracy','Patterson','Denair','Oakdale'),
                      'Modesto','name')
 
+#filling in data between 09 and 17
 cm10 <- cmod[which(cmod$date>='2009-04-09 00:00:00' &
                        cmod$date<'2017-5-31 00:00:00'), ] 
 cm10d <- fillinTemps(cm10, 'temp',
                     c('Manteca', 'Tracy','Patterson','DenairII','Oakdale'),
                     'Modesto','name')
 
+#filling in data after 2017
 cm15 <- cmod[which(cmod$date>='2017-5-31 00:00:00'), ] 
 cm15d <- fillinTemps(cm15, 'temp',
                      c('Manteca','DenairII','Oakdale'), 'Modesto','name')
 
-
+#merging all of the filled in data
 cimmod <- do.call(rbind, list(cm80d, cm10d, cm00d, cm05d, cm15d))
 
+#checking to see if there are any dates missing
 tsc <- timeSeriesCheck(cimmod, start="1987-06-25 23:00:00 PDT", 
                        end="2018-10-31 23:00:00 PST", hours = TRUE,
                        datename='date')
 
+#saving data
 write.csv(cimmod, file.path(datapath, 'clean/cimismodesto.csv'),
           row.names=FALSE)
 
