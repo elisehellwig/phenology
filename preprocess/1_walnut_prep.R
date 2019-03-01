@@ -16,6 +16,7 @@ library(phenoclim)
 
 options(stringsAsFactors = FALSE)
 
+#read in data specifying where each of the orchards are
 cl <- read.csv(file.path(drivepath,
                          'data/raw/crop/WalnutBreedProgram_Locations.csv'))
 
@@ -23,7 +24,7 @@ names(cl)[1:2] <- c('loc','nearest')
 
 # Import ------------------------------------------------------------------
 
-
+#import all walnut files
 wraw1 <- read.csv(file.path(importpath, 'walnut1954.csv'))
 wraw2 <- read.csv(file.path(importpath,'walnutpope2.csv'))
 wraw3 <- read.csv(file.path(importpath,'walnutbloompope.csv'))
@@ -33,7 +34,7 @@ wraw4 <- read.csv(file.path(importpath,'WalnutJarvisSheanData2018_10.csv'))
 
 # Merge -------------------------------------------------------------------
 
-
+#walnut columns we care about
 wcols <- c('CULT', 'YR','LOCATE','LFDA','HARV')
 
 #removes UC code columns
@@ -42,6 +43,8 @@ w2 <- wraw2[,wcols]
 w3 <- wraw3[,wcols]
 w4 <- wraw4[,wcols]
 
+#we only neeed the most recen data from this file (rest of the data is in other
+    #files)
 w4 <- w4[w4$YR>=2014, ]
 
 #merges the sources of walnut data together
@@ -74,6 +77,7 @@ mw$date <- as.Date(mw$date, format='%m/%d/%Y')
 mw2 <- merge(mw, cl[,c('loc','nearest')])
 mw <- mw2[mw2$nearest=='Davis', c('cultivar','year','variable','date')]
 
+#checking to see if there are duplicates
 w <- mw
 ycheck <- w[,c('year','cultivar','variable')]
 uy <- unique(ycheck)
@@ -84,28 +88,33 @@ for (i in 1:length(uy[,1])) {
 	w[w$cultivar==uy[i,2] & w$year==uy[i,1] & w$variable==uy[i,3], 'date'] <- avgdate(w[w$cultivar==uy[i,2] & w$year==uy[i,1] & w$variable==uy[i,3], 'date'])
 }
 
+#removing duplicates
 w <- unique(w)
 w$day <- yday(w$date)
 
-wc <-dcast(w[,c('cultivar','year','variable','day')], year + cultivar ~ variable, value.var = 'day')
+#converting to wide data
+wc <-dcast(w[,c('cultivar','year','variable','day')], 
+           year + cultivar ~ variable, value.var = 'day')
 
-wc$lfda <- NULL
+wc$lfda <- NULL #removign unnecessary column
 
-names(wc)[3:4] <- c('event2','event1')
+names(wc)[3:4] <- c('event2','event1') #standardizing phenological event names
 
+#converting data to long format
 wm <- melt(wc, id.vars=c('year','cultivar'), value.name = 'day',
            variable.name = 'event', measure.vars = c('event1','event2'))
 
+#removing rows with missing event day values
 nas <- which(is.na(wm$day))
 wm2 <- wm[-nas, ]
 
-
+#cultivars of interest
 cults <- c('Chandler','Franquette','Hartley','Howard','Ivanhoe','Payne','Serr',
            'Solano','Tulare','Vina')
 #cults <- names(which(table(wm2$cultivar)>=70))
 wcults <- wm2[wm2$cultivar %in% cults, ]
 
-
+# save file
 write.csv(wcults, 
           file=file.path(drivepath, 'data/phenology/walnutclean.csv'), 
           row.names=FALSE)
