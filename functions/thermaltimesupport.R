@@ -39,7 +39,8 @@ startHeat <- function(days, years) {
 
 calcThermalTime <- function(events, temperatures, step, modtype, form, 
                             cardinal, start, thresh, varying, 
-                            location=NA, var=NA, datename='dt') {
+                            location=NA, var=NA, datename='dt',
+                            predictorName=NA) {
     source('functions/datetime.R')
     #calculates thermal time for predicting flowering and harvest/season length
         #Note loc must be the name of the column that determines location
@@ -159,7 +160,12 @@ calcThermalTime <- function(events, temperatures, step, modtype, form,
     
     
     #add results to the data.frame
-    eventsC[,paste0(modtype, form)] <- result
+    if (!is.na(predictorName)) {
+        eventsC[,predictorName] <- result
+    } else {
+        eventsC[,paste0(modtype, form)] <- result
+    }
+    
     
     return(eventsC)
     
