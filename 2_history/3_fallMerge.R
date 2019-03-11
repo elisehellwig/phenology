@@ -45,7 +45,8 @@ ah <- a %>%
 asl <- ldply(1:nrow(locVar), function(i) {
     calcThermalTime(ah, temp, 'harvest', 'DT', 'asymcur', c(4,25,36), 0, 
                     locVar[i, 'threshold'], c('start','threshold'), 
-                    location = locVar[i,'loc'], var=locVar[i,'cultivar'])
+                    location = locVar[i,'loc'], var=locVar[i,'cultivar'],
+                    predictor='thermal')
 
 })
 
@@ -56,7 +57,8 @@ asl$crop <- 'almond'
 
 psl <- calcThermalTime(p, temp, 'harvest', 'DT', 'asymcur', c(4,25,36), 0, 
                        pruneThreshold, c('start','threshold'), 
-                       location = 'Parlier', var='French')
+                       location = 'Parlier', var='French', 
+                       predictorName = 'thermal')
 
 
 psl$length1 <- psl$event2 - psl$event1
@@ -74,7 +76,8 @@ ct <- list(c(0.4, 12.1), 11.1, c(4,25,36))
 
 wsl <- ldply(seq_along(cv), function(i) {
     calcThermalTime(w, temp, 'harvest', mt[i], frm[i], ct[[i]], 0, thresh[i], 
-                       c('start','threshold'), var=cv[i])
+                       c('start','threshold'), var=cv[i],
+                    predictorName='thermal')
     })
 
 wsl$length1 <- wsl$event2 - wsl$event1
