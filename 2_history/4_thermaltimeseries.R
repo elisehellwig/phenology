@@ -17,6 +17,8 @@ phenologypath <- '/Volumes/GoogleDrive/My Drive/Phenology/data/phenology'
 
 spring <- read.csv(file.path(historypath, 'spring.csv'), 
                     stringsAsFactors = FALSE)
+locVar <- read.csv(file.path(historypath, 'SeasonLengthParameters.csv'), 
+                   stringsAsFactors = FALSE)
 
 
 temp <- readRDS(file.path(phenologypath, 'dailyhourlytemp.RDS'))
