@@ -34,7 +34,7 @@ saveRDS(ppmDT, file.path(historypath, 'SLpruneDTanderson.RDS'))
 # Almond ------------------------------------------------------------------
 
 asub <- a %>% 
-    filter(cultivar %in% c('Nonpareil','Mission'),
+    filter(cultivar %in% c('Nonpareil','Mission','Sonora'),
            loc %in% c('Chico','Modesto'),
            source != 'NSV') %>% 
     select(-c('source'))
@@ -45,7 +45,7 @@ ac <- dcast(asub, cultivar+year+loc ~ event, value.var='day',
             fun.aggregate = mean)
 acc <- ac[complete.cases(ac),]
 
-locVar <- expand.grid(c('Chico','Modesto'), c('Mission','Nonpareil'))
+locVar <- expand.grid(c('Chico','Modesto'), c('Mission','Nonpareil','Sonora'))
 names(locVar) <- c('location', 'variety')
 
 almondData <- lapply(1:nrow(locVar), function(i) {

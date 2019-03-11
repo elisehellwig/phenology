@@ -40,7 +40,7 @@ pruneThreshold <- round(unlist(threshold(pmod)))
 # Almond Harvest ----------------------------------------------------------
 ah <- a %>% 
     filter(source=='RAVT', loc %in% c('Chico','Modesto'),
-                    cultivar %in% c('Nonpareil','Mission'))
+                    cultivar %in% c('Nonpareil','Mission','Sonora'))
 
 asl <- ldply(1:nrow(locVar), function(i) {
     calcThermalTime(ah, temp, 'harvest', 'DT', 'asymcur', c(4,25,36), 0, 
