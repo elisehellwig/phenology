@@ -376,13 +376,13 @@ kable(mtable, digits=2, col.names=c('Month', 'Minimum','p-value', 'Maximum', 'p-
 ## Almonds
 
 
-Harvest dates were not available for Modesto almonds, so this section will only contain data from Chico. Mean almond season lengths appear to have decreased by varying degrees based on cultivars (Figure 23). However because the time series are so short, it is unclear whether these trends will continue into the future. 
+Mean almond season lengths appear to have decreased by varying degrees based on cultivars (Figure 23). However because the time series are so short, it is unclear whether these trends will continue into the future. 
 
 
 ```{r almond_harvest_year, fig.cap='Almond season lengths over 10 years in Chico, California.', warning=FALSE, echo=FALSE, fig.height=2.5}
 
 amy <- ggplot(data=asl) + facet_wrap(~cultivar) + theme_bw() +
-    geom_point(aes(x=year, y=slen), size=1.5, color=almondcol) +
+    geom_point(aes(x=year, y=length1), size=1.5, color=almondcol) +
     labs(x='year',y='Season Length (days)')
 
 amy
@@ -392,8 +392,8 @@ amy
 
 ```{r almond_harvest, fig.cap='Almond season length by heat sum in Chico, California.', warning=FALSE, echo=FALSE, fig.height=2.5}
 
-amat <- ggplot(data=asl) + facet_wrap(~cultivar) + theme_bw() +
-    geom_point(aes(x=heatscl, y=slen), size=1.5, color=almondcol) +
+amat <- ggplot(data=asl) + facet_grid(loc~cultivar) + theme_bw() +
+    geom_point(aes(x=thermal, y=length1), size=1.5, color=almondcol) +
     labs(x='Scaled Heat Sum',y='Season Length (days)')
 
 amat
@@ -403,9 +403,9 @@ amat
 
 ```{r almond_gdhtime, fig.cap='Almond heat sums over 10 years in Chico, California.', warning=FALSE, echo=FALSE, fig.height=2.5}
 
-agdh <- ggplot(data=asl) + facet_wrap(~cultivar) + theme_bw() +
-    geom_point(aes(x=year, y=heatscl), size=1.5, color=almondcol) +
-    labs(x='year',y='Season Length (days)')
+agdh <- ggplot(data=asl) + facet_grid(loc~cultivar) + theme_bw() +
+    geom_point(aes(x=year, y=thermal), size=1.5, color=almondcol) +
+    labs(x='year',y='Heat Sum')
 
 agdh
 
@@ -422,7 +422,7 @@ French Prune season lengths in Parlier shortened by an average of 0.49 days per 
 ```{r prune_harvest_year, fig.cap='Prune season lengths over 25 years in Parlier, California.', warning=FALSE, echo=FALSE, fig.height=2.5, fig.width=4}
 
 pmy <- ggplot(data=psl) + theme_bw() +
-    geom_point(aes(x=year, y=slen), size=1.5, color=prunecol) +
+    geom_point(aes(x=year, y=length1), size=1.5, color=prunecol) +
     labs(x='year',y='Season Length (days)')
 
 pmy
@@ -438,7 +438,7 @@ Given the trend of increasing fruit development thermal time accumulation in Par
 ```{r prune_harvest, fig.cap='Prune season lengths by heat sum in Parlier, CA.', warning=FALSE, echo=FALSE, fig.height=2.5, fig.width=4}
 
 pmat <- ggplot(data=psl) + theme_bw() + 
-    geom_point(aes(x=heatscl, y=slen), size=1.5, color=prunecol) +
+    geom_point(aes(x=thermal, y=length1), size=1.5, color=prunecol) +
     labs(x='Scaled Heat Sum',y='Season Length (days)')
 
 pmat
@@ -449,7 +449,7 @@ pmat
 ```{r prune_heatsumtime,  fig.cap='Prune heat sum over 25 years in Parlier, CA.', warning=FALSE, echo=FALSE, fig.height=2.5, fig.width=4}
 
 pghd <- ggplot(data=psl) + theme_bw() + 
-    geom_point(aes(x=year, y=heatscl), size=1.5, color=prunecol) +
+    geom_point(aes(x=year, y=thermal), size=1.5, color=prunecol) +
     labs(x='Year',y='Scaled Heat Sum')
 
 pghd
@@ -473,7 +473,7 @@ Payne is the only walnut cultivar whose mean season length shows significant cha
 ```{r walnut_harvest_year, fig.cap='Walnut season lengths over the past 60 years for Chandler, Franquette and Payne Cultivars.', warning=FALSE, echo=FALSE, fig.height=2.5}
 
 wmy <- ggplot(data=wsl) + facet_wrap(~cultivar) + theme_bw() +
-    geom_point(aes(x=year, y=slen), size=1.5, color=walnutcol) +
+    geom_point(aes(x=year, y=length1), size=1.5, color=walnutcol) +
     labs(x='year',y='Season Length (days)')
 
 wmy
@@ -495,8 +495,8 @@ Chandler season length responds strongly to thermal time accumulation in the fir
 
 ```{r walnut_harvest, fig.cap='Heat sum correlation with walnut season lengths over the past 60 years in Davis.', warning=FALSE, echo=FALSE, fig.height=2.5}
 
-wmat <- ggplot(data=wsl) + facet_wrap(~cultivar) + theme_bw() +
-    geom_point(aes(x=heatscl, y=slen), size=1.5, color=walnutcol) +
+wmat <- ggplot(data=wsl) + facet_wrap(~cultivar, scales='free_x') + theme_bw() +
+    geom_point(aes(x=thermal, y=length1), size=1.5, color=walnutcol) +
     labs(x='Scaled Heat Sum',y='Season Length (days)')
 
 wmat
@@ -513,8 +513,8 @@ While Franquette mean season length did not significantly correlate with mean te
 
 ```{r walnut_heatsumtime, fig.cap='Walnut heat sums over the past 60 years.', warning=FALSE, echo=FALSE, fig.height=2.5}
 
-wgdh <- ggplot(data=wsl) + facet_wrap(~cultivar) + theme_bw() +
-    geom_point(aes(x=year, y=heatscl), size=1.5, color=walnutcol) +
+wgdh <- ggplot(data=wsl) + facet_wrap(~cultivar, scale='free_y') + theme_bw() +
+    geom_point(aes(x=year, y=thermal), size=1.5, color=walnutcol) +
     labs(x='Year',y='Scaled Heat Sum')
 
 wgdh
