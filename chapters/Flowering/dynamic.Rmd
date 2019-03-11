@@ -1,0 +1,15 @@
+---
+title: "Parameterizing the Dynamic Model"
+author: "Elise Hellwig"
+date: "3/5/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+**Because the Dynamic Model is so complex parameterizing it based on 
+
+As temperatures warm around the world, 
+Numerous studies have documented that the Dynamic Model of tree flowering (citations), performs better than models that just 
