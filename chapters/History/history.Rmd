@@ -1,5 +1,5 @@
 ---
-title: "Effects of Climate Change on Tree Crop Phenology in California"
+title: "Historic Effects of Climate Change on Tree Crop Phenology in California"
 author: |
   | Elise Hellwig^1^, Katherine Pope^2^, Robert J. Hijmans^1^
   | 1. University of California, Davis
@@ -68,6 +68,7 @@ sourcepath <- '/Users/echellwig/Research/phenology/functions'
 data1 <- '/Volumes/GoogleDrive/My Drive/Phenology/CA_Results/'
 data2 <- '/Volumes/GoogleDrive/My Drive/Phenology/data/historydata'
 data3 <- '/Volumes/GoogleDrive/My Drive/Phenology/Results/history'
+historypath <- '/Volumes/GoogleDrive/My Drive/Phenology/data/history'
 
 source(file.path(sourcepath, 'multiplot.R'))
 source(file.path(sourcepath, 'reportfunctions.R'))
@@ -90,6 +91,9 @@ names(amlabs)[2] <- 'loc'
 mtc <- read.csv(file.path(data2, 'monthlytemperatures.csv'))
 mtcAvg <- dcast(mtc[,c('loc', 'year', 'nmonth', 'tavg')],
                 loc + year ~ nmonth, value.var = 'tavg')
+
+harvest <- readRDS(file.path(historypath, 'harvest.RDS'))
+
 
 spring <- read.csv(file.path(data3, 'spring.csv'))
 
@@ -138,17 +142,15 @@ mos <- 1:12
 
 Tree crops, like almonds and walnuts, made up 35% of the California agricultural sector by income in 2012 and that percentage is increasing (Ag stats 2012). Almonds individually are the second highest valued commodity California produces, second only to milk and cream (Ag Stats 2015). Unlike field crops and other annuals that are replanted every spring, tree crops stay in the same place for multiple decades. They also require more upfront investment as most trees do not fruit until a couple years after planting. Because of this, they are more vulnerable to changes in climate. 
 
-The effects of climate change in California are fairly well documented, especially with respect to drought (citations). However, the potential for groundwater based irrigation systems protects many agricultural systems from significant water stress during all but the most severe droughts (Citation?). Temperatures in California are also changing due to climate change and this has already impacted the phenology for more sensitive crops (Luedeling 2012b). Many papers have has also been demonstrated temperature to be one of the key, if not the key climatic variable when predicting crop phenology (citations).
+The effects of climate change in California are fairly well documented, especially with respect to drought (citations). However, the potential for groundwater based irrigation systems protects many agricultural systems from significant water stress during all but the most severe droughts (Citation?). Temperatures in California are also changing due to climate change and this many already have impacted the phenology for more sensitive crops (Luedeling 2012b). Many papers have has also been demonstrated temperature to be one of the key, if not the key climatic variable when predicting crop phenology (citations). 
 
-When discussing fall phenology, the most commonly referenced development stage is maturity, the first possible harvest date [@mimoun1998; @tombesi2010; @ruml2011]. However, maturity is correlated with flowering.  Everything else being equal, a tree that bloomed earlier will also be ready to harvest earlier. Consequently, changes in harvest readiness date can be due to changes in flowering dates and/or changes in temperature after flowering dates. To avoid confounding these two phenomena, we use season length (time from flowering to maturity) as the fall phenological response, instead of harvest date.
-
+However, it is not enough to just look at the predictors of flowering and harvest dates when assessing climate risk. It is also necessary to compare these predictors to actually flowering and harvest dates, and investigate changes to these dates over time. 
 
 The majority of variation in California temperatures over the past 100 years is not due to climate change, but rather is inter-annual. Since temperature variablility between years is so great, we can use crops' phenological responses over many years to fit models relating temperature and crop phenology (citation). The effects of temperature on thermal time and flowering and leaf out have also been investigated for many crops in the Central Valley using this method (Luedeling 2012). The effects on harvest however, are not as well studied.
 
+When discussing fall phenology, the most commonly referenced development stage is maturity, the first possible harvest date [@mimoun1998; @tombesi2010; @ruml2011]. However, maturity is correlated with flowering.  Everything else being equal, a tree that bloomed earlier will also be ready to harvest earlier. Consequently, changes in harvest readiness date can be due to changes in flowering dates and/or changes in temperature after flowering dates. To avoid confounding these two phenomena, we use season length (time from flowering to maturity) as the fall phenological response, instead of harvest date.
 
-This paper documents themperature changes in California over the past century and relates those changes to changes in almond, prune and walnut phenology in the Central Valley. 
-
-
+This paper documents temperature changes in California over the past century and relates those changes to changes in almond, prune and walnut phenology in the Central Valley. Temperature increases due to climate change vary by region in California. By looking at tree response to interannual temperature variation, we can explain past phenological trends and predict future ones.
 
 # Methods
 
@@ -158,11 +160,7 @@ This paper documents themperature changes in California over the past century an
 
 Climate data for each of the focal orchard sites was obtained from the National Climatic Data Center (NCDC, Menne and Houston 2015) and from California Irrigation Management Information System (CIMIS, California Department of Water Resources 2015). The NCDC provided daily minumum and maxiumum temperature data going back to 1906, and CIMIS provided hourly data back to 1983. Several climate stations were chosen for each orchard location to ensure there would be data for every day in the time span of the orchard datasets for each location (Table X). The closest station to the site with at least 85% completeness was chosen as the primary station (indicated by a *). Temperature data from other stations was related to temperature data from the primary station via a linear regression. This model was then used to fill in gaps in the primary station’s data. In cases where there were nearby NCDC and CIMIS weather stations, one primary station was chosen for each data source.
 
-## Monthly temperatures
-
-We considered the monthly average minimum, maximum, and mean temperatures for November through July as simple climate metrics. These eight months are deemed to have the most influence over tree crop flowering and fruit development [@ramos1997]. Temperatures in November, December and January are generally associated with the amount of chill accumulation, as well as February, if a tree blooms later in the spring (e.g. prunes, walnuts). In contrast, February and March are associated primarily with heat accumulation, as well as January for early blooming crops (e.g. almond). That is, given that vernalization requirements are at least partly met, trees will generally flower earlier if temperatures are higher during February and March [@micke1996; @buchner2012; @ramos1997]. 
-
-By the end of April almost all of the tree crops have bloomed [@ramos1997], so temperatures during May, June, and July only affect season length. In addition, early flowering crops (e.g. almonds) may start fruit or nut development as early as March. The Aikaike Information Criterion (AIC) was used to select the months with the best ability to predict flowering date and season length for each cultivar. These groups of months were then modified to remove collinearity. 
+### 
 
 We analyzed both the monthly and annual temperature time series with a first degree autoregressive linear model, due the presence of autocorrelation in the data. A first degree autoregressive linear model is a statistical model where the value of the dependent variable for time *t* is a predictor for the value of the dependent variable at time *t+1* [@cressie2015]. 
 
@@ -204,10 +202,10 @@ Changes in bloom or leaf-out dates over time were analyzed using both linear reg
 
 #Results
 
-# Temperature Trends
+## Temperature Trends
 
 
-```{r annual_min_plot, warning=FALSE, echo=FALSE, fig.cap='Figure 3. Mean Annual Minimum Temperatures from 1931 to 2014, duration of phenology record shown with grey lines.', fig.height=5, fig.width=6, tidy=TRUE}
+```{r annual_min_plot, warning=FALSE, echo=FALSE, fig.cap='Figure 3. Mean Annual Minimum Temperatures from 1930 to 2017, duration of phenology record shown with grey lines.', fig.height=5, fig.width=6, tidy=TRUE}
 
 am_min <- am[am$variable=='tmin',]
 labs_min <- amlabs[amlabs$variable=='tmin', ]
@@ -227,7 +225,7 @@ minplot
 ```
 
 
-```{r annual_max_plot, warning=FALSE, echo=FALSE, fig.cap='Figure 3. Mean Annual Minimum Temperatures from 1931 to 2014, duration of phenology record shown with grey lines.', fig.height=5, fig.width=6, tidy=TRUE}
+```{r annual_max_plot, warning=FALSE, echo=FALSE, fig.cap='Figure 3. Mean Annual Minimum Temperatures from 1930 to 2017, duration of phenology record shown with grey lines.', fig.height=5, fig.width=6, tidy=TRUE}
 
 am_max <- am[am$variable=='tmax',]
 labs_max <- amlabs[amlabs$variable=='tmax', ]
@@ -251,7 +249,6 @@ maxplot
 Over the past 80 years, annual temperatures minimum temperatures have stayed roughly the same in Chico but the annual maximum temperature has increased by 0.085  &deg;C (Table 5, Figures 2-3). No monthly minimum temperatures in Chico exhibit any significant trends. However, January, February, and December monthly maximum temperatures show significant increasing trends (Table 5).
 
 Modesto minimum temperatures show the strongest warming trends of all the locations, with a mean increase of 0.2 &deg;C per decade (Figure 3, Table 2). In addition, all mean minimum temperatures show significant increases in all months except for January and the means from eight months increased at over 0.3&deg;C per decade (Table 2). The annual maximum temperature in Modesto is also increasing, but not as rapidly (Figure 4, Table 5). Also, only seven months exhibit significant positive thrends in temperature (Table 5).
-
 
 
 ```{r chico_table, warning=FALSE,echo=FALSE}
@@ -425,9 +422,6 @@ In addition to examining chill accumulation, we analyzed when chill and heat req
 The timing of the post-chill heat requirement being met did change significantly over time for the Sonora cultivar in both Chico and Modesto and for the Nonpareil cultivar in Modesto according to the linear models (Figures 13-18, Tables 8-9). On average the heat requirement for these cultivars was being met 0.7-0.9 days earlier every year over the course of the bloom record. . Note that in the figures below that zero is January 1st, as with Julian days. Negative numbers on the y-axis signify days in the previous calendar year. For example, Day of Year: -10 is December 22nd. Bloom data are the same as those given in Figures 5 & 6.
 
 The fact that the heat metrics for Sonora and Nonpareil almonds have shown significant change but that there has been no change detected in the timing of bloom points to the complex inter-relatedness of a number of determinants of bloom, and requires further research to be more adequately explained. 
-
-
-
 
 
 ```{r almondbloom_time, fig.cap='Almond bloom over the past 70 years in Chico and Modesto, California.'}
@@ -681,7 +675,6 @@ pghd
 
 
 ## Walnuts
-
 
 
 Mean season length in Payne walnuts decreased significantly over the past 50 years (Figure 58). Chandler and Franquette season lengths seem to have stayed fairly stable. However, because of the variability in the data, it is possible that a longer time series will exhibit a significant trend. This is particularly relevant for Chandler walnuts, as they were only developed in the last 50 years. 
