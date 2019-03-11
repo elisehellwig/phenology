@@ -93,25 +93,9 @@ mtcAvg <- dcast(mtc[,c('loc', 'year', 'nmonth', 'tavg')],
                 loc + year ~ nmonth, value.var = 'tavg')
 
 harvest <- readRDS(file.path(historypath, 'harvest.RDS'))
-
-
-spring <- read.csv(file.path(data3, 'spring.csv'))
-
-a <- read.csv(file.path(data2, 'almondclean.csv'))
-af <- a %>% filter(event=='event1', cultivar %in% c('Nonpareil', 'Mission'),
-                   loc %in% c('Chico','Modesto'))
-asl <- a %>% filter(event=='event2', cultivar %in% c('Nonpareil', 'Mission'))
-
-
-p <- read.csv(file.path(data2, 'pruneclean.csv'))
-pf <- p %>% filter(event=='event1')
-psl <- p %>% filter(event=='event2')
-
-w <- read.csv(file.path(data2, 'walnutclean.csv'))
-wf <- w %>% filter(event=='event1',
-                   cultivar %in% c('Chandler', 'Payne','Franquette'))
-wsl <- w %>% filter(event=='event2',
-                    cultivar %in% c('Chandler', 'Payne','Franquette'))
+asl <- filter(harvest, crop=='almond')
+psl <- filter(harvest, crop=='prune')
+wsl <- filter(harvest, crop=='walnut')
 
 #Katherine's data
 
