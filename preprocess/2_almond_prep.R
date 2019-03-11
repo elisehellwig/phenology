@@ -112,8 +112,9 @@ a <- rbind(a1, a2, a3)
 a$year <- as.numeric(a$year)
 
 #renaming locations
-a$loc <- recode(a$loc, 'Manteca'='Modesto', 'Mission '='Mission')
-a$cultivar <- recode(a$cultivar, 'Mission '='Mission')
+a$loc <- recode(a$loc, 'Manteca'='Modesto')
+a$cultivar <- recode(a$cultivar, 'Mission '='Mission', 
+                     'General'='Nonpareil')
 
 #a <- unique(a)
 #save file
