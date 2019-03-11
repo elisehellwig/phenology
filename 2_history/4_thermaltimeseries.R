@@ -26,8 +26,17 @@ temp$dt <- as.POSIXct(temp$dt, format="%Y-%m-%d %H:%M:%OS")
 
 
 
-# Average Event Days ------------------------------------------------------
+# Almonds -----------------------------------------------------------------
 
-factorlist <- list(harvest$crop, harvest$loc, harvest$cultivar)
+a <- spring %>% 
+    filter(crop=='almond', event=='event1') %>% 
+    select(loc, cultivar, year, 'event1'=day)
 
-avg1 <- tapply(harvest$event1, factorlist, mean, na.rm=TRUE)
+asl <- ldply(1:4, function(i) {
+    calcThermalTime(a, temp, 'harvest', 'DT', 'asymcur', c(4,25,36), 0, 
+                    locVar[i, 'threshold'], c('start','threshold'), 
+                    location = locVar[i,'loc'], var=locVar[i,'cultivar'],
+                    predictor='thermal')
+    
+})
+
