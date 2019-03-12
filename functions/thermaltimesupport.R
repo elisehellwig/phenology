@@ -71,6 +71,7 @@ calcThermalTime <- function(events, temperatures, step, modtype, form,
         temperatures[,datename] <- toPOSIX(temperatures[,datename])
     }
     
+    #print(1)
     #if a location is specified, select data only from that location
     if (!is.na(location)) {
         events <- filter(events, loc==location)
@@ -82,7 +83,7 @@ calcThermalTime <- function(events, temperatures, step, modtype, form,
         events <- filter(events, cultivar==var)
     }
     
-    
+    #print(2)
     events <- unique(events) #make sure there are no repeat observations
     yrtable <- table(events[,'year']) # how many for events for each year
     
@@ -93,6 +94,7 @@ calcThermalTime <- function(events, temperatures, step, modtype, form,
         eventsC <- dcast(events, cultivar + loc+year ~ event, value.var = 'day')
         eventsC <- eventsC[complete.cases(eventsC), ] #complete observations
         
+       # print(3)
     } else {
         eventsC <- events
     } 
@@ -100,13 +102,15 @@ calcThermalTime <- function(events, temperatures, step, modtype, form,
     years <- eventsC[,'year'] #years for which we have data
     
     if (step=='harvest') { #for harvest step
-        
+        #print(4)
         
         startdays <- eventsC[,'event1'] #set the start day to be flowering
         
+        print(head(years))
+        print(head(startdays))
         #convert day of flowering to to date
         startdates <- dayToDate(years, startdays, 'PlantModel', varying)
-        
+        #print(3)
         if (modtype=='DT') { #convert thresh to date if necessary
             threshvalues <- startdates + days(thresh)
         } else {
@@ -157,7 +161,7 @@ calcThermalTime <- function(events, temperatures, step, modtype, form,
         
     }
     
-    
+    #print(5)
     
     #add results to the data.frame
     if (!is.na(predictorName)) {
