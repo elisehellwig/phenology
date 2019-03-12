@@ -75,6 +75,7 @@ a2$event <- 'event1'
 
 voi3 <- c('Year','Location','X','Hull.Split.Start','X90..bloom')
 
+
 #selecting only variables we want
 adat3 <- araw3 %>% 
     select(voi3) %>% 
