@@ -66,20 +66,20 @@ a2$loc <- 'Chico'
 a2$source <-'NSV'
 
 #select variable we want
-a2 <- a2[a2$event=='First_Flower', voi]
+a2 <- a2[a2$event=='Full_Bloom', voi]
 a2$event <- 'event1'
 
 
 # Formatting third data source ---------------------------------------------
 
 
-voi3 <- c('Year','Location','X','Hull.Split.Start','X10..bloom')
+voi3 <- c('Year','Location','X','Hull.Split.Start','X80..bloom')
 
 #selecting only variables we want
 adat3 <- araw3 %>% 
     select(voi3) %>% 
     rename('year'='Year', 'loc'='Location', 'cultivar'='X', 
-           'event2'='Hull.Split.Start', 'event1'='X10..bloom') %>% 
+           'event2'='Hull.Split.Start', 'event1'='X80..bloom') %>% 
     add_column(source='RAVT')
 
 #renaming locations
@@ -113,8 +113,7 @@ a$year <- as.numeric(a$year)
 
 #renaming locations
 a$loc <- recode(a$loc, 'Manteca'='Modesto')
-a$cultivar <- recode(a$cultivar, 'Mission '='Mission', 
-                     'General'='Nonpareil')
+a$cultivar <- recode(a$cultivar, 'Mission '='Mission')
 
 #a <- unique(a)
 #save file

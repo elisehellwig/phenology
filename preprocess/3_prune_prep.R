@@ -63,7 +63,7 @@ p2$cultivar <- as.character(p2$cultivar)
 p2$loc <- 'Chico'
 
 #selecting only the phenological event we want
-p2 <- p2[p2$event=='First_Flower', ]
+p2 <- p2[p2$event=='Full_Bloom', ]
 
 p2$event <- 'event1'
 
