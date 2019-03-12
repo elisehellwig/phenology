@@ -28,11 +28,11 @@ praw2 <- read.csv(file.path(importpath,'NSVPrune.csv'))
 # Clean first data source -------------------------------------------------
 
 #renaming columns
-names(praw1) <- c('event1','bend','event2','cultivar','loc','year')
+names(praw1) <- c('bstart','event1','event2','cultivar','loc','year')
 
 #converting to long format data
 p1melt <- melt(praw1, id.vars=c('cultivar','loc','year'),
-               measure.vars = c('event1','bend','event2'),
+               measure.vars = c('bstart','event1','event2'),
                variable.name = 'event',
                value.name = 'date')
                 
@@ -63,7 +63,7 @@ p2$cultivar <- as.character(p2$cultivar)
 p2$loc <- 'Chico'
 
 #selecting only the phenological event we want
-p2 <- p2[p2$event=='First_Flower', ]
+p2 <- p2[p2$event=='Full_Bloom', ]
 
 p2$event <- 'event1'
 
