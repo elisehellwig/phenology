@@ -28,7 +28,7 @@ temp$dt <- as.POSIXct(temp$dt, format="%Y-%m-%d %H:%M:%OS")
 
 # Almonds -----------------------------------------------------------------
 
-aLocVar <- filter(locVar, crop=='almond')
+aLocVar <- filter(locVar, crop=='almond', cultivar != 'Sonora')
 
 a <- spring %>% 
     filter(crop=='almond', event=='event1') %>% 
