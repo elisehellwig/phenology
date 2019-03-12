@@ -79,13 +79,14 @@ voi3 <- c('Year','Location','X','Hull.Split.Start','X80..bloom')
 adat3 <- araw3 %>% 
     select(voi3) %>% 
     rename('year'='Year', 'loc'='Location', 'cultivar'='X', 
-           'event2'='Hull.Split.Start', 'event1'='X80..bloom')
+           'event2'='Hull.Split.Start', 'event1'='X80..bloom') %>% 
+    add_column(source='RAVT')
 
 #renaming locations
 adat3$loc <- recode(adat3$loc, `1`='Chico',`2`='Manteca', `3`='Shafter')
 
 #converting data to long format
-adat3 <- melt(adat3, id.vars = c('year','loc','cultivar'),
+adat3 <- melt(adat3, id.vars = c('year','loc','cultivar', 'source'),
               measure.vars = c('event1','event2'),
               variable.name = 'event',value.name = 'date')
 
@@ -97,7 +98,7 @@ a3 <- adat3[-zerorows, ]
 a3$Date <- as.Date(paste(a3$date, a3$year, sep='-'), format='%d-%b-%Y')
 a3$day <- yday(a3$Date)
 
-a3 <- a3[,voi[-4]]
+a3 <- a3[,voi]
 
 
 
@@ -106,15 +107,8 @@ a3 <- a3[,voi[-4]]
 
 #combining all of the data and 
 
-aflower <- rbind(a1, a2)
+a <- rbind(a1, a2, a3)
 
-aflowerW <- dcast(aflower, loc + cultivar + year ~ event, value.var = 'day',
-                  fun.aggregate = mean)
-aflowerL <- melt(aflowerW, id.vars=c('loc','cultivar','year'), 
-                 measure.vars = 'event1', variable.name = 'event', 
-                 value.name = 'day')
-
-a <- rbind(aflowerL, a3)
 a$year <- as.numeric(a$year)
 
 #renaming locations
@@ -125,3 +119,4 @@ a$cultivar <- recode(a$cultivar, 'Mission '='Mission')
 #save file
 write.csv(a, file.path(drivepath,'data/phenology/almondclean.csv'),
           row.names = FALSE)
+
