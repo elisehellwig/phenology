@@ -32,6 +32,9 @@ temp <- readRDS(file.path(phenologypath, 'dailyhourlytemp.RDS'))
 temp$dt <- as.POSIXct(temp$dt, format="%Y-%m-%d %H:%M:%OS")
 
 
+locVar <- read.csv(file.path(historypath, 'SeasonLengthParameters.csv'), 
+                   stringsAsFactors = FALSE)
+
 almondK <- read.csv(file.path(inpath, 'Almond_CrCragHrJD.csv'))
 pruneK <- read_csv(file.path(inpath, 'Prune_Cr38JD_Crag49JD_HrJD.csv')) 
 
@@ -45,26 +48,26 @@ walnutK <- read_csv(file.path(outpath, 'walnutchill.csv'))
 # Almonds -----------------------------------------------------------------
 acults <- c('Nonpareil','Mission')
 
-a <- a %>% filter(source=='FF', loc=='Chico', 
-                  cultivar %in% acults)
+a <- filter(a, cultivar %in% acults, loc %in% c('Chico','Modesto'),
+            source=='FF')
+aLocVar <- filter(locVar, crop=='almond')
 
-
-af1 <- ldply(acults, function(cv) {
+af1 <- ldply(1:nrow(aLocVar), function(i) {
     calcThermalTime(a, temp, 'flowering', 'TTT', 'chillPortions', NA, 305,
-                          22, NA, 'Chico', cv)
+                          22, NA, aLocVar[i,'loc'], aLocVar[i, 'cultivar'])
 })
 
-startheatA <- lapply(acults, function(cv) {
-    aff <- filter(af1, cultivar==cv)
+startheatA <- lapply(1:nrow(aLocVar), function(i) {
+    aff <- filter(af1, cultivar==aLocVar[i, 'cultivar'], 
+                  loc==aLocVar[i, 'loc'])
     startHeat(aff$TTTchillPortions, aff$year)
 })
 
 
-names(startheatA) <- acults
-
-af2 <- ldply(acults, function(cv) {
+af2 <- ldply(1:nrow(aLocVar), function(i) {
     calcThermalTime(a, temp, 'flowering', 'TTT', 'linear', 4.5, 
-                    startheatA[[cv]], 6000, NA, 'Chico', cv)
+                    startheatA[[i]], 6000, NA, aLocVar[i, 'loc'],
+                    aLocVar[i, 'cultivar'])
 })
 
 af <- merge(af1, af2)
