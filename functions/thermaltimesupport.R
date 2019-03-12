@@ -106,8 +106,8 @@ calcThermalTime <- function(events, temperatures, step, modtype, form,
         
         startdays <- eventsC[,'event1'] #set the start day to be flowering
         
-        print(head(years))
-        print(head(startdays))
+        #print(head(years))
+        #print(head(startdays))
         #convert day of flowering to to date
         startdates <- dayToDate(years, startdays, 'PlantModel', varying)
         #print(3)
