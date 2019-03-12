@@ -73,13 +73,13 @@ a2$event <- 'event1'
 # Formatting third data source ---------------------------------------------
 
 
-voi3 <- c('Year','Location','X','Hull.Split.Start','X80..bloom')
+voi3 <- c('Year','Location','X','Hull.Split.Start','X90..bloom')
 
 #selecting only variables we want
 adat3 <- araw3 %>% 
     select(voi3) %>% 
     rename('year'='Year', 'loc'='Location', 'cultivar'='X', 
-           'event2'='Hull.Split.Start', 'event1'='X80..bloom') %>% 
+           'event2'='Hull.Split.Start', 'event1'='X90..bloom') %>% 
     add_column(source='RAVT')
 
 #renaming locations
