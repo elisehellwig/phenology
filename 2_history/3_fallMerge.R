@@ -31,7 +31,7 @@ temp$dt <- as.POSIXct(temp$dt, format="%Y-%m-%d %H:%M:%OS")
 
 # Extract model thresholds ------------------------------------------------
 locVar <- expand.grid('almond', c('Chico','Modesto'), 
-                      c('Mission','Nonpareil'))
+                      c('Mission','Nonpareil','Sonora'))
 names(locVar) <- c('crop','loc','cultivar')
 
 locVar$threshold <- sapply(amod, function(m) round(unlist(threshold(m))))
@@ -43,18 +43,22 @@ locVar <- rbind(locVar, data.frame(crop='prune',
                                    cultivar='French',
                                    threshold=pruneThreshold))
 
-write.csv(locVar, file.path(historypath, 'SeasonLengthParameters.csv'),
-          row.names=FALSE)
+locVar$modtype <- 'DT'
+locVar$form <- 'asymcur'
+
+
 
 # Almond Harvest ----------------------------------------------------------
 ah <- a %>% 
     filter(source=='RAVT', loc %in% c('Chico','Modesto'),
                     cultivar %in% c('Nonpareil','Mission','Sonora'))
 
-asl <- ldply(1:nrow(locVar), function(i) {
+aLocVar <- filter(locVar, crop=='almond')
+
+asl <- ldply(1:nrow(aLocVar), function(i) {
     calcThermalTime(ah, temp, 'harvest', 'DT', 'asymcur', c(4,25,36), 0, 
-                    locVar[i, 'threshold'], c('start','threshold'), 
-                    location = locVar[i,'loc'], var=locVar[i,'cultivar'],
+                    aLocVar[i, 'threshold'], c('start','threshold'), 
+                    location = aLocVar[i,'loc'], var=aLocVar[i,'cultivar'],
                     predictor='thermal')
 
 })
@@ -78,14 +82,23 @@ psl$crop <- 'prune'
 
 cv <- c('Chandler','Payne','Franquette')
 w$loc <- 'Davis'
-mt <- c('TTT', 'DT', 'DT')
-frm <- c('flat','gdd','asymcur')
-thresh <- c(50127.33,62,46)
+
+locVar2 <- data.frame(crop='walnut',
+                      loc='Davis',
+                      cultivar=cv,
+                      threshold=c(50127.33,62,46),
+                      modtype=c('TTT', 'DT', 'DT'),
+                      form=c('flat','gdd','asymcur')) 
+locVar <- rbind(locVar, locVar2)
+write.csv(locVar, file.path(historypath, 'SeasonLengthParameters.csv'),
+          row.names=FALSE)
 ct <- list(c(0.4, 12.1), 11.1, c(4,25,36))
 
-wsl <- ldply(seq_along(cv), function(i) {
-    calcThermalTime(w, temp, 'harvest', mt[i], frm[i], ct[[i]], 0, thresh[i], 
-                       c('start','threshold'), var=cv[i],
+wLocVar <- filter(locVar, crop=='walnut')
+wsl <- ldply(1:nrow(wLocVar), function(i) {
+    calcThermalTime(w, temp, 'harvest', wLocVar[i, 'modtype'], 
+                    wLocVar[i,'form'], ct[[i]], 0, wLocVar[i, 'threshold'], 
+                    c('start','threshold'), var=wLocVar[i,'cultivar'],
                     predictorName='thermal')
     })
 
