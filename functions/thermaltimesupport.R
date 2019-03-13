@@ -175,7 +175,49 @@ calcThermalTime <- function(events, temperatures, step, modtype, form,
     
 }
 
-
+fillPhenology <- function(x, event, first, last=NA, location=NA, variety=NA) {
+    
+    voi <- c('year', event)
+    
+    if (!is.na(location)) {
+        voi <- c(location, voi)
+    }
+    
+    if (!is.na(variety)) {
+        voi <- c(variety, voi)
+    }
+    
+    fdat <- x %>% 
+        filter(loc=location, cultivar=variety) %>% 
+        select(voi)
+    
+    if (is.na(last)) {
+        last <- max(fdat[,'year'])
+    }
+    
+    
+    avgday <- mean(fdat[,event])
+    
+    missingyears <- setdiff(first:last, fdat[,'year'])
+    
+    filleddata <- data.frame(year=missingyears)
+    
+    filleddata[,event] <- avgday
+    
+    if (!is.na(variety)) {
+        filleddata <- cbind(data.frame(cultivar=variety), filleddata)
+    }
+    
+    if (!is.na(location)) {
+        filleddata <- cbind(data.frame(loc=location), filleddata)
+    }
+    
+    
+    alldata <- rbind(fdat, filleddata)
+    
+    return(alldata)
+    
+}
 
 
 
