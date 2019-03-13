@@ -180,15 +180,15 @@ fillPhenology <- function(x, event, first, last=NA, location=NA, variety=NA) {
     voi <- c('year', event)
     
     if (!is.na(location)) {
-        voi <- c(location, voi)
+        voi <- c('loc', voi)
     }
     
     if (!is.na(variety)) {
-        voi <- c(variety, voi)
+        voi <- c('cultivar', voi)
     }
     
     fdat <- x %>% 
-        filter(loc=location, cultivar=variety) %>% 
+        filter(loc==location, cultivar==variety) %>% 
         select(voi)
     
     if (is.na(last)) {
@@ -202,7 +202,7 @@ fillPhenology <- function(x, event, first, last=NA, location=NA, variety=NA) {
     
     filleddata <- data.frame(year=missingyears)
     
-    filleddata[,event] <- avgday
+    filleddata[,event] <- round(avgday)
     
     if (!is.na(variety)) {
         filleddata <- cbind(data.frame(cultivar=variety), filleddata)
