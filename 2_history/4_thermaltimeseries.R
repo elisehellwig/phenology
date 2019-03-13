@@ -49,7 +49,7 @@ asl <- ldply(1:nrow(aLocVar), function(i) {
     
 })
 
-
+asl$crop <- 'almond'
 # Prune -------------------------------------------------------------------
 
 p <- spring %>% 
@@ -67,6 +67,7 @@ psl <- ldply(unique(p$loc), function(l) {
                     location = l, predictor='thermal')
 })
 
+psl$crop <- 'prune'
 
 # Walnut ------------------------------------------------------------------
 
@@ -93,7 +94,7 @@ wsl <- ldply(1:nrow(wLocVar), function(i) {
 })
 
 
-
+wsl$crop <- 'walnut'
 # Combine data and save ---------------------------------------------------
 
 sl <- rbind(asl, psl, wsl)
