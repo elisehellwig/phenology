@@ -35,14 +35,14 @@ a <- spring %>%
     select(loc, cultivar, year, 'event1'=day)
 
 
-afill <- ldply(1:nrow(aLocVar), function(i) {
-    fillPhenology(a, 'event1', 1930, 2017, aLocVar[i,'loc'],
-                  aLocVar[i,'cultivar'])
-})
+# afill <- ldply(1:nrow(aLocVar), function(i) {
+#     fillPhenology(a, 'event1', 1930, 2017, aLocVar[i,'loc'],
+#                   aLocVar[i,'cultivar'])
+# })
 
 
 asl <- ldply(1:nrow(aLocVar), function(i) {
-    calcThermalTime(afill, temp, 'harvest', 'DT', 'asymcur', c(4,25,36), 0, 
+    calcThermalTime(a, temp, 'harvest', 'DT', 'asymcur', c(4,25,36), 0, 
                     aLocVar[i, 'threshold'], c('start','threshold'), 
                     location = aLocVar[i,'loc'], var=aLocVar[i,'cultivar'],
                     predictor='thermal')
@@ -56,13 +56,13 @@ p <- spring %>%
     filter(crop=='prune',event=='event1') %>% 
     select(loc, cultivar, year, 'event1'=day)
 
-pfill <- ldply(c('Chico','Parlier'), function(l) {
-    fillPhenology(p, 'event1', 1930, 2017, l, 'French')
-})
+# pfill <- ldply(c('Chico','Parlier'), function(l) {
+#     fillPhenology(p, 'event1', 1930, 2017, l, 'French')
+# })
 
 
 psl <- ldply(unique(p$loc), function(l) {
-    calcThermalTime(pfill, temp, 'harvest', 'DT', 'asymcur', c(4,25,36), 0, 
+    calcThermalTime(p, temp, 'harvest', 'DT', 'asymcur', c(4,25,36), 0, 
                     locVar[5, 'threshold'], c('start','threshold'), 
                     location = l, predictor='thermal')
 })
@@ -78,16 +78,16 @@ w <- spring %>%
     select(loc, cultivar, year, 'event1'=day)
 
 
-wfill <-  ldply(1:nrow(wLocVar), function(i) {
-    fillPhenology(w, 'event1', 1930, 2017, wLocVar[i,'loc'],
-                  wLocVar[i,'cultivar'])
-})
+# wfill <-  ldply(1:nrow(wLocVar), function(i) {
+#     fillPhenology(w, 'event1', 1930, 2017, wLocVar[i,'loc'],
+#                   wLocVar[i,'cultivar'])
+# })
 
 
 ct <- list(c(0.4, 12.1), 11.1, c(4,25,36))
 
 wsl <- ldply(1:nrow(wLocVar), function(i) {
-    calcThermalTime(wfill, temp, 'harvest', wLocVar[i, 'modtype'], 
+    calcThermalTime(w, temp, 'harvest', wLocVar[i, 'modtype'], 
                     wLocVar[i,'form'], ct[[i]], 0, wLocVar[i, 'threshold'], 
                     c('start','threshold'), var=wLocVar[i,'cultivar'],
                     predictorName='thermal')
