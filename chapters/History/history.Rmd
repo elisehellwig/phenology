@@ -96,11 +96,12 @@ harvest <- readRDS(file.path(historypath, 'harvest.RDS'))
 asl <- filter(harvest, crop=='almond')
 psl <- filter(harvest, crop=='prune')
 wsl <- filter(harvest, crop=='walnut')
+tts <- readRDS(file.path(historypath, 'ThermalTimeSeries.RDS'))
+locVar <- read.csv(file.path(historypath, 'SeasonLengthParameters.csv'))
 
 #Katherine's data
 
 #Monthly and Total Winter Chill Accumulation for all sites (Chico, Davis, Modesto, Parlier)
-wca <- read.csv(file.path(data1, 'data/monthlychillaccumulation.csv')) 
 pblm <- read.csv(file.path(data1, 'data/Bloom_Parlier_French_ksp.csv')) #Prune bloom at Parlier
 
 
@@ -134,7 +135,7 @@ The majority of variation in California temperatures over the past 100 years is 
 
 When discussing fall phenology, the most commonly referenced development stage is maturity, the first possible harvest date [@mimoun1998; @tombesi2010; @ruml2011]. However, maturity is correlated with flowering.  Everything else being equal, a tree that bloomed earlier will also be ready to harvest earlier. Consequently, changes in harvest readiness date can be due to changes in flowering dates and/or changes in temperature after flowering dates. To avoid confounding these two phenomena, we use season length (time from flowering to maturity) as the fall phenological response, instead of harvest date.
 
-This paper documents temperature changes in California over the past century and relates those changes to changes in almond, prune and walnut phenology in the Central Valley. Temperature increases due to climate change vary by region in California. By looking at tree response to interannual temperature variation, we can explain past phenological trends and predict future ones.
+This paper documents temperature changes in California over the past century and relates those changes to changes in almond, prune and walnut phenology in the Central Valley. Realized temperature increases due to climate change vary by region in California. By looking at tree response to interannual temperature variation, we can explain past phenological trends and predict future ones.
 
 # Methods
 
@@ -142,24 +143,7 @@ This paper documents temperature changes in California over the past century and
 
 ### Climate Data
 
-Climate data for each of the focal orchard sites was obtained from the National Climatic Data Center (NCDC, Menne and Houston 2015) and from California Irrigation Management Information System (CIMIS, California Department of Water Resources 2015). The NCDC provided daily minumum and maxiumum temperature data going back to 1906, and CIMIS provided hourly data back to 1983. Several climate stations were chosen for each orchard location to ensure there would be data for every day in the time span of the orchard datasets for each location (Table X). The closest station to the site with at least 85% completeness was chosen as the primary station (indicated by a *). Temperature data from other stations was related to temperature data from the primary station via a linear regression. This model was then used to fill in gaps in the primary station’s data. In cases where there were nearby NCDC and CIMIS weather stations, one primary station was chosen for each data source.
-
-### 
-
-We analyzed both the monthly and annual temperature time series with a first degree autoregressive linear model, due the presence of autocorrelation in the data. A first degree autoregressive linear model is a statistical model where the value of the dependent variable for time *t* is a predictor for the value of the dependent variable at time *t+1* [@cressie2015]. 
-
-For plots that show data from multiple months or multiple locations, we used deviation from mean temperature, instead of just the raw temperature value, as the variable on the x-axis. So if the mean temperature value for February was 4&deg; C, points at 6&deg;C would be plotted at 2&deg; and points at 1&deg;C would be plotted at -3&deg;. This ensures that the data for any number months can be plotted together without data from the hotest or coldest month (or location) being pushed to the edge of the graph. 
-
-
-```{r weatherlocs}
-
-kable(weather, booktabs = TRUE, 
-      col.names = c('Source', 'Location', 'Orchard Location','Start','End', ''))
-
-
-```
-
-
+Climate data for each of the focal orchard sites was obtained from the National Climatic Data Center (NCDC, Menne and Houston 2015) and from California Irrigation Management Information System (CIMIS, California Department of Water Resources 2015). The NCDC provided daily minumum and maxiumum temperature data going back to the early 1900s, and CIMIS provided hourly data back to 1983. A number of climate stations were chosen for each orchard location to ensure there would be data for every day in the time span of the orchard datasets for each location (Table 1). The closest station to the site with at least 85% completeness was chosen as the primary station. Temperature data from other stations was related to temperature data from the primary station via a linear regression. This model was then used to fill in gaps in the primary station’s data. In cases where there were nearby NCDC and CIMIS weather stations, one primary station was chosen for each data source.
 
 ### Phenological Data
 
@@ -167,7 +151,28 @@ Though the almond and walnut datasets have records for a large number of cultiva
 
 Almond bloom and harvest records came from the University of California (UC) Regional Almond Variety Trial (RAVT). Data from the UC Regional Almond Variety Trial were recorded in Chico and Modesto by UC Cooperative Extension advisors assigned to the county where the data was recorded. The bloom record in a given year represents the average bloom of a number of trees of similar age in the same orchard. We report data for cultivars ‘Sonora’, ‘Nonpareil’, and ‘Mission’ which represent the range of bloom timing in commercially cultivated almonds. Prune bloom and harvest timing data was recorded by the University of California Prune Breeding, provided by current breeder Sarah Castro. Because the 'Improved French' cultivar makes up almost all of the prune acreage in California, it is the only prune cultivar analyzed. We used walnut phenology data from the University of California at Davis Walnut Breeding Program. Leaf out dates (LD) and Harvest readiness dates (HRD) were collected by Charles Leslie, Gale McGranahan and the members of the Walnut Improvement Program. The cultivars 'Chandler', 'Payne', and 'Franquette' were chosen as cultivars that both span the range of flowering and harvest dates as well as having long data records (>30 years).
 
-We investigated variation and trends in the four locations in the Central Valley: Chico, Davis, Modesto, and Parlier. Temperature time series going back to 1931 were analyzed to match up with the duration of the longest phenological time series (almond bloom in Chico). While most of the phenological time series do not extend this far back, it is necessary to examine a long time series for climate data to ensure that the trends we find are robust. 
+
+### Climate Analysis
+
+We investigated temperature trends in the four orchard locations in the Central Valley: Chico, Davis, Modesto, and Parlier. Temperature time series going back to 1931 were analyzed to match up with the duration of the longest phenological time series (almond bloom in Chico). While most of the phenological time series do not extend this far back, it is necessary to examine a long time series for climate data to ensure that the trends we find are robust. We analyzed both the monthly and annual temperature time series with a first degree autoregressive linear model, due the presence of autocorrelation in the data [@cressie2015]. 
+
+For plots that show data from multiple months or multiple locations, we used deviation from mean temperature, instead of just the raw temperature value, as the variable on the x-axis. This ensures that the data for any number months can be plotted together without data from the hotest or coldest month (or location) being pushed to the edge of the graph. 
+
+
+```{r weatherlocs}
+
+kable(weather, booktabs = TRUE, 
+      col.names = c('Source', 'Location', 'Orchard Location','Start','End', ''),
+      caption = 'NCDC and CIMIS weather station information by orchard
+                    location.')
+
+
+```
+
+
+### Phenological Analysis
+
+
 
 
 #Results
@@ -175,7 +180,7 @@ We investigated variation and trends in the four locations in the Central Valley
 ## Temperature Trends
 
 
-```{r annual_min_plot, warning=FALSE, echo=FALSE, fig.cap='Figure 3. Mean Annual Minimum Temperatures from 1930 to 2017, duration of phenology record shown with grey lines.', fig.height=5, fig.width=6, tidy=TRUE}
+```{r annual_min_plot, warning=FALSE, echo=FALSE, fig.cap='Mean Annual Minimum Temperatures from 1930 to 2017, duration of phenology record shown with grey lines.', fig.height=5, fig.width=6, tidy=TRUE}
 
 am_min <- am[am$variable=='tmin',]
 labs_min <- amlabs[amlabs$variable=='tmin', ]
@@ -195,7 +200,7 @@ minplot
 ```
 
 
-```{r annual_max_plot, warning=FALSE, echo=FALSE, fig.cap='Figure 3. Mean Annual Minimum Temperatures from 1930 to 2017, duration of phenology record shown with grey lines.', fig.height=5, fig.width=6, tidy=TRUE}
+```{r annual_max_plot, warning=FALSE, echo=FALSE, fig.cap='Mean Annual Minimum Temperatures from 1930 to 2017, duration of phenology record shown with grey lines.', fig.height=5, fig.width=6, tidy=TRUE}
 
 am_max <- am[am$variable=='tmax',]
 labs_max <- amlabs[amlabs$variable=='tmax', ]
@@ -365,7 +370,7 @@ pavg <- rbind(pavg,pann[3,])
 
 mtable <- data.frame(Month=c(month.name,'*Annual*'), Minimum=sig2(pmin[,2], v2=pmin[,1]*10), pvaln=sig2(pmin[,2]), Maximum=sig2(pmax[,2], v2=pmax[,1]*10), pvalx=sig2(pmax[,2]), Averague=sig2(pavg[,2], v2=pavg[,1]*10), pvala=sig2(pavg[,2]))
 
-kable(mtable, digits=2, col.names=c('Month', 'Minimum','p-value', 'Maximum', 'p-value','Average', 'p-value'), caption='Table 12. Average change per decade of Parlier minimum and maximum monthly temperatures from 1931-2014. Change is considered significant and given in bold if p-values are under 0.05.')
+kable(mtable, digits=2, col.names=c('Month', 'Minimum','p-value', 'Maximum', 'p-value','Average', 'p-value'), caption='Average change per decade of Parlier minimum and maximum monthly temperatures from 1931-2014. Change is considered significant and given in bold if p-values are under 0.05.')
 
 ```
 
@@ -376,12 +381,12 @@ kable(mtable, digits=2, col.names=c('Month', 'Minimum','p-value', 'Maximum', 'p-
 ## Almonds
 
 
-Mean almond season lengths appear to have decreased by varying degrees based on cultivars (Figure 23). However because the time series are so short, it is unclear whether these trends will continue into the future. 
+Mean almond season lengths appear to have decreased by varying degrees based on cultivars (Figure 3). However because the time series are so short, it is unclear whether these trends will continue into the future. Almond season lengths respond fairly strongly to 
 
 
-```{r almond_harvest_year, fig.cap='Almond season lengths over 10 years in Chico, California.', warning=FALSE, echo=FALSE, fig.height=2.5}
+```{r almond_harvest_year, fig.cap='Almond season lengths over 10 years in Chico, California.', warning=FALSE, echo=FALSE, fig.height=4}
 
-amy <- ggplot(data=asl) + facet_wrap(~cultivar) + theme_bw() +
+amy <- ggplot(data=asl) + facet_grid(loc~cultivar) + theme_bw() +
     geom_point(aes(x=year, y=length1), size=1.5, color=almondcol) +
     labs(x='year',y='Season Length (days)')
 
@@ -390,20 +395,21 @@ amy
 ```
 
 
-```{r almond_harvest, fig.cap='Almond season length by heat sum in Chico, California.', warning=FALSE, echo=FALSE, fig.height=2.5}
+```{r almond_harvest, fig.cap='Almond season length by heat sum in Chico, California.', warning=FALSE, echo=FALSE, fig.height=4}
 
-amat <- ggplot(data=asl) + facet_grid(loc~cultivar) + theme_bw() +
+amat <- ggplot(data=asl) + facet_grid(loc~cultivar, scales='free_x') +
     geom_point(aes(x=thermal, y=length1), size=1.5, color=almondcol) +
-    labs(x='Scaled Heat Sum',y='Season Length (days)')
+    labs(x='Scaled Heat Sum',y='Season Length (days)') + theme_bw()
 
 amat
 
 ```
 
 
-```{r almond_gdhtime, fig.cap='Almond heat sums over 10 years in Chico, California.', warning=FALSE, echo=FALSE, fig.height=2.5}
+```{r almond_gdhtime, fig.cap='Almond heat sums over 80 years in Chico and Modesto, California.', warning=FALSE, echo=FALSE, fig.height=4}
+atts <- filter(tts, crop=='almond')
 
-agdh <- ggplot(data=asl) + facet_grid(loc~cultivar) + theme_bw() +
+agdh <- ggplot(data=atts) + facet_grid(loc~cultivar) + theme_bw() +
     geom_point(aes(x=year, y=thermal), size=1.5, color=almondcol) +
     labs(x='year',y='Heat Sum')
 
@@ -448,6 +454,7 @@ pmat
 
 ```{r prune_heatsumtime,  fig.cap='Prune heat sum over 25 years in Parlier, CA.', warning=FALSE, echo=FALSE, fig.height=2.5, fig.width=4}
 
+ptts <- filter(tts, crop=='prune')
 pghd <- ggplot(data=psl) + theme_bw() + 
     geom_point(aes(x=year, y=thermal), size=1.5, color=prunecol) +
     labs(x='Year',y='Scaled Heat Sum')
@@ -511,9 +518,11 @@ While Franquette mean season length did not significantly correlate with mean te
 
 
 
-```{r walnut_heatsumtime, fig.cap='Walnut heat sums over the past 60 years.', warning=FALSE, echo=FALSE, fig.height=2.5}
+```{r walnut_heatsumtime, fig.cap='Walnut heat sums over the past 80 years.', warning=FALSE, echo=FALSE, fig.height=6, fig.width=5}
 
-wgdh <- ggplot(data=wsl) + facet_wrap(~cultivar, scale='free_y') + theme_bw() +
+wtts <- filter(tts, crop=='walnut')
+wgdh <- ggplot(data=wsl) + facet_wrap(~cultivar, scale='free_y',nrow=3) +
+    theme_bw() +
     geom_point(aes(x=year, y=thermal), size=1.5, color=walnutcol) +
     labs(x='Year',y='Scaled Heat Sum')
 
