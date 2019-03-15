@@ -152,11 +152,13 @@ Though the almond and walnut datasets have records for a large number of cultiva
 Almond bloom and harvest records came from the University of California (UC) Regional Almond Variety Trial (RAVT). Data from the UC Regional Almond Variety Trial were recorded in Chico and Modesto by UC Cooperative Extension advisors assigned to the county where the data was recorded. The bloom record in a given year represents the average bloom of a number of trees of similar age in the same orchard. We report data for cultivars ‘Sonora’, ‘Nonpareil’, and ‘Mission’ which represent the range of bloom timing in commercially cultivated almonds. Prune bloom and harvest timing data was recorded by the University of California Prune Breeding, provided by current breeder Sarah Castro. Because the 'Improved French' cultivar makes up almost all of the prune acreage in California, it is the only prune cultivar analyzed. We used walnut phenology data from the University of California at Davis Walnut Breeding Program. Leaf out dates (LD) and Harvest readiness dates (HRD) were collected by Charles Leslie, Gale McGranahan and the members of the Walnut Improvement Program. The cultivars 'Chandler', 'Payne', and 'Franquette' were chosen as cultivars that both span the range of flowering and harvest dates as well as having long data records (>30 years).
 
 
+## Analysis
+
+All analysis was completed in R Statistical Programming Environment [@r2018] using the 'phenoclim' package (citation) to estimate thermal time accumulation parameters. 
+
 ### Climate Analysis
 
 We investigated temperature trends in the four orchard locations in the Central Valley: Chico, Davis, Modesto, and Parlier. Temperature time series going back to 1931 were analyzed to match up with the duration of the longest phenological time series (almond bloom in Chico). While most of the phenological time series do not extend this far back, it is necessary to examine a long time series for climate data to ensure that the trends we find are robust. We analyzed both the monthly and annual temperature time series with a first degree autoregressive linear model, due the presence of autocorrelation in the data [@cressie2015]. 
-
-For plots that show data from multiple months or multiple locations, we used deviation from mean temperature, instead of just the raw temperature value, as the variable on the x-axis. This ensures that the data for any number months can be plotted together without data from the hotest or coldest month (or location) being pushed to the edge of the graph. 
 
 
 ```{r weatherlocs}
@@ -172,7 +174,9 @@ kable(weather, booktabs = TRUE,
 
 ### Phenological Analysis
 
+Season lengths for almonds and prunes started at full bloom, while walnut season length began at leaf-out. Maturity for almonds and walnuts was counted at hull-split while prunes were considered mature at 3-4 lbs of pressure. All phenological data were analyzed separately by location and cultivar using ordinary linear regression, and segmented regression (citation) when it was deemed necessary. 
 
+Thermal time was calculated using the asymcur model described by [@anderson1986]. We used the 'phenoclim' package to determine the optimal number of days of thermal time accumulation after bloom or leaf-out to use for predicting season length for each cultivar/location pair using 'phenoclim' package. Thermal time accumulation was then calculated for each year with bloom or leaf-out data. Next we related thermal time accumulation to season length using linear models. Finally, we examined trends in thermal time accumulation over the entire bloom time series for each cultivar and location.
 
 
 #Results
@@ -379,7 +383,6 @@ kable(mtable, digits=2, col.names=c('Month', 'Minimum','p-value', 'Maximum', 'p-
 
 
 ## Almonds
-
 
 Mean almond season lengths appear to have decreased by varying degrees based on cultivars (Figure 3). However because the time series are so short, it is unclear whether these trends will continue into the future. Almond season lengths respond fairly strongly to 
 
