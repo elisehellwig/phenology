@@ -7,6 +7,7 @@ library(lubridate)
 library(reshape2)
 library(plyr)
 library(phenoclim)
+source('functions/extractlm.R')
 
 options(stringsAsFactors = FALSE)
 
