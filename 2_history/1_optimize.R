@@ -18,13 +18,39 @@ w <- read.csv(file.path(phenologypath,'walnutclean.csv'))
 temp <- readRDS(file.path(phenologypath, 'dailyhourlytemp.RDS'))
 temp$dt <- as.POSIXct(temp$dt, format="%Y-%m-%d %H:%M:%OS")
 
+
+# Walnut ------------------------------------------------------------------
+
+wcults <- c('Chandler','Payne','Franquette')
+
+wc <- dcast(w, cultivar+year ~ event, value.var='day')
+wcc <- wc[complete.cases(wc),]
+
+walnutData <- lapply(1:length(wcults), function(i) {
+    filter(wcc, cultivar==wcults[i])
+})
+
+walnutDT <- list(parameterlist(1, 'DT', FALSE, 'asymcur', list(c(4,25,36)), 30, 
+                              0, c('start','threshold'), 'threshold', 
+                              "PlantModel"))
+
+
+wpmDT <- lapply(seq_along(walnutData), function(i) {
+    print(i)
+    plantmodel(walnutData[[i]], temp, walnutDT, 0, 270, cores=4L)
+})
+
+saveRDS(wpmDT, file.path(historypath, 'SwalnutDTanderson.RDS'))
+
+
 # Prune -------------------------------------------------------------------
 
 pc <- dcast(p, cultivar+year+loc ~ event, value.var='day')
 pcc <- pc[complete.cases(pc),]
 
-pruneDT <- list(parameterlist(1, 'DT', FALSE, 'asymcur', list(c(4,25,36)), 30, 0, 
-                         c('start','threshold'), 'threshold', "PlantModel"))
+pruneDT <- list(parameterlist(1, 'DT', FALSE, 'asymcur', list(c(4,25,36)), 30, 
+                              0, c('start','threshold'), 'threshold', 
+                              "PlantModel"))
 
 ppmDT <- plantmodel(pcc, temp, pruneDT, 0, 220, cores=4L)
 
