@@ -34,6 +34,7 @@ bibliography: phenology.bib
 #This is the set-up block of code, it loads all of the required libraries
 
 library(tidyverse)
+library(plyr)
 library(knitr)
 library(lubridate)
 library(reshape2)
@@ -72,6 +73,7 @@ historypath <- '/Volumes/GoogleDrive/My Drive/Phenology/data/history'
 
 source(file.path(sourcepath, 'multiplot.R'))
 source(file.path(sourcepath, 'reportfunctions.R'))
+source(file.path(sourcepath, 'extractlm.R'))
 
 
 
@@ -93,11 +95,24 @@ mtcAvg <- dcast(mtc[,c('loc', 'year', 'nmonth', 'tavg')],
                 loc + year ~ nmonth, value.var = 'tavg')
 
 harvest <- readRDS(file.path(historypath, 'harvest.RDS'))
-asl <- filter(harvest, crop=='almond')
+asl <- filter(harvest, crop=='almond', cultivar!='Sonora')
 psl <- filter(harvest, crop=='prune')
 wsl <- filter(harvest, crop=='walnut')
 tts <- readRDS(file.path(historypath, 'ThermalTimeSeries.RDS'))
 locVar <- read.csv(file.path(historypath, 'SeasonLengthParameters.csv'))
+
+
+#Model table
+modtable <- readRDS(file.path(historypath, 'ModelTable.RDS'))
+atab <- modtable %>% 
+    filter(crop=='almond') %>% 
+    select(-crop)
+ptab <- modtable %>% 
+    filter(crop=='prune') %>% 
+    select(-crop)
+wtab <- modtable %>% 
+    filter(crop=='walnut') %>% 
+    select(-crop)
 
 #Katherine's data
 
@@ -382,9 +397,25 @@ kable(mtable, digits=2, col.names=c('Month', 'Minimum','p-value', 'Maximum', 'p-
 
 
 
+
+## Model Optimization
+
+Length of optimized thermal time accumulation varied significantly between crop, location and cultivar (Table 6). Accumulation lengths varied from 35 days for Mission almonds in Modesto to 74 days for prunes in Parlier. 
+
+```{r locVarTable}
+
+kable(locVar[,-c(5,6)], booktabs = TRUE, 
+      col.names = c('Crop', 'Location', 'Cultivar','Length'),
+      caption = 'Optimized length of thermal time accumulation in days for
+      predicting season length, by crop, location and cultivar.')
+
+```
+
+
 ## Almonds
 
-Mean almond season lengths appear to have decreased by varying degrees based on cultivars (Figure 3). However because the time series are so short, it is unclear whether these trends will continue into the future. Almond season lengths respond fairly strongly to 
+
+Mean almond season lengths did not appear to decrease over the 10 years of the Regional Almond Variety Trials. (Figure 3). However because the time series are so short, we cannot make any longterm predictions based on this. Almond season lengths respond fairly well to optimized thermal time accumulation (Figure 4, Table 7), though the model relating thermal time accumulation for Nonpareil Almonds to season length in Modesto was not strongly significant. 
 
 
 ```{r almond_harvest_year, fig.cap='Almond season lengths over 10 years in Chico, California.', warning=FALSE, echo=FALSE, fig.height=4}
@@ -398,15 +429,24 @@ amy
 ```
 
 
-```{r almond_harvest, fig.cap='Almond season length by heat sum in Chico, California.', warning=FALSE, echo=FALSE, fig.height=4}
+```{r almond_harvestthermal, fig.cap='Almond season length by heat sum in Chico, California.', warning=FALSE, echo=FALSE, fig.height=4}
 
 amat <- ggplot(data=asl) + facet_grid(loc~cultivar, scales='free_x') +
     geom_point(aes(x=thermal, y=length1), size=1.5, color=almondcol) +
-    labs(x='Scaled Heat Sum',y='Season Length (days)') + theme_bw()
+    labs(x='Scaled Heat Sum',y='Season Length (days)') + theme_bw() +
+    stat_smooth(aes(x=thermal, y=length1), method='lm', col='black')
 
 amat
 
 ```
+
+In Chico, both thermal time accumation for both Mission and Nonpareil cultivars increased singificantly over the past 75 years (Figure 5). Thermal time accumulation actually decreased in Modesto for both cultivars, though the time series is not quite as long, so we cannot be as confident that this trend will continue into the future. Additionally, it is unclear why this would be the case. 
+
+```{r almondHarvThermTable}
+
+
+```
+
 
 
 ```{r almond_gdhtime, fig.cap='Almond heat sums over 80 years in Chico and Modesto, California.', warning=FALSE, echo=FALSE, fig.height=4}
@@ -421,10 +461,35 @@ agdh
 ```
 
 
+```{r almondThermTimeTable}
+
+
+ALengthMod <- lapply(alist, function(df) {
+    lm(length1 ~ thermal, data=df)
+})
+
+AThermalTimeMod <- lapply(attlist, function(df) {
+    lm(thermal ~ year, data=df)
+})
+
+atab1 <- formatLM(aLocVar, ALengthMod)
+
+atab2 <- formatLM(aLocVar, AThermalTimeMod)
+
+kable(atab2, booktabs = TRUE, 
+      col.names = c('Location', 'Cultivar', 'Coefficient','p-value', 'R2'),
+      caption = 'Linear regression summary for models of optimized thermal time
+      accumulation over the past 75 years. Coefficient units are in
+      growing degree hours per year.', digits=2)
+
+```
+
+
 
 ## Prunes
 
-French Prune season lengths in Parlier shortened by an average of 0.49 days per year over the past 25 years (Figure 41). Improved French prune season length was significantly correlated with average maximum May temperatures (Figure 42, Table 13). In addition, prune season length responded very strongly to fruit development thermal time accumulation calculated using both models (Figure 43, Table 14).
+
+French Prune season lengths in Parlier shortened by an average of 0.49 days per year over the past 25 years, with a p-value of 0.041 and an adjusted R-squared of 0.160 (Figure 6). Prune season length responded strongly to the optimized thermal time accumulation (Figure 7). However, 
 
 
 
@@ -453,6 +518,7 @@ pmat <- ggplot(data=psl) + theme_bw() +
 pmat
 
 ```
+
 
 
 ```{r prune_heatsumtime,  fig.cap='Prune heat sum over 25 years in Parlier, CA.', warning=FALSE, echo=FALSE, fig.height=2.5, fig.width=4}
