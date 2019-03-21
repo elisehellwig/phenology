@@ -73,7 +73,6 @@ historypath <- '/Volumes/GoogleDrive/My Drive/Phenology/data/history'
 
 source(file.path(sourcepath, 'multiplot.R'))
 source(file.path(sourcepath, 'reportfunctions.R'))
-source(file.path(sourcepath, 'extractlm.R'))
 
 
 
@@ -415,7 +414,7 @@ kable(locVar[,-c(5,6)], booktabs = TRUE,
 ## Almonds
 
 
-Mean almond season lengths did not appear to decrease over the 10 years of the Regional Almond Variety Trials. (Figure 3). However because the time series are so short, we cannot make any longterm predictions based on this. Almond season lengths respond fairly well to optimized thermal time accumulation (Figure 4, Table 7), though the model relating thermal time accumulation for Nonpareil Almonds to season length in Modesto was not strongly significant. 
+Mean almond season lengths did not appear to decrease over the 10 years of the Regional Almond Variety Trials. (Figure 3). However because the time series are so short, we cannot make any longterm predictions based on this. Almond season lengths respond fairly well to optimized thermal time accumulation (Figure 4, Table 7), with GDH explaining between 30% and 65% of season length variation.   Despite this, the model relating thermal time accumulation for Nonpareil Almonds to season length in Modesto was not strongly significant. 
 
 
 ```{r almond_harvest_year, fig.cap='Almond season lengths over 10 years in Chico, California.', warning=FALSE, echo=FALSE, fig.height=4}
@@ -440,12 +439,21 @@ amat
 
 ```
 
-In Chico, both thermal time accumation for both Mission and Nonpareil cultivars increased singificantly over the past 75 years (Figure 5). Thermal time accumulation actually decreased in Modesto for both cultivars, though the time series is not quite as long, so we cannot be as confident that this trend will continue into the future. Additionally, it is unclear why this would be the case. 
 
-```{r almondHarvThermTable}
 
+In Chico, thermal time accumulation increased by 22 GDH per year for Mission almonds and 30 GDH per year for Nonpareil almonds. In Modesto, thermal time accumulation actually decreased over time during the period of study (Table 7). This is in stark contrast to the mostly increasing mean monthly temperatures in Modesto (Table 3).
+
+
+```{r almondModelTable}
+
+kable(atab, booktabs = TRUE, 
+      col.names = c('Location', 'Cultivar', 'Predictor', 'Response',
+                    'Coefficient','p-value', 'R2'),
+      caption = 'Summary of linear regression models relating
+      year, season length and thermal time accumulation in almonds.', digits=3)
 
 ```
+
 
 
 
@@ -461,35 +469,10 @@ agdh
 ```
 
 
-```{r almondThermTimeTable}
-
-
-ALengthMod <- lapply(alist, function(df) {
-    lm(length1 ~ thermal, data=df)
-})
-
-AThermalTimeMod <- lapply(attlist, function(df) {
-    lm(thermal ~ year, data=df)
-})
-
-atab1 <- formatLM(aLocVar, ALengthMod)
-
-atab2 <- formatLM(aLocVar, AThermalTimeMod)
-
-kable(atab2, booktabs = TRUE, 
-      col.names = c('Location', 'Cultivar', 'Coefficient','p-value', 'R2'),
-      caption = 'Linear regression summary for models of optimized thermal time
-      accumulation over the past 75 years. Coefficient units are in
-      growing degree hours per year.', digits=2)
-
-```
-
-
 
 ## Prunes
 
-
-French Prune season lengths in Parlier shortened by an average of 0.49 days per year over the past 25 years, with a p-value of 0.041 and an adjusted R-squared of 0.160 (Figure 6). Prune season length responded strongly to the optimized thermal time accumulation (Figure 7). However, 
+French Prune season lengths in Parlier shortened by an average of 0.49 days per year over the past 25 years, with a p-value of 0.041 and an adjusted R-squared of 0.160 (Figure 6, Table 8). Prune season length responded strongly to the optimized thermal time accumulation (Figure 7). Additionally, thermal time accumulated in the first 74 days after bloom showed a statistically significant increasing trend over time (Figure 8). However, this trend accounted for less variation than modeling season length over time (Table 8).
 
 
 
@@ -503,10 +486,6 @@ pmy
 
 ```
 
-
-Fruit development thermal time accumulation values for French prunes in Parlier exhibit increasing trends using both models (Figure 44, Table 14). However, there is too much variation in the data to make any strong conclusions. Given the trends present in the monthly data though, it is likely that spring thermal accumulation values will continue to increase. Conversely the mean maximum May temperatures appear to be decreasing slightly (Table 12), which would indicate that prune season lengths will get longer based on the model in Figure 30. However, given that the thermal time accumulation model is more biologically accurate, it is likely to be more reliable. In this case, using monthly temperatures as an indicator of season length is misleading.
-
-Given the trend of increasing fruit development thermal time accumulation in Parlier (Figure 44), Improved French prune season lengths will most likely continue to shrink with increasing climate change. 
 
 
 ```{r prune_harvest, fig.cap='Prune season lengths by heat sum in Parlier, CA.', warning=FALSE, echo=FALSE, fig.height=2.5, fig.width=4}
@@ -535,12 +514,23 @@ pghd
 
 
 
+```{r pruneModelTable}
+
+kable(ptab, booktabs = TRUE, 
+      col.names = c('Location', 'Cultivar', 'Predictor', 'Response',
+                    'Coefficient','p-value', 'R2'),
+      caption = 'Summary of linear regression models relating
+      year, season length and thermal time accumulation in prunes.', digits=3)
+
+```
+
+
+
+
 ## Walnuts
 
 
-Mean season length in Payne walnuts decreased significantly over the past 50 years (Figure 58). Chandler and Franquette season lengths seem to have stayed fairly stable. However, because of the variability in the data, it is possible that a longer time series will exhibit a significant trend. This is particularly relevant for Chandler walnuts, as they were only developed in the last 50 years. 
-
-
+Mean season length in Payne walnuts decreased an average of 0.24 days per year over the past 60 years (Figure 9, Table 9). Chandler and Franquette season lengths seem to have stayed fairly stable. However, because of the variability in the data, it is possible that a longer time series will exhibit a significant trend. This is particularly relevant for Chandler walnuts, as they were only developed in the last 50 years. Season lengths for all three cultivars correlated very strongly with optimized thermal time accumulation. 
 
 Payne is the only walnut cultivar whose mean season length shows significant change (decrease) over the past 60 years (Figure 58). Payne season length also responded to warmer April and May temperatures (Figure 59). As monthly minimum temperatures are increasing for both April and May in Davis (Table 16), it very likely that the season length of Payne walnuts will continue to get shorter over time. Additionally, Payne season length responded strongly to fruit development thermal time accumulation during the first two months after leaf-out (Figure 60, Table 19). The fact that Payne thermal time accumulation has been increasing over the past half-century is further evidence that mean season length for Payne walnuts will shorten with increasing climate change (Figure 61, Table 19).
 
@@ -598,6 +588,20 @@ wgdh <- ggplot(data=wsl) + facet_wrap(~cultivar, scale='free_y',nrow=3) +
 wgdh
 
 
+
+```
+
+
+
+
+
+```{r walnutModelTable}
+
+kable(wtab, booktabs = TRUE, 
+      col.names = c('Location', 'Cultivar', 'Predictor', 'Response',
+                    'Coefficient','p-value', 'R2'),
+      caption = 'Summary of linear regression models relating
+      year, season length and thermal time accumulation in walnuts', digits=3)
 
 ```
 
