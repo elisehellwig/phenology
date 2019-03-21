@@ -73,7 +73,7 @@ a3 <-formatLM(aLocVar, AThermalTimeMod) %>%
 
 a <- rbind(a1,a2,a3)
 
-a <- add_column(a, crop='almond')
+a <- add_column(a, crop='almond', .before=1)
 
 # Prune -------------------------------------------------------------------
 
@@ -98,10 +98,11 @@ p2 <- formatLM(pLocVar, PLengthMod) %>%
 
 p3 <-formatLM(pLocVar, AThermalTimeMod) %>% 
     add_column(predictor='Year', .before=3) %>% 
-    add_column(response=AThermVars, .before=4)
+    add_column(response=paste0('GDH', pLocVar[1,'threshold']), .before=4)
 
+p <- rbind(p1,p2,p3)
 
-
+p <- add_column(p, crop='prune', .before=1)
 
 # Walnut ------------------------------------------------------------------
 
@@ -136,4 +137,36 @@ WLengthTimeMod <- lapply(wlist, function(df) {
 })
 
 WLengthTimeSum <- lapply(WLengthTimeMod, function(mod) summary(mod))
+
+
+WThermVars <- paste0('GDH', wLocVar[,'threshold'])
+
+w1 <- formatLM(wLocVar, WLengthTimeMod) %>% 
+    add_column(predictor='Year', .before=3) %>% 
+    add_column(response='Season Length', .before=4)
+
+w2 <- formatLM(wLocVar, WLengthMod) %>% 
+    add_column(predictor=WThermVars, .before=3) %>% 
+    add_column(response='Season Length', .before=4)
+
+w3 <-formatLM(wLocVar, WThermalTimeMod) %>% 
+    add_column(predictor='Year', .before=3) %>% 
+    add_column(response=WThermVars, .before=4)
+
+
+
+
+w <- rbind(w1,w2,w3)
+
+w <- add_column(w, crop='walnut', .before=1)
+
+
+# Combine and save --------------------------------------------------------
+
+
+modtable <- rbind(a, p, w)
+
+saveRDS(modtable, file.path(historypath, 'ModelTable.RDS'))
+
+
 
