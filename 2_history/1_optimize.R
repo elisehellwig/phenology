@@ -40,7 +40,7 @@ wpmDT <- lapply(seq_along(walnutData), function(i) {
     plantmodel(walnutData[[i]], temp, walnutDT, 0, 270, cores=4L)
 })
 
-saveRDS(wpmDT, file.path(historypath, 'SwalnutDTanderson.RDS'))
+saveRDS(wpmDT, file.path(historypath, 'SLwalnutDTanderson.RDS'))
 
 
 # Prune -------------------------------------------------------------------
