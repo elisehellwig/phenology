@@ -1,11 +1,10 @@
 
 # Setup -------------------------------------------------------------------
 
-
+library(plyr)
 library(tidyverse)
 library(lubridate)
 library(reshape2)
-library(plyr)
 library(phenoclim)
 source('functions/extractlm.R')
 
@@ -53,7 +52,9 @@ AThermalTimeMod <- lapply(attlist, function(df) {
 
 AThermalTimeSum <- lapply(AThermalTimeMod, function(mod) summary(mod))
 
+extractLM(AThermalTimeMod[[1]])
 
+la <-formatLM(aLocVar, AThermalTimeMod, crop='almond')
 
 # Prune -------------------------------------------------------------------
 
