@@ -54,27 +54,53 @@ AThermalTimeSum <- lapply(AThermalTimeMod, function(mod) summary(mod))
 
 extractLM(AThermalTimeMod[[1]])
 
-la <-formatLM(aLocVar, AThermalTimeMod, crop='almond')
+AThermVars <- paste0('GDH', aLocVar[,'threshold'])
+
+a1 <- formatLM(aLocVar, ALengthTimeMod) %>% 
+    add_column(predictor='Year', .before=3) %>% 
+    add_column(response='Season Length', .before=4)
+
+a2 <- formatLM(aLocVar, ALengthMod) %>% 
+    add_column(predictor=AThermVars, .before=3) %>% 
+    add_column(response='Season Length', .before=4)
+
+a3 <-formatLM(aLocVar, AThermalTimeMod) %>% 
+    add_column(predictor='Year', .before=3) %>% 
+    add_column(response=AThermVars, .before=4)
+
+
+
+
+a <- rbind(a1,a2,a3)
+
+a <- add_column(a, crop='almond')
 
 # Prune -------------------------------------------------------------------
+
+pLocVar <- filter(locVar, crop=='prune')
 
 
 p <- filter(harv, crop=='prune')
 
-pttlist <- lapply(c('Chico','Parlier'), function(l) {
-    filter(tts, crop=='prune', loc==l)
-})
-
-
-PThermalTimeMod <- lapply(pttlist, function(df) {
-    lm(thermal ~ year, data=df)
-})
-
-PThermalTimeSum <- lapply(PThermalTimeMod, function(mod) summary(mod))
+PThermalTimeMod <- lm(thermal ~ year, data=p)
 
 PLengthMod <- lm(length1 ~ thermal, data=p)
 
 PLengthTimeMod <- lm(length1 ~ year, data=p)
+
+p1 <- formatLM(pLocVar, PLengthTimeMod) %>% 
+    add_column(predictor='Year', .before=3) %>% 
+    add_column(response='Season Length', .before=4)
+
+p2 <- formatLM(pLocVar, PLengthMod) %>% 
+    add_column(predictor=paste0('GDH', pLocVar[1,'threshold']), .before=3) %>% 
+    add_column(response='Season Length', .before=4)
+
+p3 <-formatLM(pLocVar, AThermalTimeMod) %>% 
+    add_column(predictor='Year', .before=3) %>% 
+    add_column(response=AThermVars, .before=4)
+
+
 
 
 # Walnut ------------------------------------------------------------------
