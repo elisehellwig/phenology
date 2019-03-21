@@ -3,10 +3,10 @@
 
 # Setup -------------------------------------------------------------------
 
+library(plyr)
 library(tidyverse)
 library(lubridate)
 library(reshape2)
-library(plyr)
 library(phenoclim)
 
 options(stringsAsFactors = FALSE)
@@ -23,6 +23,7 @@ precip <- read.csv(file.path(historypath, 'precipitation.csv'))
 
 amod <- readRDS(file.path(historypath, 'SLalmondDTanderson.RDS'))
 pmod <- readRDS(file.path(historypath, 'SLpruneDTanderson.RDS'))
+wmod <- readRDS(file.path(historypath, 'SLwalnutDTanderson.RDS'))
 
 
 temp <- readRDS(file.path(phenologypath, 'dailyhourlytemp.RDS'))
@@ -86,18 +87,15 @@ w$loc <- 'Davis'
 locVar2 <- data.frame(crop='walnut',
                       loc='Davis',
                       cultivar=cv,
-                      threshold=c(50127.33,62,46),
-                      modtype=c('TTT', 'DT', 'DT'),
-                      form=c('flat','gdd','asymcur')) 
+                      threshold=c(49,65,36)) 
 locVar <- rbind(locVar, locVar2)
 write.csv(locVar, file.path(historypath, 'SeasonLengthParameters.csv'),
           row.names=FALSE)
-ct <- list(c(0.4, 12.1), 11.1, c(4,25,36))
 
 wLocVar <- filter(locVar, crop=='walnut')
 wsl <- ldply(1:nrow(wLocVar), function(i) {
-    calcThermalTime(w, temp, 'harvest', wLocVar[i, 'modtype'], 
-                    wLocVar[i,'form'], ct[[i]], 0, wLocVar[i, 'threshold'], 
+    calcThermalTime(w, temp, 'harvest', 'DT', 
+                    'asymcur', c(4,25,36), 0, wLocVar[i, 'threshold'], 
                     c('start','threshold'), var=wLocVar[i,'cultivar'],
                     predictorName='thermal')
     })
