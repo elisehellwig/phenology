@@ -530,10 +530,9 @@ kable(ptab, booktabs = TRUE,
 ## Walnuts
 
 
-Mean season length in Payne walnuts decreased an average of 0.24 days per year over the past 60 years (Figure 9, Table 9). Chandler and Franquette season lengths seem to have stayed fairly stable. However, because of the variability in the data, it is possible that a longer time series will exhibit a significant trend. This is particularly relevant for Chandler walnuts, as they were only developed in the last 50 years. Season lengths for all three cultivars correlated very strongly with optimized thermal time accumulation. 
+Mean season length in Payne walnuts decreased an average of 0.24 days per year over the past 60 years (Figure 9, Table 9). Chandler and Franquette season lengths seem to have stayed fairly stable. However, because of the variability in the data, it is possible that a longer time series will exhibit a significant trend. This is particularly relevant for Chandler walnuts, as they were only developed in the last 50 years. Season lengths for all three cultivars correlated very strongly with optimized thermal time accumulation with R^2 values ranging from 0.32 for Chandler to 0.52 for Payne (Table 9). 
 
-Payne is the only walnut cultivar whose mean season length shows significant change (decrease) over the past 60 years (Figure 58). Payne season length also responded to warmer April and May temperatures (Figure 59). As monthly minimum temperatures are increasing for both April and May in Davis (Table 16), it very likely that the season length of Payne walnuts will continue to get shorter over time. Additionally, Payne season length responded strongly to fruit development thermal time accumulation during the first two months after leaf-out (Figure 60, Table 19). The fact that Payne thermal time accumulation has been increasing over the past half-century is further evidence that mean season length for Payne walnuts will shorten with increasing climate change (Figure 61, Table 19).
-
+Thermal time accumulation values for all three cultivars appear to be increasing over time, meaning decreasing season lengths. However, the confidence in those trends is fairly low for Chandler and Franquette cultivars. Hopefully a longer time series will either reinforce or remove those trends. 
 
 
 ```{r walnut_harvest_year, fig.cap='Walnut season lengths over the past 60 years for Chandler, Franquette and Payne Cultivars.', warning=FALSE, echo=FALSE, fig.height=2.5}
@@ -545,16 +544,6 @@ wmy <- ggplot(data=wsl) + facet_wrap(~cultivar) + theme_bw() +
 wmy
 
 ```
-
-
-
-While Chandler season length does not show a significant trend over time it does exhibit a complex response to monthly temperatures (Figure 62).  Warmer temperatures in March lead to shorter seasons, while warmer temperatures in April and May correlate with longer ones. Because March, April, and May all show warming trends in Davis (Table 16), we cannot yet tell how climate change will effect Chandler season length based on monthly temperatures. 
-
-
- 
-Chandler season length responds strongly to thermal time accumulation in the first thirty days after leaf-out as well (Figure 63). The trends in thermal accumulation in both models indicate that it is likely that Chandler season lengths will get shorter, even though a significant trend has not yet been detected (Figure 63-64, Table 19). It is unclear biologically why warmer temperatures in April correlate with longer season lengths, while fruit development thermal time accumulation in parts of March and April correlate with shorter season length (Figure 62-63). It may be that the correlation between April temperatures and season length is spurious.
-
-
 
 
 
@@ -571,9 +560,6 @@ wmat
 
 ```
 
-
-
-While Franquette mean season length did not significantly correlate with mean temperatures from any month, it did respond to thermal time accumulation during the first 37 days after leaf-out (Figure 65, Table 19). As fruit development thermal time accumulation (calculated using the simplified model), is increasing (Figure 66, Table 19), we would expect that mean season length for Franquette walnuts will decrease as the climate warms. However, due to the amount of noise in the data, it may take a while before this trend becomes clear.
 
 
 
@@ -607,7 +593,7 @@ kable(wtab, booktabs = TRUE,
 
 
 
-# Conclusions
+# Discussion
 
 ##Climate
 
