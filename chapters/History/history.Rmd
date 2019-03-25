@@ -129,10 +129,8 @@ mos <- 1:12
 
 ## Notes
 
-** Thesis: Temperature increases due to climate change vary by region in California. By looking at tree response to interannual temperature variation we can explain past phenological trends and predict future ones. **
+** Thesis: Because harvest date is influenced by so many factors, detecting changes in season length over time due to climate change can be difficult. By looking at tree response to interannual temperature variation we can explain past phenological trends and predict future ones. **
 
-- Need to add chill and heat sums over time
-- Need to run linear models and then extract the interesting numbers
 - Need to find a good way to plot all the things without having massive amounts of space in the graph (ex scaling the data)
 - To be honest I my want to scale the data anyway for model fitting.
 
@@ -190,7 +188,9 @@ kable(weather, booktabs = TRUE,
 
 Season lengths for almonds and prunes started at full bloom, while walnut season length began at leaf-out. Maturity for almonds and walnuts was counted at hull-split while prunes were considered mature at 3-4 lbs of pressure. All phenological data were analyzed separately by location and cultivar using ordinary linear regression, and segmented regression (citation) when it was deemed necessary. 
 
-Thermal time was calculated using the asymcur model described by [@anderson1986]. We used the 'phenoclim' package to determine the optimal number of days of thermal time accumulation after bloom or leaf-out to use for predicting season length for each cultivar/location pair using 'phenoclim' package. Thermal time accumulation was then calculated for each year with bloom or leaf-out data. Next we related thermal time accumulation to season length using linear models. Finally, we examined trends in thermal time accumulation over the entire bloom time series for each cultivar and location.
+Thermal time was calculated using the asymcur model described by [@anderson1986]. We used the 'phenoclim' package to determine the optimal number of days of thermal time accumulation after bloom or leaf-out to use for predicting season length for each cultivar using 'phenoclim' package. Because latitude can effect phenological requirements (citation), we also separated data by location.
+
+Thermal time accumulation was then calculated for each year with full bloom or leaf-out data. Next we related thermal time accumulation to season length using linear models. Finally, we examined trends in thermal time accumulation over the entire bloom time series for each cultivar and location.
 
 
 #Results
@@ -448,17 +448,20 @@ The climate of California has not changed uniformly across the state. Modesto, P
 
 
 ## Almonds
-Given the length of the almond season length time series, we cannot draw any strong conclusions. However, if things continue as they have been over the ten years examined, Mission almond season lengths may potentially continue to shorten.
 
-### Prunes
+Using optimized thermal time accumulation lengths produced better predictions than previous attempts (Figure 4) [@ruml2011]. Inevitably though, a larger harvest data set would produce more robust results. Even so, despite the small number of years with harvest data for almonds, extensive almond flowering records allowed us to get a better sense of potential trends in almond season length. Trends in thermal time accumulation during the first two months after flowering point towards shortening season lengths for almonds in Chico, and lengthening ones in Modesto (Figure 5). 
 
-French prune season lengths have gotten, on average, 12 days shorter since 1988. The trends in the May monthly temperatures (Table 7) and the relationship between the thermal time accumulation and season length (Figure 31) both point to a continuation of this trend with continued warming due to climate change. 
+## Prunes
 
-### Walnuts
+French prune season lengths have gotten, on average, 12 days shorter between 1988 and 2014 (Figure 6). This is supported by the increasing trend in GDH74 over those same years and the strong relationship between GDH 74 and season length (Figure 7-8). We confidently expect prune season lengths will continue to shorten as the climate warms.  
 
-Payne walnut season lengths have shortened by approximately 11 days since 1960. Based on the upwards trends in the thermal time accumulation (Figure 49)  as well as April and May temperatures (Table 9), Payne season lengths will continue to get shorter as climate change intensifies. Chandler season lengths have not changed appreciably over the past 50 years. However, the increasing thermal time accumulation (Figure 52) indicates that season lengths will shorten in the future. Franquette season length shows a similar pattern to Chandler season length. It has yet to exhibit any trend, but the increasing trend in thermal accumulation for Franquette walnuts indicate that it is likely Franquette season lengths will get shorter in the future (Figure 54).
+## Walnuts
 
+'Payne' walnut season lengths have shortened by approximately 11 days since 1960, while no discernable temporal trend exists yet for 'Chandler' or 'Franquette' walnuts (Figure 9). Based on the upwards trends in the thermal time accumulation (Table 5), Payne season lengths will continue to get shorter as climate change intensifies. Even though 'Chandler' and 'Franquette' season lengths have not changed appreciably over the past 50 years, there is some evidence that thermal time accumulation has (Figure 11, Table 5). Consequently, it is likely that season lengths will shorten in the future.
 
+#Agronomic Implications
+
+Overall, season lengths in California seem to be getting shorter. This may decrease the risk of precipitation during post-harvest drying, especially for walnuts. However, it will also likely to decrease fruit and nut size (citation). For prunes, this is problematic because fruit size strongly impacts the price farmers get for their crop. In nut crops, size is also at a premium, however there is an additional complication. Post harvest processing requires specialized equipment that is calibrated to a certain size of nut. Shorter season lengths may result in sub-optimal nut cracking, which also reduces nut quality. In many fruit crops, farmers will thin the crop to produce larger fruits. This is not common in nuts, but may become necessary as the climate warms.
 
 #References
 
