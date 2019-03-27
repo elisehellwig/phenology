@@ -374,9 +374,13 @@ pmat
 ```{r prune_heatsumtime,  fig.cap='Prune heat sum over 25 years in Parlier, CA.', warning=FALSE, echo=FALSE, fig.height=2.5, fig.width=4}
 
 ptts <- filter(tts, crop=='prune')
+PYearHeat <- filter(prunemod, predictor=='Year', response=='GDH74')
+
+
 pghd <- ggplot(data=psl) + theme_bw() + 
     geom_point(aes(x=year, y=thermal), size=1.5, color=prunecol) +
-    labs(x='Year',y='Scaled Heat Sum')
+    labs(x='Year',y='Heat Sum') +
+    geom_abline(aes(intercept=intercept, slope=beta), data=PYearHeat)
 
 pghd
 
@@ -408,8 +412,13 @@ Thermal time accumulation values for all three cultivars appear to be increasing
 
 ```{r walnut_harvest_year, fig.cap='Walnut season lengths over the past 60 years for Chandler, Franquette and Payne Cultivars.', warning=FALSE, echo=FALSE, fig.height=2.5}
 
+WYearLength <- filter(walnutmod, predictor=='Year', response=='Season Length')
+WYearLength[1:2, 'beta'] <- 0
+
+
 wmy <- ggplot(data=wsl) + facet_wrap(~cultivar) + theme_bw() +
     geom_point(aes(x=year, y=length1), size=1.5, color=walnutcol) +
+    geom_abline(aes(intercept=intercept, slope=beta), data=WYearLength) + 
     labs(x='year',y='Season Length (days)')
 
 wmy
@@ -421,8 +430,12 @@ wmy
 
 ```{r walnut_harvest, fig.cap='Heat sum correlation with walnut season lengths over the past 60 years in Davis.', warning=FALSE, echo=FALSE, fig.height=2.5}
 
+
+WHeatLength <- filter(walnutmod, predictor!='Year', response=='Season Length')
+
 wmat <- ggplot(data=wsl) + facet_wrap(~cultivar, scales='free_x') + theme_bw() +
     geom_point(aes(x=thermal, y=length1), size=1.5, color=walnutcol) +
+    geom_abline(aes(intercept=intercept, slope=beta), data=WHeatLength) +
     labs(x='Scaled Heat Sum',y='Season Length (days)')
 
 wmat
@@ -437,10 +450,16 @@ wmat
 ```{r walnut_heatsumtime, fig.cap='Walnut heat sums over the past 80 years.', warning=FALSE, echo=FALSE, fig.height=6, fig.width=5}
 
 wtts <- filter(tts, crop=='walnut')
+WHeatYear <- filter(walnutmod, predictor=='Year', response!='Season Length')
+WHeatYear$signif <- c('0.1','0.1', '0.05')
+
+
 wgdh <- ggplot(data=wsl) + facet_wrap(~cultivar, scale='free_y',nrow=3) +
-    theme_bw() +
     geom_point(aes(x=year, y=thermal), size=1.5, color=walnutcol) +
-    labs(x='Year',y='Scaled Heat Sum')
+    geom_abline(aes(intercept=intercept, slope=beta, color=signif),
+                data=WHeatYear) +
+    scale_color_manual(values=c("#000000", "#8c8c8c"), name='') +
+    labs(x='Year',y='Scaled Heat Sum') +  theme_bw() 
 
 wgdh
 
