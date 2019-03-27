@@ -1,6 +1,5 @@
 
 # Setup -------------------------------------------------------------------
-
 library(plyr)
 library(tidyverse)
 library(lubridate)
@@ -54,17 +53,17 @@ AThermalTimeSum <- lapply(AThermalTimeMod, function(mod) summary(mod))
 
 extractLM(AThermalTimeMod[[1]])
 
-AThermVars <- paste0('GDH', aLocVar[,'threshold'])
+AThermVars <- rep(paste0('GDH', aLocVar[,'threshold']), each=2)
 
-a1 <- formatLM(aLocVar, ALengthTimeMod) %>% 
+a1 <- formatLM(aLocVar, ALengthTimeMod, dropIntercept = FALSE) %>% 
     add_column(predictor='Year', .before=3) %>% 
     add_column(response='Season Length', .before=4)
 
-a2 <- formatLM(aLocVar, ALengthMod) %>% 
+a2 <- formatLM(aLocVar, ALengthMod, dropIntercept = FALSE) %>% 
     add_column(predictor=AThermVars, .before=3) %>% 
     add_column(response='Season Length', .before=4)
 
-a3 <-formatLM(aLocVar, AThermalTimeMod) %>% 
+a3 <-formatLM(aLocVar, AThermalTimeMod, dropIntercept = FALSE) %>% 
     add_column(predictor='Year', .before=3) %>% 
     add_column(response=AThermVars, .before=4)
 
@@ -88,15 +87,15 @@ PLengthMod <- lm(length1 ~ thermal, data=p)
 
 PLengthTimeMod <- lm(length1 ~ year, data=p)
 
-p1 <- formatLM(pLocVar, PLengthTimeMod) %>% 
+p1 <- formatLM(pLocVar, PLengthTimeMod, dropIntercept = FALSE) %>% 
     add_column(predictor='Year', .before=3) %>% 
     add_column(response='Season Length', .before=4)
 
-p2 <- formatLM(pLocVar, PLengthMod) %>% 
+p2 <- formatLM(pLocVar, PLengthMod, dropIntercept = FALSE) %>% 
     add_column(predictor=paste0('GDH', pLocVar[1,'threshold']), .before=3) %>% 
     add_column(response='Season Length', .before=4)
 
-p3 <-formatLM(pLocVar, AThermalTimeMod) %>% 
+p3 <-formatLM(pLocVar, AThermalTimeMod, dropIntercept = FALSE) %>% 
     add_column(predictor='Year', .before=3) %>% 
     add_column(response=paste0('GDH', pLocVar[1,'threshold']), .before=4)
 
@@ -139,17 +138,17 @@ WLengthTimeMod <- lapply(wlist, function(df) {
 WLengthTimeSum <- lapply(WLengthTimeMod, function(mod) summary(mod))
 
 
-WThermVars <- paste0('GDH', wLocVar[,'threshold'])
+WThermVars <- rep(paste0('GDH', wLocVar[,'threshold']), 2)
 
-w1 <- formatLM(wLocVar, WLengthTimeMod) %>% 
+w1 <- formatLM(wLocVar, WLengthTimeMod, dropIntercept = FALSE) %>% 
     add_column(predictor='Year', .before=3) %>% 
     add_column(response='Season Length', .before=4)
 
-w2 <- formatLM(wLocVar, WLengthMod) %>% 
+w2 <- formatLM(wLocVar, WLengthMod, dropIntercept = FALSE) %>% 
     add_column(predictor=WThermVars, .before=3) %>% 
     add_column(response='Season Length', .before=4)
 
-w3 <-formatLM(wLocVar, WThermalTimeMod) %>% 
+w3 <-formatLM(wLocVar, WThermalTimeMod, dropIntercept = FALSE) %>% 
     add_column(predictor='Year', .before=3) %>% 
     add_column(response=WThermVars, .before=4)
 
