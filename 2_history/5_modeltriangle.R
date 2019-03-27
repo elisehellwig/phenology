@@ -138,7 +138,7 @@ WLengthTimeMod <- lapply(wlist, function(df) {
 WLengthTimeSum <- lapply(WLengthTimeMod, function(mod) summary(mod))
 
 
-WThermVars <- rep(paste0('GDH', wLocVar[,'threshold']), 2)
+WThermVars <- rep(paste0('GDH', wLocVar[,'threshold']), each=2)
 
 w1 <- formatLM(wLocVar, WLengthTimeMod, dropIntercept = FALSE) %>% 
     add_column(predictor='Year', .before=3) %>% 
