@@ -26,7 +26,8 @@ extractLM <- function(mod, col.names=c('coef','pval'), intname='intercept',
     
 }
 
-formatLM <- function(df, lmlist, cols=c('coef', 'pval','r2'), crop=NA) {
+formatLM <- function(df, lmlist, cols=c('coef', 'pval','r2'), crop=NA,
+                     dropIntercept=TRUE) {
     
     if (class(lmlist)=='lm') {
         moddf <- extractLM(lmlist, loc=df[1,'loc'], cultivar=df[1,'cultivar'])
@@ -38,7 +39,10 @@ formatLM <- function(df, lmlist, cols=c('coef', 'pval','r2'), crop=NA) {
         
     }
     
-    moddf <- filter(moddf, var!='intercept')
+    if (dropIntercept) {
+        moddf <- filter(moddf, var!='intercept')
+    }
+   
     
     coi <- c('loc','cultivar', cols)
     
