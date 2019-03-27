@@ -104,19 +104,32 @@ locVar <- read.csv(file.path(historypath, 'SeasonLengthParameters.csv'))
 #Model table
 modtable <- readRDS(file.path(historypath, 'ModelTable.RDS'))
 atab <- modtable %>% 
-    filter(crop=='almond') %>% 
-    select(-crop)
+    filter(crop=='almond', var!='intercept') %>% 
+    select(-c(crop,var))
 ptab <- modtable %>% 
-    filter(crop=='prune') %>% 
-    select(-crop)
+    filter(crop=='prune', var!='intercept') %>% 
+    select(-c(crop,var))
 wtab <- modtable %>% 
+    filter(crop=='walnut', var!='intercept') %>% 
+    select(-c(crop,var))
+
+modtable$var <- recode(modtable$var, 'intercept'='intercept', .default='beta')
+
+
+almondmod <- modtable %>% 
+    filter(crop=='almond') %>% 
+    select(-c(crop, pval, r2)) %>% 
+    spread(var, coef) 
+
+prunemod <- modtable %>% 
+    filter(crop=='prune') %>% 
+    select(-c(crop, pval, r2)) %>% 
+    spread(var, coef) 
+
+walnutmod <- modtable %>% 
     filter(crop=='walnut') %>% 
-    select(-crop)
-
-#Katherine's data
-
-#Monthly and Total Winter Chill Accumulation for all sites (Chico, Davis, Modesto, Parlier)
-pblm <- read.csv(file.path(data1, 'data/Bloom_Parlier_French_ksp.csv')) #Prune bloom at Parlier
+    select(-c(crop, pval, r2)) %>% 
+    spread(var, coef) 
 
 
 locations <- c('Chico', 'Modesto', 'Parlier', 'Davis')
