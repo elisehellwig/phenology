@@ -41,6 +41,8 @@ formatLM <- function(df, lmlist, cols=c('coef', 'pval','r2'), crop=NA,
     
     if (dropIntercept) {
         moddf <- filter(moddf, var!='intercept')
+    } else {
+        cols <- c('var', cols)
     }
    
     
