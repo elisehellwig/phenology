@@ -290,10 +290,12 @@ amy
 
 ```{r almond_harvestthermal, fig.cap='Almond season length by heat sum in Chico, California.', warning=FALSE, echo=FALSE, fig.height=4}
 
+AHeatLength <- filter(almondmod, predictor!='Year', response=='Season Length')
+
 amat <- ggplot(data=asl) + facet_grid(loc~cultivar, scales='free_x') +
     geom_point(aes(x=thermal, y=length1), size=1.5, color=almondcol) +
-    labs(x='Scaled Heat Sum',y='Season Length (days)') + theme_bw() +
-    stat_smooth(aes(x=thermal, y=length1), method='lm', col='black')
+    labs(x='Heat Sum',y='Season Length (days)') + theme_bw() +
+    geom_abline(aes(intercept=intercept, slope=beta), data=AHeatLength)
 
 amat
 
@@ -319,9 +321,11 @@ kable(atab, booktabs = TRUE,
 
 ```{r almond_gdhtime, fig.cap='Almond heat sums over 80 years in Chico and Modesto, California.', warning=FALSE, echo=FALSE, fig.height=4}
 atts <- filter(tts, crop=='almond')
+AHeatYear <- filter(almondmod, predictor=='Year', response!='Season Length')
 
 agdh <- ggplot(data=atts) + facet_grid(loc~cultivar) + theme_bw() +
     geom_point(aes(x=year, y=thermal), size=1.5, color=almondcol) +
+    geom_abline(aes(intercept=intercept, slope=beta), data=AHeatYear) +
     labs(x='year',y='Heat Sum')
 
 agdh
@@ -338,9 +342,13 @@ French Prune season lengths in Parlier shortened by an average of 0.49 days per 
 
 ```{r prune_harvest_year, fig.cap='Prune season lengths over 25 years in Parlier, California.', warning=FALSE, echo=FALSE, fig.height=2.5, fig.width=4}
 
+PYearLength <- filter(prunemod, predictor=='Year', response=='Season Length')
+
+
 pmy <- ggplot(data=psl) + theme_bw() +
     geom_point(aes(x=year, y=length1), size=1.5, color=prunecol) +
-    labs(x='year',y='Season Length (days)')
+    labs(x='year',y='Season Length (days)') +
+    geom_abline(aes(intercept=intercept, slope=beta), data=PYearLength)
 
 pmy
 
@@ -350,9 +358,12 @@ pmy
 
 ```{r prune_harvest, fig.cap='Prune season lengths by heat sum in Parlier, CA.', warning=FALSE, echo=FALSE, fig.height=2.5, fig.width=4}
 
+PLengthHeat <- filter(prunemod, predictor=='GDH74', response=='Season Length')
+
 pmat <- ggplot(data=psl) + theme_bw() + 
     geom_point(aes(x=thermal, y=length1), size=1.5, color=prunecol) +
-    labs(x='Scaled Heat Sum',y='Season Length (days)')
+    labs(x='Scaled Heat Sum',y='Season Length (days)') +
+    geom_abline(aes(intercept=intercept, slope=beta), data=PLengthHeat)
 
 pmat
 
