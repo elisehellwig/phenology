@@ -95,7 +95,7 @@ p2 <- formatLM(pLocVar, PLengthMod, dropIntercept = FALSE) %>%
     add_column(predictor=paste0('GDH', pLocVar[1,'threshold']), .before=3) %>% 
     add_column(response='Season Length', .before=4)
 
-p3 <-formatLM(pLocVar, AThermalTimeMod, dropIntercept = FALSE) %>% 
+p3 <-formatLM(pLocVar, PThermalTimeMod, dropIntercept = FALSE) %>% 
     add_column(predictor='Year', .before=3) %>% 
     add_column(response=paste0('GDH', pLocVar[1,'threshold']), .before=4)
 
