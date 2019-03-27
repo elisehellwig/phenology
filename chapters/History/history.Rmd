@@ -139,20 +139,11 @@ mos <- 1:12
 ```
 
 
-
-## Notes
-
-** Thesis: Because harvest date is influenced by so many factors, detecting changes in season length over time due to climate change can be difficult. By looking at tree response to interannual temperature variation we can explain past phenological trends and predict future ones. **
-
-- Need to find a good way to plot all the things without having massive amounts of space in the graph (ex scaling the data)
-- To be honest I my want to scale the data anyway for model fitting.
-
-
 # Introduction
 
-Tree crops, like almonds and walnuts, made up 35% of the California agricultural sector by income in 2012 and that percentage is increasing (Ag stats 2012). Almonds individually are the second highest valued commodity California produces, second only to milk and cream (Ag Stats 2015). Unlike field crops and other annuals that are replanted every spring, tree crops stay in the same place for multiple decades. They also require more upfront investment as most trees do not fruit until a couple years after planting. Because of this, they are more vulnerable to changes in climate. 
+Fruit and nut crops, like almonds, walnuts and prunes, made up about 40% of the California agricultural sector by income in 2017 [@agstats2018]. Almonds individually are the third highest valued commodity California produces, second only to milk and cream [@agstats2018]. Unlike field crops and other annuals that are replanted every spring, tree crops stay in the same place for multiple decades. They also require more upfront investment as most trees do not fruit until a couple years after planting. Because of this, they are more vulnerable to changes in climate. 
 
-The effects of climate change in California are fairly well documented, especially with respect to drought (citations). However, the potential for groundwater based irrigation systems protects many agricultural systems from significant water stress during all but the most severe droughts (Citation?). Temperatures in California are also changing due to climate change and this many already have impacted the phenology for more sensitive crops (Luedeling 2012b). Many papers have has also been demonstrated temperature to be one of the key, if not the key climatic variable when predicting crop phenology (citations). 
+The impact of climate change in California are fairly well documented, especially with respect to drought [@griffin2014; @diffenbaugh2015]. However, groundwater based irrigation systems currently provide a buffer for many agricultural systems from significant water stress during droughts [@medellin2016]. Temperatures in California are also changing due to climate change and this many already have impacted the phenology for more sensitive crops (Luedeling 2012b). Many papers have has also been demonstrated temperature to be one of the key, if not the key climatic variable when predicting crop phenology [@day2007;. 
 
 However, it is not enough to just look at the predictors of flowering and harvest dates when assessing climate risk. It is also necessary to compare these predictors to actually flowering and harvest dates, and investigate changes to these dates over time. 
 
@@ -160,7 +151,8 @@ The majority of variation in California temperatures over the past 100 years is 
 
 When discussing fall phenology, the most commonly referenced development stage is maturity, the first possible harvest date [@mimoun1998; @tombesi2010; @ruml2011]. However, maturity is correlated with flowering.  Everything else being equal, a tree that bloomed earlier will also be ready to harvest earlier. Consequently, changes in harvest readiness date can be due to changes in flowering dates and/or changes in temperature after flowering dates. To avoid confounding these two phenomena, we use season length (time from flowering to maturity) as the fall phenological response, instead of harvest date.
 
-This paper documents temperature changes in California over the past century and relates those changes to changes in almond, prune and walnut phenology in the Central Valley. Realized temperature increases due to climate change vary by region in California. By looking at tree response to interannual temperature variation, we can explain past phenological trends and predict future ones.
+This paper documents temperature changes in California over the past century and relates those changes to changes in almond, prune and walnut phenology in the Central Valley. Realized temperature increases due to climate change vary by region in California. Because tree crop maturity is influenced by so many factors, detecting changes in season length over time due to climate change can be difficult. By looking at tree response to interannual temperature variation, we can explain past phenological trends and predict future ones. 
+
 
 # Methods
 
