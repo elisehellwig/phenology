@@ -115,7 +115,7 @@ wslopt <- ldply(1:nrow(wLocVar), function(i) {
 
 wsl30 <- ldply(1:nrow(wLocVar), function(i) {
     calcThermalTime(w, temp, 'harvest', 'DT', 
-                    'asymcur', c(4,25,36), 0, wLocVar[i, 'threshold'], 
+                    'asymcur', c(4,25,36), 0, 30, 
                     c('start','threshold'), var=wLocVar[i,'cultivar'],
                     predictorName='thermal30')
 })
