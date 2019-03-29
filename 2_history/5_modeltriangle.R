@@ -94,10 +94,16 @@ alist2 <- lapply(1:length(alist), function(i) {
 })
 
 
-aharv <- ldply(1:length(alist), function(i) {
+alist3 <- lapply(1:length(alist), function(i) {
     alist2[[i]]$fitlength30 <- predict(ALength30Mod[[i]],
                                     data.frame(thermal30=alist[[i]]$thermal30))
     alist2[[i]]
+})
+
+
+aharv <- ldply(1:length(alist), function(i) {
+    alist3[[i]]$fitlengthnull <- mean(alist[[i]]$length1)
+    alist3[[i]]
 })
 
 
@@ -149,6 +155,9 @@ p$fitlength <- predict(PLengthMod,
 
 p$fitlength30 <- predict(PLength30Mod, 
                          data.frame(thermal30=p$thermal30))
+
+p$fitlengthnull <- mean(p$length1)
+
 # Walnut ------------------------------------------------------------------
 
 wLocVar <- filter(locVar, crop=='walnut')
@@ -215,10 +224,15 @@ wlist2 <- lapply(1:length(wlist), function(i) {
 })
 
 
-wharv <- ldply(1:length(wlist2), function(i) {
+wlist3 <- lapply(1:length(wlist2), function(i) {
     wlist2[[i]]$fitlength30 <- predict(WLength30Mod[[i]],
-                                       data.frame(thermal30=wlist[[i]]$thermal30))
+                                    data.frame(thermal30=wlist[[i]]$thermal30))
     wlist2[[i]]
+})
+
+wharv <- ldply(1:length(wlist3), function(i) {
+    wlist3[[i]]$fitlengthnull <- mean(wlist3[[i]]$length1)
+    wlist3[[i]]
 })
 
 # Combine and save --------------------------------------------------------
