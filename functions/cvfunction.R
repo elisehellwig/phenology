@@ -19,10 +19,17 @@ CV <- function(df, predictor, response, k=5, seed=NA, avg=TRUE) {
         
         mod <- lm(as.formula(fmla), data=train)
         
-        newdata <-data.frame(test[,predictor])
-        names(newdata) <- predictor
+        if (predictor=='1') {
+            fit <- rep(predict(mod)[1], nrow(test))
+            
+        } else {
+            newdata <-data.frame(test[,predictor])
+            names(newdata) <- predictor
+            
+            fit <- predict(mod, newdata)
+            
+        }
         
-        fit <- predict(mod, newdata)
         
         error[i] <- rmse(fit, test[,response])
         
