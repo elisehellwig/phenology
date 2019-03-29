@@ -34,6 +34,9 @@ locVar$RMSE30 <- sapply(1:nrow(locVar), function(i) {
     round(rmse(datalist[[i]]$fitlength30, datalist[[i]]$length1),2)
 })
 
+locVar$RMSEnull <- sapply(1:nrow(locVar), function(i) {
+    round(rmse(datalist[[i]]$fitlengthnull, datalist[[i]]$length1),2)
+})
 
 
 # crossvalidation ---------------------------------------------------------
@@ -46,7 +49,9 @@ locVar$RMSE30cv <- sapply(1:length(datalist), function(i) {
     round(CV(datalist[[i]], 'fitlength30','length1', seed=248938), 2)
 })
 
-locVar$RMSEdif <- locVar$RMSE30cv-locVar$RMSEcv
+locVar$RMSEnullcv <- sapply(1:length(datalist), function(i) {
+    round(CV(datalist[[i]], '1','length1', seed=248938), 2)
+})
 
 
 write.csv(locVar, file.path(historypath, 'SeasonLengthErrors.csv'),
