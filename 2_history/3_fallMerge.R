@@ -44,8 +44,16 @@ locVar <- rbind(locVar, data.frame(crop='prune',
                                    cultivar='French',
                                    threshold=pruneThreshold))
 
+cv <- c('Chandler','Payne','Franquette')
 
-# Almond Harvest ----------------------------------------------------------
+locVar2 <- data.frame(crop='walnut',
+                      loc='Davis',
+                      cultivar=cv,
+                      threshold=c(49,65,36)) 
+locVar <- rbind(locVar, locVar2)
+write.csv(locVar, file.path(historypath, 'SeasonLengthParameters.csv'),
+          row.names=FALSE)
+
 ah <- a %>% 
     filter(source=='RAVT', loc %in% c('Chico','Modesto'),
                     cultivar %in% c('Nonpareil','Mission','Sonora'))
@@ -93,16 +101,7 @@ psl$crop <- 'prune'
 
 # Walnut harvest ----------------------------------------------------------
 
-cv <- c('Chandler','Payne','Franquette')
 w$loc <- 'Davis'
-
-locVar2 <- data.frame(crop='walnut',
-                      loc='Davis',
-                      cultivar=cv,
-                      threshold=c(49,65,36)) 
-locVar <- rbind(locVar, locVar2)
-write.csv(locVar, file.path(historypath, 'SeasonLengthParameters.csv'),
-          row.names=FALSE)
 
 wLocVar <- filter(locVar, crop=='walnut')
 wslopt <- ldply(1:nrow(wLocVar), function(i) {
