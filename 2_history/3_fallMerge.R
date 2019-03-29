@@ -32,7 +32,7 @@ temp$dt <- as.POSIXct(temp$dt, format="%Y-%m-%d %H:%M:%OS")
 
 # Extract model thresholds ------------------------------------------------
 locVar <- expand.grid('almond', c('Chico','Modesto'), 
-                      c('Mission','Nonpareil','Sonora'))
+                      c('Mission','Nonpareil'))
 names(locVar) <- c('crop','loc','cultivar')
 
 locVar$threshold <- sapply(amod, function(m) round(unlist(threshold(m))))
@@ -53,6 +53,12 @@ locVar2 <- data.frame(crop='walnut',
 locVar <- rbind(locVar, locVar2)
 write.csv(locVar, file.path(historypath, 'SeasonLengthParameters.csv'),
           row.names=FALSE)
+
+
+
+# Almonds -----------------------------------------------------------------
+
+
 
 ah <- a %>% 
     filter(source=='RAVT', loc %in% c('Chico','Modesto'),
