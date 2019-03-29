@@ -1,12 +1,13 @@
 
 
 # Setup -------------------------------------------------------------------
+library(dismo)
 library(plyr)
 library(tidyverse)
 library(lubridate)
 library(reshape2)
 library(phenoclim)
-source('functions/extractlm.R')
+source('functions/cvfunction.R')
 
 options(stringsAsFactors = FALSE)
 
@@ -35,5 +36,17 @@ locVar$RMSE30 <- sapply(1:nrow(locVar), function(i) {
 
 
 
+# crossvalidation ---------------------------------------------------------
 
+locVar$RMSEcv <- sapply(1:length(datalist), function(i) {
+    round(CV(datalist[[i]], 'fitlength','length1', seed=248938),2)
+})
+
+locVar$RMSE30cv <- sapply(1:length(datalist), function(i) {
+    round(CV(datalist[[i]], 'fitlength30','length1', seed=248938), 2)
+})
+
+
+write.csv(locVar, file.path(historypath, 'SeasonLengthErrors.csv'),
+          row.names=FALSE)
 
