@@ -44,10 +44,6 @@ locVar <- rbind(locVar, data.frame(crop='prune',
                                    cultivar='French',
                                    threshold=pruneThreshold))
 
-locVar$modtype <- 'DT'
-locVar$form <- 'asymcur'
-
-
 
 # Almond Harvest ----------------------------------------------------------
 ah <- a %>% 
@@ -56,7 +52,7 @@ ah <- a %>%
 
 aLocVar <- filter(locVar, crop=='almond')
 
-asl <- ldply(1:nrow(aLocVar), function(i) {
+aslopt <- ldply(1:nrow(aLocVar), function(i) {
     calcThermalTime(ah, temp, 'harvest', 'DT', 'asymcur', c(4,25,36), 0, 
                     aLocVar[i, 'threshold'], c('start','threshold'), 
                     location = aLocVar[i,'loc'], var=aLocVar[i,'cultivar'],
@@ -64,16 +60,32 @@ asl <- ldply(1:nrow(aLocVar), function(i) {
 
 })
 
+asl30 <- ldply(1:nrow(aLocVar), function(i) {
+    calcThermalTime(ah, temp, 'harvest', 'DT', 'asymcur', c(4,25,36), 0, 
+                    30, c('start','threshold'), 
+                    location = aLocVar[i,'loc'], var=aLocVar[i,'cultivar'],
+                    predictor='thermal30')
+})
+
+asl <- merge(aslopt, asl30)
+
 asl$length1 <- asl$event2 - asl$event1
 asl$crop <- 'almond'
 
 # Prune harvest -----------------------------------------------------------
 
-psl <- calcThermalTime(p, temp, 'harvest', 'DT', 'asymcur', c(4,25,36), 0, 
+pslopt <- calcThermalTime(p, temp, 'harvest', 'DT', 'asymcur', c(4,25,36), 0, 
                        pruneThreshold, c('start','threshold'), 
                        location = 'Parlier', var='French', 
                        predictorName = 'thermal')
 
+
+psl30 <- calcThermalTime(p, temp, 'harvest', 'DT', 'asymcur', c(4,25,36), 0, 
+                       30, c('start','threshold'), 
+                       location = 'Parlier', var='French', 
+                       predictorName = 'thermal30')
+
+psl <- merge(pslopt, psl30)
 
 psl$length1 <- psl$event2 - psl$event1
 
@@ -93,12 +105,23 @@ write.csv(locVar, file.path(historypath, 'SeasonLengthParameters.csv'),
           row.names=FALSE)
 
 wLocVar <- filter(locVar, crop=='walnut')
-wsl <- ldply(1:nrow(wLocVar), function(i) {
+wslopt <- ldply(1:nrow(wLocVar), function(i) {
     calcThermalTime(w, temp, 'harvest', 'DT', 
                     'asymcur', c(4,25,36), 0, wLocVar[i, 'threshold'], 
                     c('start','threshold'), var=wLocVar[i,'cultivar'],
                     predictorName='thermal')
     })
+
+
+wsl30 <- ldply(1:nrow(wLocVar), function(i) {
+    calcThermalTime(w, temp, 'harvest', 'DT', 
+                    'asymcur', c(4,25,36), 0, wLocVar[i, 'threshold'], 
+                    c('start','threshold'), var=wLocVar[i,'cultivar'],
+                    predictorName='thermal30')
+})
+
+
+wsl <- merge(wslopt, wsl30)
 
 wsl$length1 <- wsl$event2 - wsl$event1
 wsl$crop <- 'walnut'
