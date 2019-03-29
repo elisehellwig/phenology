@@ -46,6 +46,8 @@ locVar$RMSE30cv <- sapply(1:length(datalist), function(i) {
     round(CV(datalist[[i]], 'fitlength30','length1', seed=248938), 2)
 })
 
+locVar$RMSEdif <- locVar$RMSE30cv-locVar$RMSEcv
+
 
 write.csv(locVar, file.path(historypath, 'SeasonLengthErrors.csv'),
           row.names=FALSE)
