@@ -12,8 +12,8 @@ CV <- function(df, predictor, response, k=5, seed=NA, avg=TRUE) {
     
     
     for (i in 1:k) {
-        train <- df[df$k!=i, ]
-        test <- df[df$k==i, ]
+        train <- df[df$fold!=i, ]
+        test <- df[df$fold==i, ]
          
         fmla <- paste(response, '~', predictor)
         
