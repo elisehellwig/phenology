@@ -35,7 +35,7 @@ locVar <- expand.grid('almond', c('Chico','Modesto'),
                       c('Mission','Nonpareil'))
 names(locVar) <- c('crop','loc','cultivar')
 
-locVar$threshold <- sapply(amod, function(m) round(unlist(threshold(m))))
+locVar$threshold <- sapply(1:4, function(i) round(unlist(threshold(amod[[i]]))))
 
 pruneThreshold <- round(unlist(threshold(pmod)))
 
