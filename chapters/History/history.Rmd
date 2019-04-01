@@ -189,7 +189,7 @@ kable(weather, booktabs = TRUE,
 
 Season lengths for almonds and prunes started at full bloom, while walnut season length began at leaf-out. Maturity for almonds and walnuts was counted at hull-split while prunes were considered mature at 3-4 lbs of pressure. All phenological data were analyzed separately by location and cultivar using ordinary linear regression. 
 
-Thermal time was calculated using the asymcur model described by [@anderson1986]. We used the 'phenoclim' package to determine the optimal number of days of thermal time accumulation after bloom or leaf-out to use for predicting season length for each cultivar using 'phenoclim' package. Because latitude can effect phenological requirements (citation), we also separated data by location.
+Thermal time was calculated using the asymcur model described by [@anderson1986]. We used the 'phenoclim' package to determine the optimal number of days of thermal time accumulation after bloom or leaf-out to use for predicting season length for each cultivar using 'phenoclim' package. Thermal time accumulation 30 days after full bloom was also calculated as a comparison as this is the most commonly used metric for predicting season length (citations). Because latitude can effect phenological requirements (citation), we also separated data by location.
 
 Thermal time accumulation was then calculated for each year with full bloom or leaf-out data. Next we related thermal time accumulation to season length using linear models. Finally, we examined trends in thermal time accumulation over the entire bloom time series for each cultivar and location.
 
@@ -478,15 +478,15 @@ kable(wtab, booktabs = TRUE,
 The climate of California has not changed uniformly across the state. Modesto, Parlier, and Davis have all experienced increases in minimum annual temperatures, but the trends in their annual maximum temperatures diverge. Modesto maximum temperatures are warming, though not as quickly as the minimum temperatures. In Davis, maximum temperatures are relatively stable, and in Parlier, annual highs are actually decreasing. Additionally, both minimum and maximum temperatures in Chico are fairly stable.
 
 
-## Almonds
+### Almonds
 
 Using optimized thermal time accumulation lengths produced better predictions than previous attempts (Figure 4) [@ruml2011]. Inevitably though, a larger harvest data set would produce more robust results. Even so, despite the small number of years with harvest data for almonds, extensive almond flowering records allowed us to get a better sense of potential trends in almond season length. Trends in thermal time accumulation during the first two months after flowering point towards shortening season lengths for almonds in Chico, and lengthening ones in Modesto (Figure 5). It is unclear why season lengths in Modesto appear to be lengthening, though the fact that both thermal sums for Nonpareil and Mission cultivars show the same trend increases the conclusions robustness.
 
-## Prunes
+### Prunes
 
 French prune season lengths have gotten, on average, 12 days shorter between 1988 and 2014 (Figure 6). This is supported by the increasing trend in GDH74 over those same years and the strong relationship between GDH 74 and season length (Figure 7-8). We confidently expect prune season lengths will continue to shorten as the climate warms.  
 
-## Walnuts
+### Walnuts
 
 'Payne' walnut season lengths have shortened by approximately 11 days since 1960, while no discernable temporal trend exists yet for 'Chandler' or 'Franquette' walnuts (Figure 9). Based on the upwards trends in the thermal time accumulation (Table 5), Payne season lengths will continue to get shorter as climate change intensifies. Even though 'Chandler' and 'Franquette' season lengths have not changed appreciably over the past 50 years, there is some evidence that thermal time accumulation has (Figure 11, Table 5). Consequently, it is likely that season lengths will shorten in the future.
 
