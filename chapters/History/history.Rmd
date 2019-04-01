@@ -98,7 +98,7 @@ asl <- filter(harvest, crop=='almond', cultivar!='Sonora')
 psl <- filter(harvest, crop=='prune')
 wsl <- filter(harvest, crop=='walnut')
 tts <- readRDS(file.path(historypath, 'ThermalTimeSeries.RDS'))
-locVar <- read.csv(file.path(historypath, 'SeasonLengthParameters.csv'))
+locVar <- read.csv(file.path(historypath, 'SeasonLengthErrors.csv'))
 
 
 #Model table
@@ -169,10 +169,6 @@ Almond bloom and harvest records came from the University of California (UC) Reg
 
 All analysis was completed in R Statistical Programming Environment [@r2018] using the 'phenoclim' package (citation) to estimate thermal time accumulation parameters. 
 
-### Climate Analysis
-
-We investigated temperature trends in the four orchard locations in the Central Valley: Chico, Davis, Modesto, and Parlier. Temperature time series going back to 1931 were analyzed to match up with the duration of the longest phenological time series (almond bloom in Chico). While most of the phenological time series do not extend this far back, it is necessary to examine a long time series for climate data to ensure that the trends we find are robust. We analyzed both the monthly and annual temperature time series with a first degree autoregressive linear model, due the presence of autocorrelation in the data [@cressie2015]. 
-
 
 ```{r weatherlocs}
 
@@ -185,76 +181,29 @@ kable(weather, booktabs = TRUE,
 ```
 
 
-### Phenological Analysis
-
 Season lengths for almonds and prunes started at full bloom, while walnut season length began at leaf-out. Maturity for almonds and walnuts was counted at hull-split while prunes were considered mature at 3-4 lbs of pressure. All phenological data were analyzed separately by location and cultivar using ordinary linear regression. 
 
-Thermal time was calculated using the asymcur model described by [@anderson1986]. We used the 'phenoclim' package to determine the optimal number of days of thermal time accumulation after bloom or leaf-out to use for predicting season length for each cultivar using 'phenoclim' package. Thermal time accumulation 30 days after full bloom was also calculated as a comparison as this is the most commonly used metric for predicting season length (citations). Because latitude can effect phenological requirements (citation), we also separated data by location.
+Thermal time was calculated using the asymcur model described by [@anderson1986]. We used the 'phenoclim' package to determine the optimal number of days of thermal time accumulation after bloom or leaf-out to use for predicting season length for each cultivar using 'phenoclim' package. Mean season length (null model) as well as thermal time accumulation 30 days after full bloom (GDH30) were also calculated as a comparison as these are the most commonly used methods for predicting season length [@day2007; @tombesi2010; @ruml2011; @pope2014]. Because latitude can effect phenological requirements (citation), we also separated data by location.
 
 Thermal time accumulation was then calculated for each year with full bloom or leaf-out data. Next we related thermal time accumulation to season length using linear models. Finally, we examined trends in thermal time accumulation over the entire bloom time series for each cultivar and location.
 
 
 #Results
 
-## Temperature Trends
-
-
-```{r annual_min_plot, warning=FALSE, echo=FALSE, fig.cap='Mean Annual Minimum Temperatures from 1930 to 2017, duration of phenology record shown with grey lines.', fig.height=5, fig.width=6, tidy=TRUE}
-
-am_min <- am[am$variable=='tmin',]
-labs_min <- amlabs[amlabs$variable=='tmin', ]
-
-minplot <- ggplot(data=am_min) + ylim(5,13) +
-    geom_line(aes(x=year, y=temp), color='blue3') + facet_wrap(~loc) +
-    geom_smooth(aes(x=year, y=temp), size=1, method='lm', se=FALSE,
-                color="black", formula = y ~ x) + 
-     geom_segment(data=labs_min, aes(x=start, y=segy, xend=end, yend=segy),
-                  color='darkgrey', size=2) + 
-    geom_text(data=labs_min, aes(x=end, y=texty, label=label), hjust=1, vjust=0,
-              size=3) + theme_bw(10) + 
-    labs(x='Year', y=expression("Temperature  "(~degree*C)))
-
-minplot
-
-```
-
-
-```{r annual_max_plot, warning=FALSE, echo=FALSE, fig.cap='Mean Annual Minimum Temperatures from 1930 to 2017, duration of phenology record shown with grey lines.', fig.height=5, fig.width=6, tidy=TRUE}
-
-am_max <- am[am$variable=='tmax',]
-labs_max <- amlabs[amlabs$variable=='tmax', ]
-
-maxplot <- ggplot(data=am_max) + ylim(21,28) +
-    geom_line(aes(x=year, y=temp), color='red3') + facet_wrap(~loc) +
-    geom_smooth(aes(x=year, y=temp), size=1, method='lm', se=FALSE,
-                color="black", formula = y ~ x) + 
-     geom_segment(data=labs_max, aes(x=start, y=segy, xend=end, yend=segy),
-                  color='darkgrey', size=2) + 
-    geom_text(data=labs_max, aes(x=end, y=texty, label=label), hjust=1, vjust=0,
-              size=3) + theme_bw(10) + 
-    labs(x='Year', y=expression("Temperature  "(~degree*C)))
-
-maxplot
-
-```
-
-
-
-Over the past 80 years, annual temperatures minimum temperatures have stayed roughly the same in Chico but the annual maximum temperature has increased by 0.085  &deg;C (Table 5, Figures 2-3). No monthly minimum temperatures in Chico exhibit any significant trends. However, January, February, and December monthly maximum temperatures show significant increasing trends (Table 5).
-
-Modesto minimum temperatures show the strongest warming trends of all the locations, with a mean increase of 0.2 &deg;C per decade (Figure 3, Table 2). In addition, all mean minimum temperatures show significant increases in all months except for January and the means from eight months increased at over 0.3&deg;C per decade (Table 2). The annual maximum temperature in Modesto is also increasing, but not as rapidly (Figure 4, Table 5). Also, only seven months exhibit significant positive thrends in temperature (Table 5).
-
-
 ## Model Optimization
 
-Length of optimized thermal time accumulation varied significantly between crop, location and cultivar (Table 6). Accumulation lengths varied from 35 days for Mission almonds in Modesto to 74 days for prunes in Parlier. 
+Length of optimized thermal time accumulation varied significantly between crop, location and cultivar (Table 6). Accumulation lengths varied from 35 days for Mission almonds in Modesto to 74 days for prunes in Parlier. The optimized models consistently performed better than both the GDH30 models and the null model, by an average of `r round(mean(locVar$RMSE30cv - locVar$RMSEcv),2)` days and  `r round(mean(locVar$RMSEnullcv - locVar$RMSEcv),2)` days respectively.
 
 ```{r locVarTable}
 
-kable(locVar[,-c(5,6)], booktabs = TRUE, 
-      col.names = c('Crop', 'Location', 'Cultivar','Length'),
+kable(locVar[,c(1:4,8:10)], booktabs = TRUE,
+      col.names = c('Crop', 'Location', 'Cultivar','Days', 'Opt. GDH', 
+                    'GDH30', 'NULL'),
       caption = 'Optimized length of thermal time accumulation in days for
-      predicting season length, by crop, location and cultivar.')
+      predicting season length, by crop, location and cultivar, and a
+      comparison of 5-fold crossvalidated RMSE values for the optimized GDH
+      models, GDH30 models, and mean season length.') %>% 
+    add_header_above(c(" " = 4, "RMSE"=3))
 
 ```
 
@@ -472,10 +421,6 @@ kable(wtab, booktabs = TRUE,
 
 
 # Discussion
-
-##Climate
-
-The climate of California has not changed uniformly across the state. Modesto, Parlier, and Davis have all experienced increases in minimum annual temperatures, but the trends in their annual maximum temperatures diverge. Modesto maximum temperatures are warming, though not as quickly as the minimum temperatures. In Davis, maximum temperatures are relatively stable, and in Parlier, annual highs are actually decreasing. Additionally, both minimum and maximum temperatures in Chico are fairly stable.
 
 
 ### Almonds
