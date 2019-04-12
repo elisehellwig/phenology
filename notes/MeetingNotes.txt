@@ -18,3 +18,21 @@ Meeting with Katherine Jarvis-Shean, 3-14-19
  	* California Women for Ag
  	* CURES (meeting on April 2nd)
  	
+
+Meeting Questions
+- Which parameters do we want to optimize
+- Did you use the method that only allows chill or heat to accumulate for a given hour?
+- which takes precedence, accumulating chill or heat?
+- Finished a draft and sent it to Robert. Should I send it to you? Will you have time to read it?
+
+Skype Meeting (4-11-19)
+- combine Almonds
+- Feedback on is it easily understandable
+- Are my conclusions commensurate with my data
+- Any missing pieces
+- Possilibiities or optimization: Chill requirement, Heat Requirement, Overlap, Optimal chill, optimal heat,b3
+- Use Nov 1, as start
+- Estimate a couple of different ways, try sequential modeling and and also optimize
+- Bracket chill and heat requirement
+-
+- 
