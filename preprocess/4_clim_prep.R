@@ -583,40 +583,80 @@ tsc <- timeSeriesCheck(cimshaft, start="1982-06-02 00:00:00 PDT",
                        end="2018-10-31 23:00:00 PDT", hours = TRUE,
                        datename='date')
 
-cimshaftdaily <- redit
+write.csv(cimshaft, file.path(datapath, 'clean/cimisshafter.csv'),
+          row.names=FALSE)
+
+
+
+
 
 # NOAA - Shafter ----------------------------------------------------------
 
-sn <- read.csv(file.path(datapath, 'raw/climate/noaashafter.csv'))
-cimshaft <- read.csv(file.path(datapath, 'clean/cimisparlier.csv'))
+sn1 <- read.csv(file.path(datapath, 'raw/climate/noaashafter.csv'))
+cimshaft <- read.csv(file.path(datapath, 'clean/cimisshafter.csv'))
 
-sn$DATE <- as.Date(sn$DATE)
+
+sn1$DATE <- as.Date(sn1$DATE)
 cimshaft$date <- as.POSIXct(cimshaft$date)
 cimshaft$dateOnly <- as.Date(cimshaft$date)
 
 #selecting and renaming columns
-sn <- sn %>% select('loc'='NAME','date'='DATE', 'tmax'='TMAX', 'tmin'='TMIN')
+sn1 <- select(sn1, 'loc'='NAME','date'='DATE', 'tmax'='TMAX', 'tmin'='TMIN')
 
-sn$loc <- recode(sn$loc, "BUTTONWILLOW, CA US"='buttonwillow',
+sn1$loc <- recode(sn1$loc, "BUTTONWILLOW, CA US"='buttonwillow',
                  "BAKERSFIELD AIRPORT, CA US"='bakersfieldAirport',
                  "BAKERSFIELD 5 NW, CA US"='bakersfield5',
                  "BAKERSFIELD 6.1 WSW, CA US"='bakersfield6',
-                 "WASCO, CA US"='wasco', "SHAFTER 6 E, CA US"='shafter')
+                 "WASCO, CA US"='wasco', "SHAFTER 6 E, CA US"='shafter6')
 
 
+#creating a dataframe with with min and max daily temp values for shafter
+#this is because there is no noaa station in shafter, only a cimis station 
+sn2 <- data.frame(loc='shafter',
+                  date=names(tapply(cimshaft$temp, cimshaft$dateOnly, min)),
+                  tmin=unname(tapply(cimshaft$temp, cimshaft$dateOnly, min)),
+                  tmax=unname(tapply(cimshaft$temp, cimshaft$dateOnly, max)))
+
+sn <- rbind(sn1, sn2)
+
+#create year variable
+sn$year <- year(sn$date)
+
+#select only data after 1930 because too many missing days before 1930
+sn <- sn[sn$year >= 1930, ]
+
+#setting temps to NA where min temp > max temp
+sn[which(sn$tmin > sn$tmax), 'tmin'] <- NA
+sn[which(sn$tmin > sn$tmax), 'tmax'] <- NA
+
+#setting temps to NA if they are higher or lower than most extreme values
+sn[which(sn$tmax<=0), 'tmax'] <- NA
+sn[which(sn$tmin < (-10)), 'tmin'] <- NA
+
+sn <- unique(sn)
+
+snsub <- filter(sn, loc %in% c('shafter','buttonwillow','wasco',
+                               'bakersfieldAirport'))
+
+#filling in data for the entire parlier time series
+sndmin <- fillinTemps(sn, 'tmin', 
+                      c('buttonwillow','wasco', 'bakersfieldAirport'), 
+                      'shafter')
+
+sndmax <- fillinTemps(sn, 'tmax',
+                      c('buttonwillow','wasco', 'bakersfieldAirport'),
+                      'shafter')
+
+#merging the filled in data
+snd <- merge(sndmin, sndmax)
 
 
-#creating a dataframe with with min and max daily temp values for parlier
-#this is because there is no noaa station in parlier, only a cimis station 
-pn3 <- data.frame(loc='parlier',
-                  date=names(tapply(cimpar$temp, cimpar$dateOnly, min)),
-                  tmin=unname(tapply(cimpar$temp, cimpar$dateOnly, min)),
-                  tmax=unname(tapply(cimpar$temp, cimpar$dateOnly, max)))
-
-
-
-
-tscd <- timeSeriesCheck(sn[sn$loc=='shafter', ], 
+tscd <- timeSeriesCheck(snd, 
                         start="1931-01-01 23:00:00 PDT", 
                         end="2018-10-31 23:00:00 PST", hours = FALSE,
                         datename='date')
+
+write.csv(snd, file=file.path(datapath, 'clean/noaashafter.csv'),
+          row.names = FALSE)
+
+
