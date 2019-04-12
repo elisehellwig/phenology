@@ -27,12 +27,15 @@ nchico <- read.csv(file=file.path(datapath,'clean/noaachico.csv') )
 ndavis <- read.csv(file=file.path(datapath, 'clean/noaadavis.csv'))
 nmod <- read.csv(file=file.path(datapath, 'clean/noaamodesto.csv'))
 nparlier <- read.csv(file=file.path(datapath, 'clean/noaaparlier.csv'))
+nshafter <- read.csv(file=file.path(datapath, 'clean/noaashafter.csv'))
 
 #cleaned CIMIS data
 cdavis <- read.csv(file.path(datapath, 'clean/cimisdavis.csv'))
 cchico <- read.csv(file.path(datapath, 'clean/cimischicodurham.csv'))
 cmod <- read.csv(file.path(datapath, 'clean/cimismodesto.csv'))
 cparlier <- read.csv(file.path(datapath, 'clean/cimisparlier.csv'))
+cshafter <- read.csv(file.path(datapath, 'clean/cimisshafter.csv'))
+
 #this script readies the climate data for analysis.
 
 
@@ -43,6 +46,7 @@ davisInterp <- InterpTemp(ndavis, cdavis, 'Davis', 1930, 2017)
 chicoInterp <- InterpTemp(nchico, cchico, 'Chico', 1930, 2017)
 modestoInterp <- InterpTemp(nmod, cmod, 'Modesto', 1930, 2017)
 parlierInterp <- InterpTemp(nparlier, cparlier, 'Parlier', 1930, 2017)
+shafterInterp <- InterpTemp(nshafter, cshafter, 'Shafter', 1930, 2017)
 
 
 # Merging daily and hourly temperatures -----------------------------------
@@ -51,6 +55,7 @@ davisfinal <- mergeDailyHourly(ndavis, cdavis, davisInterp)
 chicofinal <- mergeDailyHourly(nchico, cchico, chicoInterp)
 modestofinal <- mergeDailyHourly(nmod, cmod, modestoInterp)
 parlierfinal <- mergeDailyHourly(nparlier, cparlier, parlierInterp)
+shafterfinal <- mergeDailyHourly(nshafter, cshafter, shafterInterp)
 
 
  # Combine -----------------------------------------------------------------
@@ -59,10 +64,10 @@ davisfinal$loc <- 'Davis'
 chicofinal$loc <- 'Chico'
 modestofinal$loc <- 'Modesto'
 parlierfinal$loc <- 'Parlier'
-
+shafterfinal$loc <- 'Shafter'
 
 dailyhourlytemps <- do.call(rbind, list(davisfinal, chicofinal, modestofinal,
-                                        parlierfinal)) 
+                                        parlierfinal,shafterfinal)) 
 
 
 # Save data ---------------------------------------------------------------
