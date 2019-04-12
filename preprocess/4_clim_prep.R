@@ -536,3 +536,87 @@ write.csv(cimmod, file.path(datapath, 'clean/cimismodesto.csv'),
 
 
 
+
+
+# CIMIS - Shafter ---------------------------------------------------------
+
+cshafter <- importCIMIS(file.path(datapath, 'raw/climate/cimis/shafter'))
+
+cshafter$name <- recode(cshafter$name, "Arvin-Edison"="arvin",
+                        "Blackwells Corner"="blackwell",
+                        "McFarland/Kern Farms"="mcfarland",
+                        "Shafter"="shafter",
+                        "Lamont"="lamont",
+                        "Bakersfield/Bonanza"='bonanza',
+                        "Bakersfield/Greenlee"= 'greenlee',
+                        "Lost Hills"='losthills')
+
+
+extremerows <- which(cshafter$qc=='R' | cshafter$temp<= -11 | 
+                         cshafter$temp > 44 |
+                         month(cshafter$date)!=12 & cshafter$temp<=(-8) |
+                         month(cshafter$date) %in% 5:9 & cshafter$temp<=0 )
+cshafter[extremerows, 'temp'] <- NA
+
+
+cs <- cshafter[which(cshafter$name=='shafter'),]
+
+cs80 <- cshafter[which(cshafter$date<'1986-10-01 00:00:00'), ] 
+cs80d <- fillinTemps(cs80, 'temp',c('lamont','losthills','greenlee','bonanza',
+                                    'mcfarland'),
+                     'shafter','name')
+
+
+cs90 <- cshafter[which(cshafter$date>='1986-10-01 00:00:00' &
+                       cshafter$date<'1994-10-03 00:00:00' ), ] 
+cs90d <- fillinTemps(cs90, 'temp',c('blackwell','mcfarland', 'lamont'),
+                     'shafter','name')
+
+cs00 <- cshafter[which(cshafter$date>='1994-10-03 00:00:00'), ] 
+cs00d <- fillinTemps(cs00, 'temp',c('arvin','blackwell'),
+                     'shafter','name')
+
+cimshaft <- do.call(rbind, list(cs80d, cs90d, cs00d))
+
+
+tsc <- timeSeriesCheck(cimshaft, start="1982-06-02 00:00:00 PDT", 
+                       end="2018-10-31 23:00:00 PDT", hours = TRUE,
+                       datename='date')
+
+cimshaftdaily <- redit
+
+# NOAA - Shafter ----------------------------------------------------------
+
+sn <- read.csv(file.path(datapath, 'raw/climate/noaashafter.csv'))
+cimshaft <- read.csv(file.path(datapath, 'clean/cimisparlier.csv'))
+
+sn$DATE <- as.Date(sn$DATE)
+cimshaft$date <- as.POSIXct(cimshaft$date)
+cimshaft$dateOnly <- as.Date(cimshaft$date)
+
+#selecting and renaming columns
+sn <- sn %>% select('loc'='NAME','date'='DATE', 'tmax'='TMAX', 'tmin'='TMIN')
+
+sn$loc <- recode(sn$loc, "BUTTONWILLOW, CA US"='buttonwillow',
+                 "BAKERSFIELD AIRPORT, CA US"='bakersfieldAirport',
+                 "BAKERSFIELD 5 NW, CA US"='bakersfield5',
+                 "BAKERSFIELD 6.1 WSW, CA US"='bakersfield6',
+                 "WASCO, CA US"='wasco', "SHAFTER 6 E, CA US"='shafter')
+
+
+
+
+#creating a dataframe with with min and max daily temp values for parlier
+#this is because there is no noaa station in parlier, only a cimis station 
+pn3 <- data.frame(loc='parlier',
+                  date=names(tapply(cimpar$temp, cimpar$dateOnly, min)),
+                  tmin=unname(tapply(cimpar$temp, cimpar$dateOnly, min)),
+                  tmax=unname(tapply(cimpar$temp, cimpar$dateOnly, max)))
+
+
+
+
+tscd <- timeSeriesCheck(sn[sn$loc=='shafter', ], 
+                        start="1931-01-01 23:00:00 PDT", 
+                        end="2018-10-31 23:00:00 PST", hours = FALSE,
+                        datename='date')
