@@ -12,8 +12,8 @@ importCIMIS <- function(path) {
     
     #import the data from each of the files and select only vars of interest
     cimis <- plyr::ldply(filenames, function(fn) {
-        read.csv(fn)[,c('Stn.Name','Date','Hour..PST.','Jul','Air.Temp..C.',
-                        'qc')]
+        read.csv(fn, skipNul = TRUE)[,c('Stn.Name','Date','Hour..PST.',
+                                        'Jul','Air.Temp..C.','qc')]
     }) 
     
     #rename variables
