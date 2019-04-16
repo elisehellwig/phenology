@@ -46,7 +46,7 @@ davisInterp <- InterpTemp(ndavis, cdavis, 'Davis', 1930, 2017)
 chicoInterp <- InterpTemp(nchico, cchico, 'Chico', 1930, 2017)
 modestoInterp <- InterpTemp(nmod, cmod, 'Modesto', 1930, 2017)
 parlierInterp <- InterpTemp(nparlier, cparlier, 'Parlier', 1930, 2017)
-shafterInterp <- InterpTemp(nshafter, cshafter, 'Shafter', 1930, 2017)
+shafterInterp <- InterpTemp(nshafter, cshafter, 'Shafter', 1940, 2017)
 
 
 # Merging daily and hourly temperatures -----------------------------------
@@ -81,6 +81,7 @@ write.csv(modestofinal, file.path(datapath, 'clean/dailyhourlytempmodesto.csv'),
 write.csv(parlierfinal, file.path(datapath, 'clean/dailyhourlytempparlier.csv'),
           row.names = FALSE)
 
-write.csv(dailyhourlytemps, file.path(datapath, 'phenology/dailyhourlytemp.csv'),
-          row.names = FALSE)
+write.csv(dailyhourlytemps, file.path(datapath, 
+            'phenology/dailyhourlytemp.csv'), row.names = FALSE)
+
 saveRDS(dailyhourlytemps, file.path(datapath, 'phenology/dailyhourlytemp.RDS'))
