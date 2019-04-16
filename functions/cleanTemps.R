@@ -202,4 +202,21 @@ AverageTemps <- function(temps, variable, monthly=TRUE, datename='dt',
     
 }
 
-
+backfillTemps <- function(lat, dt, tmin, tmax) {
+    #This function takes daily data and uses a simple interpolation method to 
+        #create hourly data.
+    #It is not super accurate but I am only using it to fill in hourly data
+        #where I cannot find fillin data within 100 miles of the station.
+    
+    dateOnly <- as.Date(dt)
+    
+    hrlytemp <- round(diTemp(lat, dateOnly, tmin, tmax), 1)
+    
+    datevec <- seq(dt, by='hour', length.out = 24)
+    
+    tempdf <- data.frame(date=seq(dt, by='hour', length.out = 24),
+                         temp=hrlytemp)
+    
+    return(tempdf)
+    
+}
