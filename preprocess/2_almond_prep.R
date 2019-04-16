@@ -73,18 +73,25 @@ a2$event <- 'event1'
 # Formatting third data source ---------------------------------------------
 
 
-voi3 <- c('Year','Location','X','Hull.Split.Start','X90..bloom')
+voi3 <- c('Year','Location','X','Hull.Split.Start','X80..bloom','X90..bloom')
+
 
 
 #selecting only variables we want
 adat3 <- araw3 %>% 
     select(voi3) %>% 
     rename('year'='Year', 'loc'='Location', 'cultivar'='X', 
-           'event2'='Hull.Split.Start', 'event1'='X90..bloom') %>% 
+           'event2'='Hull.Split.Start', 'event1a'='X80..bloom',
+           'event1b'='X90..bloom') %>% 
     add_column(source='RAVT')
 
 #renaming locations
 adat3$loc <- recode(adat3$loc, `1`='Chico',`2`='Manteca', `3`='Shafter')
+
+#combining 80 and 90% bloom because Manteca doesn't have 80% and Shafter
+#doesn't have 90%
+adat3$event1 <- ifelse(adat3$event1b=='0', adat3$event1a, adat3$event1b)
+adat3 <- select(adat3, -c('event1a','event1b'))
 
 #converting data to long format
 adat3 <- melt(adat3, id.vars = c('year','loc','cultivar', 'source'),
