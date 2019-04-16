@@ -709,6 +709,9 @@ tscd <- timeSeriesCheck(snd,
                         end="2018-10-31 23:00:00 PST", hours = FALSE,
                         datename='date')
 
+snd$day <- yday(snd$date)
+snd$year <- year(snd$date)
+
 write.csv(snd, file=file.path(datapath, 'clean/noaashafter.csv'),
           row.names = FALSE)
 
