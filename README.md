@@ -28,7 +28,18 @@ A thermal time functional form is the equation used to convert temperature into 
 
 This section constitutes descriptions of all the files in this repository, what they do, what other files are required to run them, as well as their data inputs and outputs. These descrptions are general overviews and to not go into specific discussions of the code in each file. For more detailed documentation, please review the comments in the file of interest.
 
-### Preprocess/
+### functions/
+
+#### __cleanTemps.R__
+This script contains functions that are used to import, clean, and process temperature data.
+
+* importCIMIS() - takes a directory path as an input. It reads all of the .csv files in that folder into R, merges them into one data.frame and formats them for use later.
+* fillinTemps() - This function is used to fill in missing temperature data from a given weather station with temperatures from nearby stations by way of linear regression. 
+* FtoC() - Converts fahrenheit temperatures to celcius
+* AverageTemps() - This function is used to calculate either annual or monthly average temperatures by location.
+* backfillTemps() - This function creates hourly temperature data from daily temperature data using a very simple (and not very realistic) interpolation. Only use if no other method of filling in temperature data is available
+
+### 0_preprocess/
 
 #### __1_walnut_prep.R__ 
 This script imports raw walnut flowering and harvest data from a number of files. The data is merged and then reformatted. Year-cultivars with multiple dates for a given phenological event have the dates averaged so there is one date for each event, for each cultivar, for each year. Specific cultivars of interest are selected and the data is saved as a csv. 
@@ -138,9 +149,20 @@ THis script takes precipitation data from the NCDC and prepares it for use predi
 
 ### 2_history/
 
-#### 1_optimize
+#### __1_optimize__
 
-This script identifies the optimal length of thermal time accumulation for predicting season length for almonds, walnuts, and prunes. It only does this for a subset of the possible cultivars to cut down on computation time. The optimal values are determined with the plantmodel function from phenoclim, using the ‘asymcur’ thermal time functional form with cardinal temperatures 4, 25, and 36 C.
+This script identifies the optimal length of thermal time accumulation for predicting season length for almonds, walnuts, and prunes. It only does this for a subset of the possible cultivars to cut down on computation time. The optimal values are determined with the plantmodel function from phenoclim, using the ‘asymcur’ thermal time functional form with cardinal temperatures 4, 25, and 36 C (aka the Anderson 1986 model). The output of this script are three objects of the class PlantModel that contain all of the specifications for the optimal model for predicting season length. 
+
+* Input Files: 
+    * phenology/dailyhourlytemp.RDS
+    * phenology/almondclean.csv
+    * phenology/walnutclean.csv
+    * phenology/pruneclean.csv
+
+* Output Files:
+    * history/SLalmondDTanderson.RDS
+    * history/SLwalnutDTanderson.RDS
+    * history/SLpruneDTanderson.RDS
 
 #### __2_springMerge.R__
 
