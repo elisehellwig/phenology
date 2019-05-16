@@ -139,7 +139,7 @@ THis script takes precipitation data from the NCDC and prepares it for use predi
 
 ### 2_history/
 
-#### __1_optimize__
+#### __1_optimize.R__
 
 This script identifies the optimal length of thermal time accumulation for predicting season length for almonds, walnuts, and prunes. It only does this for a subset of the possible cultivars to cut down on computation time. The optimal values are determined with the plantmodel function from phenoclim, using the ‘asymcur’ thermal time functional form with cardinal temperatures 4, 25, and 36 C (aka the Anderson 1986 model). The output of this script are three objects of the class PlantModel that contain all of the specifications for the optimal model for predicting season length. 
 
@@ -154,7 +154,25 @@ This script identifies the optimal length of thermal time accumulation for predi
     * history/SLwalnutDTanderson.RDS
     * history/SLpruneDTanderson.RDS
 
-#### __2_springMerge.R__
+#### __2_mergedata.R__
+
+
+* Input Files: 
+    * phenology/dailyhourlytemp.RDS
+    * phenology/almondclean.csv
+    * phenology/walnutclean.csv
+    * phenology/pruneclean.csv
+    * history/SLalmondDTanderson.RDS
+    * history/SLwalnutDTanderson.RDS
+    * history/SLpruneDTanderson.RDS
+    * history/precipitation.csv
+    * functions/datetime.R
+    * functions/thermaltimesupport.R
+
+* Output Files:
+    * history/SeasonLengthParameters.csv
+    * history/harvest.RDS
+
 
 ### 3_flowering/
 
