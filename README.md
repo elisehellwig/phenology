@@ -11,6 +11,18 @@ __Required R Packages:__ dismo, dplyr, ggplot2, grid, Interpol.T, kableExtra, kn
 
 [TOC]
 
+## An Explanation of Terminology
+
+###DT vs. TTT
+The DT model is the day threshold model. This model accumulates thermal time until a specific day and then uses the amount of thermal time to predict the season length. The TTT model counts the number of days it takes to accumulate a given amount of thermal time, and then uses the number of days to predict the season length.
+
+ 
+###Simple/simplified
+A model is simplified if the season length is considered to be over when the model reaches the model threshold (either in days or in thermal time). The predicted season length for a simplified DT model is just the mean season length.
+
+
+###Thermal time functional form (form)
+A thermal time functional form is the equation used to convert temperature into chill hours, chill portions, growing degree days, or growing degree hours.
 
 ## File Descriptions
 
@@ -125,6 +137,10 @@ THis script takes precipitation data from the NCDC and prepares it for use predi
 ### 1_prediction/
 
 ### 2_history/
+
+#### 1_optimize
+
+This script identifies the optimal length of thermal time accumulation for predicting season length for almonds, walnuts, and prunes. It only does this for a subset of the possible cultivars to cut down on computation time. The optimal values are determined with the plantmodel function from phenoclim, using the ‘asymcur’ thermal time functional form with cardinal temperatures 4, 25, and 36 C.
 
 #### __2_springMerge.R__
 
