@@ -33,11 +33,11 @@ This section constitutes descriptions of all the files in this repository, what 
 #### __cleanTemps.R__
 This script contains functions that are used to import, clean, and process temperature data.
 
-* importCIMIS() - takes a directory path as an input. It reads all of the .csv files in that folder into R, merges them into one data.frame and formats them for use later.
-* fillinTemps() - This function is used to fill in missing temperature data from a given weather station with temperatures from nearby stations by way of linear regression. 
-* FtoC() - Converts fahrenheit temperatures to celcius
-* AverageTemps() - This function is used to calculate either annual or monthly average temperatures by location.
-* backfillTemps() - This function creates hourly temperature data from daily temperature data using a very simple (and not very realistic) interpolation. Only use if no other method of filling in temperature data is available
+* __importCIMIS()__ - takes a directory path as an input. It reads all of the .csv files in that folder into R, merges them into one data.frame and formats them for use later.
+* __fillinTemps()__ - This function is used to fill in missing temperature data from a given weather station with temperatures from nearby stations by way of linear regression. 
+* __FtoC()__ - Converts fahrenheit temperatures to celcius
+* __AverageTemps()__ - This function is used to calculate either annual or monthly average temperatures by location.
+* __backfillTemps()__ - This function creates hourly temperature data from daily temperature data using a very simple (and not very realistic) interpolation. Only use if no other method of filling in temperature data is available
 
 ### 0_preprocess/
 
