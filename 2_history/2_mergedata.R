@@ -51,8 +51,7 @@ locVar2 <- data.frame(crop='walnut',
                       cultivar=cv,
                       threshold=c(49,65,36)) 
 locVar <- rbind(locVar, locVar2)
-write.csv(locVar, file.path(historypath, 'SeasonLengthParameters.csv'),
-          row.names=FALSE)
+
 
 
 
@@ -137,4 +136,10 @@ harvest <- rbind(asl, psl, wsl)
 harvestprecip <- merge(harvest, precip, by.x=c('loc','year'), 
                        by.y=c('location','year'))
 
+
+# Write data --------------------------------------------------------------
+
+
+write.csv(locVar, file.path(historypath, 'SeasonLengthParameters.csv'),
+          row.names=FALSE)
 saveRDS(harvestprecip, file.path(historypath, 'harvest.RDS'))
