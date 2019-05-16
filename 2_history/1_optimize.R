@@ -61,7 +61,6 @@ saveRDS(ppmDT, file.path(historypath, 'SLpruneDTanderson.RDS'))
 
 asub <- a %>% 
     filter(cultivar %in% c('Nonpareil','Mission','Sonora'),
-           loc %in% c('Chico','Modesto'),
            source=='RAVT')
 
 asub <- unique(asub)
@@ -70,20 +69,30 @@ ac <- dcast(asub, cultivar+year+loc ~ event, value.var='day',
             fun.aggregate = mean)
 acc <- ac[complete.cases(ac),]
 
-locVar <- expand.grid(c('Chico','Modesto'), c('Mission','Nonpareil','Sonora'))
-names(locVar) <- c('location', 'variety')
 
-almondData <- lapply(1:nrow(locVar), function(i) {
-    filter(acc, cultivar==locVar[i, 'variety'], loc==locVar[i, 'location'])
+vars <- c('Mission','Nonpareil','Sonora')
+
+almondData <- lapply(vars, function(cv) {
+    select(filter(acc, cultivar==cv), c(cultivar, year, event1, event2))
 })
 
-almondDT <- list(parameterlist(1, 'DT', FALSE, 'asymcur', list(c(4,25,36)), 30, 
-                               0, c('start','threshold'), 'threshold', 
-                               "PlantModel"))
+almondDT <- lapply(c('asymcur'), function(form) {
+    parameterlist(n=1,
+                  mt='DT',
+                  simple=FALSE,
+                  ff=form,
+                  ct=list(c(4,25,36)), 
+                  modelthreshold=c(1000),
+                  start=c(0),
+                  varyingparameters=c('start','threshold'),
+                  optimized=c('threshold'),
+                  ModelClass='PlantModel')
+})
 
 apmDT <- lapply(seq_along(almondData), function(i) {
     print(i)
-    plantmodel(almondData[[i]], temp, almondDT, 0, 270, cores=4L)
+    plantmodel(almondData[[i]], temp, almondDT, 0, 270, cores=4L,
+               iterations=25)
 })
 
 
