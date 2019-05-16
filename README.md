@@ -28,38 +28,6 @@ A thermal time functional form is the equation used to convert temperature into 
 
 This section constitutes descriptions of all the files in this repository, what they do, what other files are required to run them, as well as their data inputs and outputs. These descrptions are general overviews and to not go into specific discussions of the code in each file. For more detailed documentation, please review the comments in the file of interest.
 
-### functions/
-
-#### __cleanTemps.R__
-This script contains functions that are used to import, clean, and process temperature data.
-
-* __importCIMIS()__ - takes a directory path as an input. It reads all of the .csv files in that folder into R, merges them into one data.frame and formats them for use later. Only works with data from the CIMIS website.
-* __fillinTemps()__ - This function is used to fill in missing temperature data from a given weather station with temperatures from nearby stations by way of linear regression. 
-* __FtoC()__ - Converts fahrenheit temperatures to celcius
-* __AverageTemps()__ - This function is used to calculate either annual or monthly average temperatures by location.
-* __backfillTemps()__ - This function creates hourly temperature data from daily temperature data using a very simple (and not very realistic) interpolation. Only use if no other method of filling in temperature data is available
-
-#### __cvfunction.R__
-This script contains a single function that runs a 5-fold cross-validation on a specified univariate linear regression model. Not sure if I actually need this but we will see if it turns up later on in the code.
-
-#### __extractlm.R__
-
-This script contains two functions for extracting various parts of the 'lm' class object.
-
-* __formatLM()__ - This function extracts and nicely formats the coefficients, pvalues and adjusted R2 value from a given 'lm' model or list of 'lm' models. 
-* __extractLM()__ - This function is called by __formatLM()__, and does most of the work manipulating the actual 'lm' object. 
-
-#### __tempInterpolation.R__
-This script contains 3 functions that automate the interpolation of daily temperatures to hourly temperatures and format the resulting data. The interpolation is done in two parts. First the parameters for doing this interpolation are calibrated based on observed hourly temperature at the given location, and second those parameters are used to do the actual temporal interpolation. 
-
-* __calibrateInterp()__ - This function is called by __InterpTemp()__ and does the parameter calibration for the temperature interpolation. This is specific to California. May need to change inputs for par_calibration() for other locations. 
-* __InterpTemp()__ - This function calibrates and interpolates daily temperature data from a given location to hourly temperature data. No daily temperature data in your time series should be missing.
-* __MergeDailyHourly()__ - This function combines the interpolated hourly temperatures with the observed hourly temperatures so that interpolated temperatures are only provided in the case where there is no observed hourly temperature for that time. Additionally it merges the hourly temperature data with daily temperature data so that it can be used in the plantmodel and flowermodel functions.
-
-#### __thermaltimesupport.R__
-This script has a number of functions that 
-
-*
 
 ### 0_preprocess/
 
@@ -189,6 +157,40 @@ This script identifies the optimal length of thermal time accumulation for predi
 #### __2_springMerge.R__
 
 ### 3_flowering/
+
+### functions/
+
+#### __cleanTemps.R__
+This script contains functions that are used to import, clean, and process temperature data.
+
+* __importCIMIS()__ - takes a directory path as an input. It reads all of the .csv files in that folder into R, merges them into one data.frame and formats them for use later. Only works with data from the CIMIS website.
+* __fillinTemps()__ - This function is used to fill in missing temperature data from a given weather station with temperatures from nearby stations by way of linear regression. 
+* __FtoC()__ - Converts fahrenheit temperatures to celcius
+* __AverageTemps()__ - This function is used to calculate either annual or monthly average temperatures by location.
+* __backfillTemps()__ - This function creates hourly temperature data from daily temperature data using a very simple (and not very realistic) interpolation. Only use if no other method of filling in temperature data is available
+
+#### __cvfunction.R__
+This script contains a single function that runs a 5-fold cross-validation on a specified univariate linear regression model. Not sure if I actually need this but we will see if it turns up later on in the code.
+
+#### __extractlm.R__
+
+This script contains two functions for extracting various parts of the 'lm' class object.
+
+* __formatLM()__ - This function extracts and nicely formats the coefficients, pvalues and adjusted R2 value from a given 'lm' model or list of 'lm' models. 
+* __extractLM()__ - This function is called by __formatLM()__, and does most of the work manipulating the actual 'lm' object. 
+
+#### __tempInterpolation.R__
+This script contains 3 functions that automate the interpolation of daily temperatures to hourly temperatures and format the resulting data. The interpolation is done in two parts. First the parameters for doing this interpolation are calibrated based on observed hourly temperature at the given location, and second those parameters are used to do the actual temporal interpolation. 
+
+* __calibrateInterp()__ - This function is called by __InterpTemp()__ and does the parameter calibration for the temperature interpolation. This is specific to California. May need to change inputs for par_calibration() for other locations. 
+* __InterpTemp()__ - This function calibrates and interpolates daily temperature data from a given location to hourly temperature data. No daily temperature data in your time series should be missing.
+* __MergeDailyHourly()__ - This function combines the interpolated hourly temperatures with the observed hourly temperatures so that interpolated temperatures are only provided in the case where there is no observed hourly temperature for that time. Additionally it merges the hourly temperature data with daily temperature data so that it can be used in the plantmodel and flowermodel functions.
+
+#### __thermaltimesupport.R__
+This script has a number of functions that deal with calculating thermal time as well as determining when thermal time accumulation should start
+
+* __CalcThermalTime()__ - This is the most important function in this script. It calculates thermal time for 
+
 
 ## Data Descriptions
 
