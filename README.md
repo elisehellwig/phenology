@@ -2,7 +2,7 @@
 
 This repository stores the code for my dissertation on climate change and phenology in California.
 
-All data is stored in Phenology/data. Documentation for data can be found in the __Data Descriptions__ section.
+Information about the file structure, what each of the files do, as well as data documentation can be found on the repository wiki.
 
 __Required R Packages:__ dismo, dplyr, ggplot2, grid, Interpol.T, kableExtra, knitr, lubridate, phenoclim, plyr, raster, reshape2, segmented, tidyverse
 
