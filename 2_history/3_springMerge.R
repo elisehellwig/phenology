@@ -35,14 +35,14 @@ temp$dt <- as.POSIXct(temp$dt, format="%Y-%m-%d %H:%M:%OS")
 locVar <- read.csv(file.path(historypath, 'SeasonLengthParameters.csv'), 
                    stringsAsFactors = FALSE)
 
-almondK <- read.csv(file.path(inpath, 'Almond_CrCragHrJD.csv'))
-pruneK <- read_csv(file.path(inpath, 'Prune_Cr38JD_Crag49JD_HrJD.csv')) 
+#almondK <- read.csv(file.path(inpath, 'Almond_CrCragHrJD.csv'))
+#pruneK <- read_csv(file.path(inpath, 'Prune_Cr38JD_Crag49JD_HrJD.csv')) 
 
 #chandK <- read.csv(file.path(inpath, 'Chand_Cr42JDCrag53JDHrJD.csv'))
 #franqK <- read.csv(file.path(inpath, 'Franq_Cr51JDCrag60JDHrJD.csv'))
 #payneK <- read.csv(file.path(inpath, 'Payne_Cr33JDCrag46JDHrJD.csv'))
 
-walnutK <- read_csv(file.path(outpath, 'walnutchill.csv'))
+#walnutK <- read_csv(file.path(outpath, 'walnutchill.csv'))
 
 
 # Almonds -----------------------------------------------------------------
