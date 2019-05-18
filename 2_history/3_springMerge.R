@@ -46,24 +46,32 @@ locVar <- read.csv(file.path(historypath, 'SeasonLengthParameters.csv'),
 
 
 # Almonds -----------------------------------------------------------------
+#almond cultivars of interest
 acults <- c('Nonpareil','Mission')
 
+#extracting only the almond data we want
 a <- filter(a, cultivar %in% acults, loc %in% c('Chico','Modesto'),
             source=='FF')
+
+#selecting only almond parameters
 aLocVar <- filter(locVar, crop=='almond')
 
+#calculating when we meet chill portion requirement starting at november 1
+#accumulating 22 chill portions
 af1 <- ldply(1:nrow(aLocVar), function(i) {
     calcThermalTime(a, temp, 'flowering', 'TTT', 'chillPortions', NA, 305,
                           22, NA, aLocVar[i,'loc'], aLocVar[i, 'cultivar'])
 })
 
+#calculating when to start accumulating heat
 startheatA <- lapply(1:nrow(aLocVar), function(i) {
     aff <- filter(af1, cultivar==aLocVar[i, 'cultivar'], 
                   loc==aLocVar[i, 'loc'])
     startHeat(aff$TTTchillPortions, aff$year)
 })
 
-
+#calculating amount of time it takes to accumulate 6000GDH (linear ff)
+#after chill portions met
 af2 <- ldply(1:nrow(aLocVar), function(i) {
     calcThermalTime(a, temp, 'flowering', 'TTT', 'linear', 4.5, 
                     startheatA[[i]], 6000, NA, aLocVar[i, 'loc'],
@@ -79,11 +87,14 @@ plocs <- unique(p$loc)
 
 p <- filter(p, event=='event1')
 
+#calculating when we meet chill portion requirement starting at november 1
+#35 chill portions
 pf1 <- ldply(plocs, function(l) {
     calcThermalTime(p, temp, 'flowering', 'TTT', 'chillPortions', NA, 305,
                     35, NA, l, 'French')
 })
 
+#calculating when to start accumulating heat for prunes
 startheatP <- lapply(plocs, function(l) {
     pff <- filter(pf1, loc==l)
     startHeat(pff$TTTchillPortions, pff$year)
@@ -91,6 +102,8 @@ startheatP <- lapply(plocs, function(l) {
 
 names(startheatP) <- plocs
 
+#calculating amount of time it takes to accumulate 5000GDH (linear ff)
+#after chill portions met
 pf2 <- ldply(plocs, function(l) {
     calcThermalTime(p, temp, 'flowering', 'TTT', 'linear', 4.5,
                     startheatP[[l]], 5000, NA, l, 'French')
@@ -110,17 +123,20 @@ w <- walnut %>%
     filter(cultivar %in% wcults, event=='event1') %>% 
     add_column(loc='Davis')
 
+#calculating how long it takes to meet chill portion requirement
 wf1 <- ldply(seq_along(wcults), function(i) {
     calcThermalTime(w, temp, 'flowering', 'TTT', 'chillPortions', NA, 305,
                     wchill[i], NA, 'Davis', wcults[i])
 })
 
-
+#calculating when to start accumulating heat for walnuts
 startheatW <- lapply(wcults, function(cv) {
     wff <- filter(wf1, cultivar==cv)
     startHeat(wff$TTTchillPortions, wff$year)
 })
 
+#calculating amount of time it takes to accumulate heat requirement
+#after chill portions met
 wf2 <- ldply(seq_along(wcults), function(i) {
     calcThermalTime(w, temp, 'flowering', 'TTT', 'linear', 4.5, 
                     startheatW[[i]], 10500, NA, 'Davis', wcults[i])
@@ -130,7 +146,9 @@ wf <- merge(wf1, wf2)
 wf$crop <- 'walnut'
 
 
-#####################Putting it Together##########################
+
+# Merge and write ---------------------------------------------------------
+
 
 fruits <- rbind(af, pf, wf)
 spring <- inner_join(fruits, precip, by=c('year', 'loc'='location'))
