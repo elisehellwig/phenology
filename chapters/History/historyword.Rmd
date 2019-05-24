@@ -1,0 +1,454 @@
+---
+title: "Historic Effects of Climate Change on Tree Crop Phenology in California"
+author: |
+  | Elise Hellwig^1^, Katherine Pope^2^, Robert J. Hijmans^1^
+  | 1. University of California, Davis
+  | 2. Cooperative Extension, University of California
+header-includes: 
+  - \usepackage{morefloats}
+  - \usepackage{booktabs}
+  - \usepackage{longtable}
+  - \usepackage{array}
+  - \usepackage{multirow}
+  - \usepackage[table]{xcolor}
+  - \usepackage{wrapfig}
+  - \usepackage{float}
+  - \usepackage{colortbl}
+  - \usepackage{pdflscape}
+  - \usepackage{tabu}
+  - \usepackage{threeparttable}
+  - \usepackage[normalem]{ulem}
+output:
+  word_document:
+    fig_caption: yes
+  pdf_document:
+    fig_caption: yes
+  html_document:
+    fig_caption: yes
+bibliography: phenology.bib
+---
+
+
+```{r, env_setup, echo=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
+#This is the set-up block of code, it loads all of the required libraries
+
+library(tidyverse)
+library(plyr)
+library(knitr)
+library(lubridate)
+library(reshape2)
+library(grid)
+library(segmented)
+library(kableExtra)
+#library(qdap, warn.conflicts = FALSE)
+library(mgsub)
+library(kableExtra)
+
+opts_chunk$set(tidy.opts=list(width.cutoff=60), 
+               stringsAsFactors=FALSE,
+               knitr.table.format = "latex",
+               cache=TRUE,
+               echo = FALSE)
+options(warn=0)
+#this makes it so numbers aren't put into scientific notation
+#options(scipen=999)
+
+###################################
+
+#setwd('/Users/echellwig/Drive/Phenology/CA_Report')
+#setwd("C:\\gdrive\\Phenology\\R\\CA_Report")
+###################################
+
+walnutcol <- 'green4' 
+prunecol <- 'purple4'
+almondcol <- 'darkgoldenrod3'
+
+#data paths
+sourcepath <- '/Users/echellwig/Research/phenology/functions'
+data1 <- '/Volumes/GoogleDrive/My Drive/Phenology/CA_Results/'
+data2 <- '/Volumes/GoogleDrive/My Drive/Phenology/data/historydata'
+data3 <- '/Volumes/GoogleDrive/My Drive/Phenology/Results/history'
+historypath <- '/Volumes/GoogleDrive/My Drive/Phenology/data/history'
+
+source(file.path(sourcepath, 'multiplot.R'))
+source(file.path(sourcepath, 'reportfunctions.R'))
+
+
+
+#data
+weather <- read.csv(file.path(data2, 'weatherlocations.csv'))
+ctemps <- read.csv(file.path(data1,'switchday.csv'))
+fp <- readRDS(file.path(data1, 'floweringpredictors.RDS'))
+slp <- readRDS(file.path(data1, 'seasonlengthpredictors.RDS'))
+
+
+am <- read.csv(file.path(data2, 'annualtemperatures.csv'))
+#am <- read.csv(file.path(data1, 'data/annualtemperatures.csv'))
+
+amlabs <- read.csv(file.path(data2, 'temptrendlabels.csv'))
+names(amlabs)[2] <- 'loc'
+
+mtc <- read.csv(file.path(data2, 'monthlytemperatures.csv'))
+mtcAvg <- dcast(mtc[,c('loc', 'year', 'nmonth', 'tavg')],
+                loc + year ~ nmonth, value.var = 'tavg')
+
+harvest <- readRDS(file.path(historypath, 'harvest.RDS'))
+asl <- filter(harvest, crop=='almond', cultivar!='Sonora')
+psl <- filter(harvest, crop=='prune')
+wsl <- filter(harvest, crop=='walnut')
+tts <- readRDS(file.path(historypath, 'ThermalTimeSeries.RDS'))
+locVar <- read.csv(file.path(historypath, 'SeasonLengthErrors.csv'))
+
+
+#Model table
+modtable <- readRDS(file.path(historypath, 'ModelTable.RDS'))
+atab <- modtable %>% 
+    filter(crop=='almond', var!='intercept') %>% 
+    select(-c(crop,var))
+ptab <- modtable %>% 
+    filter(crop=='prune', var!='intercept') %>% 
+    select(-c(crop,var))
+wtab <- modtable %>% 
+    filter(crop=='walnut', var!='intercept') %>% 
+    select(-c(crop,var))
+
+modtable$var <- recode(modtable$var, 'intercept'='intercept', .default='beta')
+
+
+almondmod <- modtable %>% 
+    filter(crop=='almond') %>% 
+    select(-c(crop, pval, r2)) %>% 
+    spread(var, coef) 
+
+prunemod <- modtable %>% 
+    filter(crop=='prune') %>% 
+    select(-c(crop, pval, r2)) %>% 
+    spread(var, coef) 
+
+walnutmod <- modtable %>% 
+    filter(crop=='walnut') %>% 
+    select(-c(crop, pval, r2)) %>% 
+    spread(var, coef) 
+
+
+locations <- c('Chico', 'Modesto', 'Parlier', 'Davis')
+mos <- 1:12
+
+
+```
+
+
+# Introduction
+
+Fruit and nut crops, like almonds, walnuts and prunes, made up about 40% of the California agricultural sector by income in 2017 [@agstats2018]. Almonds individually are the third highest valued commodity California produces, second only to milk and cream [@agstats2018]. Unlike field crops and other annuals that are replanted every spring, tree crops stay in the same place for multiple decades. They also require more upfront investment as most trees do not fruit until a couple years after planting. Because of this, they are more vulnerable to changes in climate. 
+
+The impact of climate change in California are fairly well documented, especially with respect to drought [@griffin2014; @diffenbaugh2015]. However, groundwater based irrigation systems currently provide a buffer for many agricultural systems from significant water stress during droughts [@medellin2016]. Temperatures in California are also changing due to climate change and this many already have impacted the phenology for more sensitive crops (Luedeling 2012b). Many papers have has also been demonstrated temperature to be one of the key, if not the key climatic variable when predicting crop phenology [@day2007; @luedeling2009; @debuse2010; @tombesi2010; @ruml2011; @pope2014 among others].Additionally, many studies have investigated the potential and realized impacts of climate change on flowering and leaf-out dates in tree crops [@luedeling2009climatic; @luedeling2012; @benmoussa2017]. However, very few if any studies have looked at changes in season length.  
+
+The majority of variation in California temperatures over the past century is not due to climate change, but rather is inter-annual. Since temperature variablility between years is so great, we can use crops' phenological responses over many years to fit models relating temperature and crop phenology [@weinberger1948; @mimoun1998]. These models can then be used to interpret changes in season length (days from full bloom or leaf-out to maturity).
+
+This paper documents temperature changes in California over the past century and relates those changes to changes in almond, prune and walnut phenology in the Central Valley. Because tree crop maturity is influenced by so many factors, detecting changes in season length over time due to climate change can be difficult. By looking at tree response to interannual temperature variation, we can explain past phenological trends and predict future ones. 
+
+
+# Methods
+
+## Data
+
+### Climate Data
+
+Climate data for each of the focal orchard sites was obtained from the National Climatic Data Center (NCDC, Menne and Houston 2015) and from California Irrigation Management Information System (CIMIS, California Department of Water Resources 2015). The NCDC provided daily minumum and maxiumum temperature data going back to the early 1900s, and CIMIS provided hourly data back to 1983. A number of climate stations were chosen for each orchard location to ensure there would be data for every day in the time span of the orchard datasets for each location (Table 1). The closest station to the site with at least 85% completeness was chosen as the primary station. Temperature data from other stations was related to temperature data from the primary station via a linear regression. This model was then used to fill in gaps in the primary station’s data. In cases where there were nearby NCDC and CIMIS weather stations, one primary station was chosen for each data source.
+
+### Phenological Data
+
+Though the almond and walnut datasets have records for a large number of cultivars, only a subset will be analyzed – the current most commercially popular variety, as well as one or two other cultivars with different phenological timing. It is expected that if there is variability in response to warming, examining cultivars that cover the spectrum of flowering and harvest dates is the most likely way to reveal that variability. The prune industry in California is planted almost exclusively with one cultivar and thus only one cultivar will be analyzed.
+
+Almond bloom and harvest records came from the University of California (UC) Regional Almond Variety Trial (RAVT). Data from the UC Regional Almond Variety Trial were recorded in Chico and Modesto by UC Cooperative Extension advisors assigned to the county where the data was recorded. The bloom record in a given year represents the average bloom of a number of trees of similar age in the same orchard. We report data for cultivars ‘Nonpareil’, and ‘Mission’ which represent the range of bloom timing in commercially cultivated almonds, and both have sufficiently long data records. Prune bloom and harvest timing data was recorded by the University of California Prune Breeding, provided by current breeder Sarah Castro. Because the 'Improved French' cultivar makes up almost all of the prune acreage in California, it is the only prune cultivar analyzed. We used walnut phenology data from the University of California at Davis Walnut Breeding Program. Leaf out dates (LD) and Harvest readiness dates (HRD) were collected by Charles Leslie, Gale McGranahan and the members of the Walnut Improvement Program. The cultivars 'Chandler', 'Payne', and 'Franquette' were chosen as cultivars that both span the range of flowering and harvest dates as well as having long data records (>30 years).
+
+
+## Analysis
+
+All analysis was completed in R Statistical Programming Environment [@r2018] using the 'phenoclim' package (citation) to estimate thermal time accumulation parameters. 
+
+
+```{r weatherlocs}
+
+kable(weather,
+      col.names = c('Source', 'Location', 'Orchard Location','Start','End', ''),
+      caption = 'NCDC and CIMIS weather station information by orchard
+                    location.')
+
+
+```
+
+
+Season lengths for almonds and prunes started at full bloom, while walnut season length began at leaf-out. Maturity for almonds and walnuts was counted at hull-split while prunes were considered mature at 3-4 lbs of pressure. All phenological data were analyzed separately by location and cultivar using ordinary linear regression. 
+
+Thermal time was calculated using the asymcur model described by [@anderson1986]. We used the 'phenoclim' package to determine the optimal number of days of thermal time accumulation after bloom or leaf-out to use for predicting season length for each cultivar using 'phenoclim' package. Mean season length (null model) as well as thermal time accumulation 30 days after full bloom (GDH30) were also calculated as a comparison as these are the most commonly used methods for predicting season length [@day2007; @tombesi2010; @ruml2011; @pope2014]. Because latitude can effect phenological requirements (citation), we also separated data by location.
+
+Thermal time accumulation was then calculated for each year with full bloom or leaf-out data. Next we related thermal time accumulation to season length using linear models. Finally, we examined trends in thermal time accumulation over the entire bloom time series for each cultivar and location.
+
+
+#Results
+
+## Model Optimization
+
+Length of optimized thermal time accumulation varied significantly between crop, location and cultivar (Table 2). Accumulation lengths varied from 35 days for Mission almonds in Modesto to 74 days for prunes in Parlier. The optimized models consistently performed better than both the GDH30 models and the null model, by an average of `r round(mean(locVar$RMSE30cv - locVar$RMSEcv),2)` days and  `r round(mean(locVar$RMSEnullcv - locVar$RMSEcv),2)` days respectively.
+
+```{r locVarTable}
+
+kable(locVar[,c(1:4,8:10)],
+      col.names = c('Crop', 'Location', 'Cultivar','Days', 'Opt. GDH', 
+                    'GDH30', 'NULL'),
+      caption = 'Optimized length of thermal time accumulation in days for
+      predicting season length, by crop, location and cultivar, and a
+      comparison of 5-fold crossvalidated RMSE values for the optimized GDH
+      models, GDH30 models, and mean season length.') 
+
+```
+
+
+## Almonds
+
+
+Mean almond season lengths did not appear to decrease over the 10 years of the Regional Almond Variety Trials. (Figure 3). However because the time series are so short, we cannot make any longterm predictions based on this. Almond season lengths respond fairly well to optimized thermal time accumulation (Figure 4, Table 7), with GDH explaining between 30% and 65% of season length variation.   Despite this, the model relating thermal time accumulation for Nonpareil Almonds to season length in Modesto was not strongly significant. 
+
+
+```{r almond_harvest_year, fig.cap='Almond season lengths over 10 years in Chico, California.', warning=FALSE, echo=FALSE, fig.height=4}
+
+amy <- ggplot(data=asl) + facet_grid(loc~cultivar) + theme_bw() +
+    geom_point(aes(x=year, y=length1), size=1.5, color=almondcol) +
+    labs(x='year',y='Season Length (days)')
+
+amy
+
+```
+
+
+```{r almond_harvestthermal, fig.cap='Almond season length by heat sum in Chico, California.', warning=FALSE, echo=FALSE, fig.height=4}
+
+AHeatLength <- filter(almondmod, predictor!='Year', response=='Season Length')
+
+amat <- ggplot(data=asl) + facet_grid(loc~cultivar, scales='free_x') +
+    geom_point(aes(x=thermal, y=length1), size=1.5, color=almondcol) +
+    labs(x='Heat Sum',y='Season Length (days)') + theme_bw() +
+    geom_abline(aes(intercept=intercept, slope=beta), data=AHeatLength)
+
+amat
+
+```
+
+
+
+In Chico, thermal time accumulation increased by 22 GDH per year for Mission almonds and 30 GDH per year for Nonpareil almonds. In Modesto, thermal time accumulation actually decreased over time during the period of study (Table 7). This is in stark contrast to the mostly increasing mean monthly temperatures in Modesto (Table 3).
+
+
+```{r almondModelTable}
+
+kable(atab, 
+      col.names = c('Location', 'Cultivar', 'Predictor', 'Response',
+                    'Coefficient','p-value', 'R2'),
+      caption = 'Summary of linear regression models relating
+      year, season length and thermal time accumulation in almonds.', digits=3)
+
+```
+
+
+
+
+```{r almond_gdhtime, fig.cap='Almond heat sums over 80 years in Chico and Modesto, California.', warning=FALSE, echo=FALSE, fig.height=4}
+atts <- filter(tts, crop=='almond')
+AHeatYear <- filter(almondmod, predictor=='Year', response!='Season Length')
+
+agdh <- ggplot(data=atts) + facet_grid(loc~cultivar) + theme_bw() +
+    geom_point(aes(x=year, y=thermal), size=1.5, color=almondcol) +
+    geom_abline(aes(intercept=intercept, slope=beta), data=AHeatYear) +
+    labs(x='year',y='Heat Sum')
+
+agdh
+
+```
+
+
+
+## Prunes
+
+French Prune season lengths in Parlier shortened by an average of 0.49 days per year over the past 25 years, with a p-value of 0.041 and an adjusted R-squared of 0.160 (Figure 6, Table 8). Prune season length responded strongly to the optimized thermal time accumulation (Figure 7). Additionally, thermal time accumulated in the first 74 days after bloom showed a statistically significant increasing trend over time (Figure 8). However, this trend accounted for less variation than modeling season length over time (Table 8).
+
+
+
+```{r prune_harvest_year, fig.cap='Prune season lengths over 25 years in Parlier, California.', warning=FALSE, echo=FALSE, fig.height=2.5, fig.width=4}
+
+PYearLength <- filter(prunemod, predictor=='Year', response=='Season Length')
+
+
+pmy <- ggplot(data=psl) + theme_bw() +
+    geom_point(aes(x=year, y=length1), size=1.5, color=prunecol) +
+    labs(x='year',y='Season Length (days)') +
+    geom_abline(aes(intercept=intercept, slope=beta), data=PYearLength)
+
+pmy
+
+```
+
+
+
+```{r prune_harvest, fig.cap='Prune season lengths by heat sum in Parlier, CA.', warning=FALSE, echo=FALSE, fig.height=2.5, fig.width=4}
+
+PLengthHeat <- filter(prunemod, predictor=='GDH74', response=='Season Length')
+
+pmat <- ggplot(data=psl) + theme_bw() + 
+    geom_point(aes(x=thermal, y=length1), size=1.5, color=prunecol) +
+    labs(x='Scaled Heat Sum',y='Season Length (days)') +
+    geom_abline(aes(intercept=intercept, slope=beta), data=PLengthHeat)
+
+pmat
+
+```
+
+
+
+```{r prune_heatsumtime,  fig.cap='Prune heat sum over 25 years in Parlier, CA.', warning=FALSE, echo=FALSE, fig.height=2.5, fig.width=4}
+
+ptts <- filter(tts, crop=='prune')
+PYearHeat <- filter(prunemod, predictor=='Year', response=='GDH74')
+
+
+pghd <- ggplot(data=psl) + theme_bw() + 
+    geom_point(aes(x=year, y=thermal), size=1.5, color=prunecol) +
+    labs(x='Year',y='Heat Sum') +
+    geom_abline(aes(intercept=intercept, slope=beta), data=PYearHeat)
+
+pghd
+
+```
+
+
+
+
+```{r pruneModelTable}
+
+kable(ptab,
+      col.names = c('Location', 'Cultivar', 'Predictor', 'Response',
+                    'Coefficient','p-value', 'R2'),
+      caption = 'Summary of linear regression models relating
+      year, season length and thermal time accumulation in prunes.', digits=3)
+
+```
+
+
+
+
+## Walnuts
+
+
+Mean season length in Payne walnuts decreased an average of 0.24 days per year over the past 60 years (Figure 9, Table 9). Chandler and Franquette season lengths seem to have stayed fairly stable. However, because of the variability in the data, it is possible that a longer time series will exhibit a significant trend. This is particularly relevant for Chandler walnuts, as they were only developed in the last 50 years. Season lengths for all three cultivars correlated very strongly with optimized thermal time accumulation with R^2 values ranging from 0.32 for Chandler to 0.52 for Payne (Table 9). 
+
+Thermal time accumulation values for all three cultivars appear to be increasing over time, meaning decreasing season lengths. However, the confidence in those trends is fairly low for Chandler and Franquette cultivars. Hopefully a longer time series will either reinforce or remove those trends. 
+
+
+```{r walnut_harvest_year, fig.cap='Walnut season lengths over the past 60 years for Chandler, Franquette and Payne Cultivars.', warning=FALSE, echo=FALSE, fig.height=2.5}
+
+WYearLength <- filter(walnutmod, predictor=='Year', response=='Season Length')
+WYearLength[1:2, 'beta'] <- 0
+
+
+wmy <- ggplot(data=wsl) + facet_wrap(~cultivar) + theme_bw() +
+    geom_point(aes(x=year, y=length1), size=1.5, color=walnutcol) +
+    geom_abline(aes(intercept=intercept, slope=beta), data=WYearLength) + 
+    labs(x='year',y='Season Length (days)')
+
+wmy
+
+```
+
+
+
+
+```{r walnut_harvest, fig.cap='Heat sum correlation with walnut season lengths over the past 60 years in Davis.', warning=FALSE, echo=FALSE, fig.height=2.5}
+
+
+WHeatLength <- filter(walnutmod, predictor!='Year', response=='Season Length')
+
+wmat <- ggplot(data=wsl) + facet_wrap(~cultivar, scales='free_x') + theme_bw() +
+    geom_point(aes(x=thermal, y=length1), size=1.5, color=walnutcol) +
+    geom_abline(aes(intercept=intercept, slope=beta), data=WHeatLength) +
+    labs(x='Scaled Heat Sum',y='Season Length (days)')
+
+wmat
+
+
+
+```
+
+
+
+
+```{r walnut_heatsumtime, fig.cap='Walnut heat sums over the past 80 years.', warning=FALSE, echo=FALSE, fig.height=6, fig.width=5}
+
+wtts <- filter(tts, crop=='walnut')
+WHeatYear <- filter(walnutmod, predictor=='Year', response!='Season Length')
+WHeatYear$signif <- c('0.1','0.1', '0.05')
+
+
+wgdh <- ggplot(data=wsl) + facet_wrap(~cultivar, scale='free_y',nrow=3) +
+    geom_point(aes(x=year, y=thermal), size=1.5, color=walnutcol) +
+    geom_abline(aes(intercept=intercept, slope=beta, color=signif),
+                data=WHeatYear) +
+    scale_color_manual(values=c("#000000", "#8c8c8c"), name='') +
+    labs(x='Year',y='Scaled Heat Sum') +  theme_bw() 
+
+wgdh
+
+
+
+```
+
+
+
+
+
+```{r walnutModelTable}
+
+kable(wtab, 
+      col.names = c('Location', 'Cultivar', 'Predictor', 'Response',
+                    'Coefficient','p-value', 'R2'),
+      caption = 'Summary of linear regression models relating
+      year, season length and thermal time accumulation in walnuts', digits=3)
+
+```
+
+
+
+# Discussion
+
+### Model optimization
+
+Relative improvement of predictions over GDH30 models depending strongly on the optimal length of thermal time accumulation. However, the difference the accuracy between of the GDH30 and the optimized length models did not seem to depend on the difference between 30 and the optimized length. 'Improved French' prunes had the longest thermal time accumulation length, but the difference between the RMSEs for the two models was only 0.71 days, whereas 'Mission' almonds in Modesto had a much lower thermal time accumulation length but a difference in RMSE values of 1.43. Relative model quality likely has more to do with the overall optimization landscape of each particular cultivar, than the difference in thermal time accumulation length between the standard and optimized models. 
+
+
+### Almonds
+
+Using optimized thermal time accumulation lengths produced better predictions than the GDH30 model (Figure 4, Table 2). @tombesi2010 produced similar results using a slightly different model (growing degree days instead of growing degree hours), and a longer thermal time accumulation length (90 days). Both @tombesi2010 and this study show weaker results for a thermal time accumulation length of 30 days, indicating a benefit to optimizing thermal time accumulation length in almonds.
+
+Despite the small number of years with harvest data for almonds, extensive almond flowering records allowed us to get a better sense of potential trends in almond season length. Trends in thermal time accumulation during the first two months after flowering point towards shortening season lengths for almonds in Chico, and lengthening ones in Modesto (Figure 5). It is unclear why season lengths in Modesto appear to be lengthening, though the fact that both thermal sums for Nonpareil and Mission cultivars show the same trend increases the conclusions robustness.
+
+### Prunes
+
+Given the difference between the optimal number of days for thermal time accumulation and the standard length of thermal time accumulation [@debuse2010], the difference in model RMSE values is not large (Table 2). However, this may not be the case for other locations, like is the case for 'Nonpareil' almonds in Chico and Modesto. 
+
+French prune season lengths have gotten, on average, 12 days shorter between 1988 and 2014 (Figure 6). This is supported by the increasing trend in GDH74 over those same years and the strong relationship between GDH 74 and season length (Figure 7-8). We confidently expect prune season lengths will continue to shorten as the climate warms.  
+
+
+### Walnuts
+
+Both 'Chandler' and 'Franquette' walnuts saw very marginal gain from optimization, while the model for 'Payne' walnuts benefited the most of any in the study. Given that most acreage is planted with 'Chandler', it may not be worth the additional investment of time and energy to do the optimization, at least for growers around Davis.
+
+'Payne' walnut season lengths have shortened by approximately 11 days since 1960, while no discernable temporal trend exists yet for 'Chandler' or 'Franquette' walnuts (Figure 9). Based on the upwards trends in the thermal time accumulation (Table 5), Payne season lengths will continue to get shorter as climate change intensifies. Even though 'Chandler' and 'Franquette' season lengths have not changed appreciably over the past 50 years, there is some evidence that thermal time accumulation has (Figure 11, Table 5). Consequently, it is likely that season lengths will shorten in the future.
+
+
+
+#Agronomic Implications
+
+Overall, season lengths in California seem to be getting shorter. This may decrease the risk of precipitation during post-harvest drying, especially for walnuts. However, it will also likely to decrease fruit and nut size [@warrington1999] For prunes, this is problematic because fruit size strongly impacts the price farmers get for their crop. In nut crops, size is also at a premium, however there is an additional complication. Post harvest processing requires specialized equipment that is calibrated to a certain size of nut. Shorter season lengths may result in sub-optimal nut cracking, which also reduces nut quality. In many fruit crops, farmers will thin the crop to produce larger fruits. This is not common in nuts, but may become necessary as the climate warms.
+
+#References
+
