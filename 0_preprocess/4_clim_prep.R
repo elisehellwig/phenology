@@ -477,62 +477,68 @@ mnd$day <- yday(mnd$date)
 write.csv(mnd, file=file.path(datapath, 'clean/noaamodesto.csv'),
           row.names = FALSE)
 
-# Modesto-CIMIS -----------------------------------------------------------
+# Manteca-CIMIS -----------------------------------------------------------
 
-#importing CIMIS data for modesto
-cmod <- importCIMIS(file.path(datapath, 'raw/climate/cimis/modesto'))
+#importing CIMIS data for manteca
+cman <- importCIMIS(file.path(datapath, 'raw/climate/cimis/manteca'))
 
 #renaming a station with a space in the name
-cmod[which(cmod$name=='Denair II'), 'name'] <- 'DenairII'
+cman[which(cman$name=='Denair II'), 'name'] <- 'DenairII'
+cman[which(cman$name=='Lodi West'), 'name'] <- 'LodiWest'
 
 #setting temps outside of historical extrema to NA
-extremerows <- which(cmod$qc=='R' | cmod$temp<= -8 | cmod$temp > 45 |
-                         (cmod$temp > 38 & (cmod$day > 285| cmod$day<100)))
-cmod[extremerows, 'temp'] <- NA
+extremerows <- which(cman$qc=='R' | cman$temp<= -8 | cman$temp > 45 |
+                         (cman$temp > 38 & (cman$day > 285| cman$day<100)))
+cman[extremerows, 'temp'] <- NA
 
 #selecting only data from the primary station
-cm <- cmod[which(cmod$name=='Modesto'),]
+cman <- cman[which(cman$date>='1987-11-20 00:00:00' & 
+                       cman$date<='2018-10-31 00:00:00'), ]
+cm <- cman[which(cman$name=='Manteca'),]
 
 #fill in data from before 1999
-cm80 <- cmod[which(cmod$date<'1999-08-23 00:00:00'), ] 
-cm80d <- fillinTemps(cm80, 'temp',c('Manteca'), 'Modesto','name')
+cm80 <- cman[which(cman$date<'1999-08-23 00:00:00'), ] 
+cm80d <- fillinTemps(cm80, 'temp', c('Modesto','Lodi'), 'Manteca','name')
 
 #filling in data between 99 and 04
-cm00 <- cmod[which(cmod$date>='1999-08-23 00:00:00' &
-                   cmod$date<'2004-11-02 00:00:00'), ] 
+cm00 <- cman[which(cman$date>='1999-08-23 00:00:00' &
+                   cman$date<'2004-11-02 00:00:00'), ] 
 cm00d <- fillinTemps(cm00, 'temp',
-                     c('Manteca', 'Tracy','Patterson','Denair'),
-                     'Modesto','name')
+                     c('Modesto', 'Tracy','Patterson','Denair', "LodiWest"),
+                     'Manteca','name')
 
 #filling in data between 04 and 09
-cm05 <- cmod[which(cmod$date>='2004-11-02 00:00:00' &
-                       cmod$date<'2009-04-09 00:00:00'), ] 
+cm05 <- cman[which(cman$date>='2004-11-02 00:00:00' &
+                       cman$date<'2009-04-09 00:00:00'), ] 
 cm05d <- fillinTemps(cm05, 'temp',
-                     c('Manteca', 'Tracy','Patterson','Denair','Oakdale'),
-                     'Modesto','name')
+                     c('Modesto', 'Tracy','Patterson','Denair','Oakdale',
+                       'LodiWest'),
+                     'Manteca','name')
 
 #filling in data between 09 and 17
-cm10 <- cmod[which(cmod$date>='2009-04-09 00:00:00' &
-                       cmod$date<'2017-5-31 00:00:00'), ] 
+cm10 <- cman[which(cman$date>='2009-04-09 00:00:00' &
+                       cman$date<'2017-5-31 00:00:00'), ] 
 cm10d <- fillinTemps(cm10, 'temp',
-                    c('Manteca', 'Tracy','Patterson','DenairII','Oakdale'),
-                    'Modesto','name')
+                    c('Modesto', 'Tracy','Patterson','DenairII','Oakdale',
+                      "LodiWest"),
+                    'Manteca','name')
 
 #filling in data after 2017
-cm15 <- cmod[which(cmod$date>='2017-5-31 00:00:00'), ] 
+cm15 <- cman[which(cman$date>='2017-5-31 00:00:00'), ] 
 cm15d <- fillinTemps(cm15, 'temp',
-                     c('Manteca','DenairII','Oakdale'), 'Modesto','name')
+                     c('Modesto','DenairII','Oakdale', "Ripon",'Holt'),
+                     'Manteca','name')
 
 #merging all of the filled in data
-cimmod <- do.call(rbind, list(cm80d, cm10d, cm00d, cm05d, cm15d))
+cimman <- do.call(rbind, list(cm80d, cm10d, cm00d, cm05d, cm15d))
 
 #checking to see if there are any dates missing
-tsc <- timeSeriesCheck(cimmod, start="1987-06-25 23:00:00 PDT", 
+tsc <- timeSeriesCheck(cimman, start="1987-06-25 23:00:00 PDT", 
                        end="2018-10-31 23:00:00 PST", hours = TRUE,
                        datename='date')
 
 #saving data
-write.csv(cimmod, file.path(datapath, 'clean/cimismodesto.csv'),
+write.csv(cimman, file.path(datapath, 'clean/cimismanteca.csv'),
           row.names=FALSE)
 
 
