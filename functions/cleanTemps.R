@@ -220,3 +220,42 @@ backfillTemps <- function(lat, dt, tmin, tmax) {
     return(tempdf)
     
 }
+
+seqTemp <- function(df, datetime, missinglength=1, varname='temp', 
+                     dtname='date') {
+    
+    dateends <- c(datetime - hours(1), datetime + hours(missinglength))
+    
+    
+    if (missinglength==1) {
+        
+        avgtemp <- mean(df[which(df[,dtname %in% dateends]), 'temp'])
+        missingID <- which(df[,dtname]==datetime)
+        df[missingID, varname] <- avgtemp
+        
+        
+    } else if (missinglength>1) {
+        
+        tempends <- c(df[which(df[,dtname==dateends[1]]), varname],
+                      df[which(df[,dtname==dateends[2]]), varname])
+        
+        tempseq <- seq(tempends[1], tempends[2], length.out = missinglength)
+        
+        dateseq <- seq(datetime, datetime+hours(missinglength), by='hours')
+        
+        for (i in 1:missinglength) {
+            
+            df[which(df[,dtname]==dateseq[1]), 'temp'] <- tempseq[i]
+            
+        }
+        
+    } else {
+        stop("missinglength must be >= 1.")
+    }
+   
+    return(df)    
+
+}
+
+
+
