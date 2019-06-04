@@ -483,8 +483,9 @@ write.csv(mnd, file=file.path(datapath, 'clean/noaamodesto.csv'),
 cman <- importCIMIS(file.path(datapath, 'raw/climate/cimis/manteca'))
 
 #renaming a station with a space in the name
-cman[which(cman$name=='Denair II'), 'name'] <- 'DenairII'
-cman[which(cman$name=='Lodi West'), 'name'] <- 'LodiWest'
+cman$name <- recode(cman$name, 'Denair II'='DenairII', 'Lodi West'='LodiWest',
+                    'Hastings Tract'='Hastings',
+                    'Hastings Tract East'='HastingsEast')
 
 #setting temps outside of historical extrema to NA
 extremerows <- which(cman$qc=='R' | cman$temp<= -8 | cman$temp > 45 |
@@ -493,7 +494,7 @@ cman[extremerows, 'temp'] <- NA
 
 #selecting only data from the primary station
 cman <- cman[which(cman$date>='1987-11-20 00:00:00' & 
-                       cman$date<='2018-10-31 00:00:00'), ]
+                       cman$date<='2018-10-31 23:00:00'), ]
 cm <- cman[which(cman$name=='Manteca'),]
 
 #fill in data from before 1999
@@ -504,7 +505,8 @@ cm80d <- fillinTemps(cm80, 'temp', c('Modesto','Lodi'), 'Manteca','name')
 cm00 <- cman[which(cman$date>='1999-08-23 00:00:00' &
                    cman$date<'2004-11-02 00:00:00'), ] 
 cm00d <- fillinTemps(cm00, 'temp',
-                     c('Modesto', 'Tracy','Patterson','Denair', "LodiWest"),
+                     c('Modesto', 'Tracy','Patterson','Denair', "LodiWest",
+                       'Hastings'),
                      'Manteca','name')
 
 #filling in data between 04 and 09
@@ -512,7 +514,7 @@ cm05 <- cman[which(cman$date>='2004-11-02 00:00:00' &
                        cman$date<'2009-04-09 00:00:00'), ] 
 cm05d <- fillinTemps(cm05, 'temp',
                      c('Modesto', 'Tracy','Patterson','Denair','Oakdale',
-                       'LodiWest'),
+                       'LodiWest','Hastings'),
                      'Manteca','name')
 
 #filling in data between 09 and 17
@@ -520,20 +522,46 @@ cm10 <- cman[which(cman$date>='2009-04-09 00:00:00' &
                        cman$date<'2017-5-31 00:00:00'), ] 
 cm10d <- fillinTemps(cm10, 'temp',
                     c('Modesto', 'Tracy','Patterson','DenairII','Oakdale',
-                      "LodiWest"),
+                      "LodiWest", 'HastingsEast'),
                     'Manteca','name')
 
 #filling in data after 2017
 cm15 <- cman[which(cman$date>='2017-5-31 00:00:00'), ] 
 cm15d <- fillinTemps(cm15, 'temp',
-                     c('Modesto','DenairII','Oakdale', "Ripon",'Holt'),
+                     c('Modesto','DenairII','Oakdale', "Ripon",'Holt',
+                       'HastingsEast'),
                      'Manteca','name')
 
 #merging all of the filled in data
 cimman <- do.call(rbind, list(cm80d, cm10d, cm00d, cm05d, cm15d))
 
+dim(cimman[which(is.na(cimman$temp)), ])
+
+missingDatetimes <- data.frame(date=c("1988-11-12 19:00:00", 
+                                      "1990-12-22 07:00:00", 
+                                      "1994-01-03 15:00:00", 
+                                      "1998-08-04 07:00:00", 
+                                      "1998-09-07 07:00:00", 
+                                      "1998-09-26 14:00:00",
+                                      "2015-07-02 04:00:00",
+                                      "2017-08-04 01:00:00",
+                                      "2017-08-04 03:00:00"),
+                               len=c(2,1,1,1,2,2,1,1,1))
+
+for (i in 1:nrow(missingDatetimes)) {
+    cimman <- seqTemp(cimman, missingDatetimes[i, 'date'], 
+                      missinglength = missingDatetimes[i, 'len'])
+}
+
+
+
+
+la  <- 
+
+
+
 #checking to see if there are any dates missing
-tsc <- timeSeriesCheck(cimman, start="1987-06-25 23:00:00 PDT", 
+tsc <- timeSeriesCheck(cimman, start="1987-11-20 00:00:00 PDT", 
                        end="2018-10-31 23:00:00 PST", hours = TRUE,
                        datename='date')
 
