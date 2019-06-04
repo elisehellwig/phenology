@@ -224,28 +224,33 @@ backfillTemps <- function(lat, dt, tmin, tmax) {
 seqTemp <- function(df, datetime, missinglength=1, varname='temp', 
                      dtname='date') {
     
+    if (!is.POSIXct(datetime)) {
+        datetime <- toPOSIX(datetime)
+    }
+    
     dateends <- c(datetime - hours(1), datetime + hours(missinglength))
     
+    #print(dateends)
     
     if (missinglength==1) {
         
-        avgtemp <- mean(df[which(df[,dtname %in% dateends]), 'temp'])
+        avgtemp <- mean(df[which(df[,dtname] %in% dateends), 'temp'])
         missingID <- which(df[,dtname]==datetime)
         df[missingID, varname] <- avgtemp
         
         
     } else if (missinglength>1) {
         
-        tempends <- c(df[which(df[,dtname==dateends[1]]), varname],
-                      df[which(df[,dtname==dateends[2]]), varname])
+        tempends <- c(df[which(df[,dtname]==dateends[1]), varname],
+                      df[which(df[,dtname]==dateends[2]), varname])
         
         tempseq <- seq(tempends[1], tempends[2], length.out = missinglength)
         
-        dateseq <- seq(datetime, datetime+hours(missinglength), by='hours')
+        dateseq <- seq(datetime, datetime+hours(missinglength-1), by='hours')
         
         for (i in 1:missinglength) {
             
-            df[which(df[,dtname]==dateseq[1]), 'temp'] <- tempseq[i]
+            df[which(df[,dtname]==dateseq[i]), 'temp'] <- tempseq[i]
             
         }
         
@@ -257,5 +262,17 @@ seqTemp <- function(df, datetime, missinglength=1, varname='temp',
 
 }
 
-
+extractMinMax <- function(df, date, datename, tempname='temp') {
+    
+    if (length(date)==1) {
+        temps <- df[which(df[,datename]==date), tempname]
+        mm <- c(min(temps), max(temp))
+        
+    } else if (length(date)==2) {
+        temps1 <- df[which(df[,datename]==date[i]), tempname]
+    }
+    
+    
+    
+}
 
