@@ -266,13 +266,28 @@ extractMinMax <- function(df, date, datename, tempname='temp') {
     
     if (length(date)==1) {
         temps <- df[which(df[,datename]==date), tempname]
-        mm <- c(min(temps), max(temp))
+        mm <- as.matrix(c(min(temps), max(temp)), ncol=1)
         
     } else if (length(date)==2) {
-        temps1 <- df[which(df[,datename]==date[i]), tempname]
+        temps1 <- df[which(df[,datename]==date[1]), tempname]
+        temps2 <- df[which(df[,datename]==date[2]), tempname]
+        
+        mm1 <- c(min(temps1), max(temps1))
+        mm2 <- c(min(temps2), max(temps2))
+        
+        mm <- rbind(mm1, mm2)
+        
+    } else {
+        stop("Length of date must be 1 or 2.")
+        
     }
     
+    mmdf <- as.data.frame(mm)
+    mmdf$date <- date
     
+    names(mmdf) <- c('tmin','tmax','date')
+    
+    return(mmdf)
     
 }
 
