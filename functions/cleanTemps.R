@@ -266,14 +266,15 @@ extractMinMax <- function(df, date, datename, tempname='temp') {
     
     if (length(date)==1) {
         temps <- df[which(df[,datename]==date), tempname]
-        mm <- as.matrix(c(min(temps), max(temp)), ncol=1)
+        mm <- as.matrix(c(min(temps, na.rm=TRUE), max(temp, na.rm = TRUE)),
+                        ncol=1)
         
     } else if (length(date)==2) {
         temps1 <- df[which(df[,datename]==date[1]), tempname]
         temps2 <- df[which(df[,datename]==date[2]), tempname]
         
-        mm1 <- c(min(temps1), max(temps1))
-        mm2 <- c(min(temps2), max(temps2))
+        mm1 <- c(min(temps1, na.rm=TRUE), max(temps1, na.rm=TRUE))
+        mm2 <- c(min(temps2, na.rm=TRUE), max(temps2, na.rm=TRUE))
         
         mm <- rbind(mm1, mm2)
         
