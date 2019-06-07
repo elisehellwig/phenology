@@ -262,12 +262,11 @@ seqTemp <- function(df, datetime, missinglength=1, varname='temp',
 
 }
 
-extractMinMax <- function(df, date, datename, tempname='temp') {
+extractMinMax <- function(df, date, datename, tempname='temp', avg=TRUE) {
     
     if (length(date)==1) {
         temps <- df[which(df[,datename]==date), tempname]
-        mm <- as.matrix(c(min(temps, na.rm=TRUE), max(temp, na.rm = TRUE)),
-                        ncol=1)
+        mmm <- t(as.matrix(c(min(temps, na.rm=TRUE), max(temps, na.rm = TRUE))))
         
     } else if (length(date)==2) {
         temps1 <- df[which(df[,datename]==date[1]), tempname]
@@ -278,13 +277,18 @@ extractMinMax <- function(df, date, datename, tempname='temp') {
         
         mm <- rbind(mm1, mm2)
         
+        if (avg) {
+            mmm <- t(as.matrix(apply(mm, 2, mean, na.rm=TRUE)))
+        }
+       
+        
     } else {
         stop("Length of date must be 1 or 2.")
         
     }
     
-    mmdf <- as.data.frame(mm)
-    mmdf$date <- date
+    mmdf <- as.data.frame(mmm)
+    mmdf$date <- mean(date)
     
     names(mmdf) <- c('tmin','tmax','date')
     
