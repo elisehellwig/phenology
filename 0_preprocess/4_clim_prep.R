@@ -23,7 +23,7 @@ library(phenoclim)
 datapath <- '/Volumes/GoogleDrive/My Drive/Phenology/data/'
 source('functions/cleanTemps.R')
 source('functions/datetime.R')
-options(stringsAsFactors = FALSE, na.rm=TRUE)
+options(stringsAsFactors = FALSE)
 
 
 # Davis-NOAA --------------------------------------------------------------
@@ -553,7 +553,17 @@ for (i in 1:nrow(missingDatetimes)) {
                       missinglength = missingDatetimes[i, 'len'])
 }
 
+missingDates2 <- list(c("2010-04-22", "2010-04-24"), 
+                      c("2006-07-22", "2006-07-24"),
+                      c("2017-06-18", "2017-06-20"))
 
+cimman$dateOnly <- as.Date(cimman$date-hours(7))
+
+manMinMax <- ldply(missingDates2, function(dts) {
+    extractMinMax(cimman, dts, 'dateOnly','temp')
+})
+
+#Manteca CIMIS station latitude 37.834822
 
 
 la  <- 
