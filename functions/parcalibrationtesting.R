@@ -40,7 +40,7 @@ par_calUpdated <- function (meas, date.format = "ymd", cal_period = NULL,
             }
         }
         T_meas_hourly <- subset(T_meas_hourly, T_meas_hourly$year %in% 
-                                    period)
+                                    period[1]:period[2])
         T_band <- subset(T_meas_hourly, T_meas_hourly$hour >= 
                              min(band_min) & T_meas_hourly$hour <= max(band_min))
         if (nrow(T_band) > sum(is.na(T_band$T))) 
