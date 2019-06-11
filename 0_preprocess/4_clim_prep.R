@@ -494,7 +494,7 @@ for (dt in missingDatetimes2) {
 missingDatetimes3 <- cimman[which(is.na(cimman$temp)), 'date']
 
 #checking to see if there are any dates missing
-tsc <- timeSeriesCheck(cimman, start="1987-11-20 00:00:00 PDT", 
+tsc <- timeSeriesCheck(cimman, start="1988-01-01 00:00:00 PDT", 
                        end="2018-10-31 23:00:00 PST", hours = TRUE,
                        datename='date')
 
