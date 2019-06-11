@@ -386,97 +386,6 @@ write.csv(pnd, file=file.path(datapath, 'clean/noaaparlier.csv'),
           row.names = FALSE)
 
 
-# Modesto-NOAA ------------------------------------------------------------
-#importing modesto noaa data
-mn1 <- read.csv(file.path(datapath, 'raw/climate/noaamodesto.csv'))
-mn2 <- read.csv(file.path(datapath, 'raw/climate/noaamodesto2.csv'))
-
-#merging 2 data frames
-mn <- rbind(mn1, mn2)
-
-#converting date string to Date class
-mn$DATE <- as.Date(mn$DATE)
-
-#selecting and renaming columns
-mn <- mn %>% select('loc'='NAME','date'='DATE', 'tmax'='TMAX', 'tmin'='TMIN')
-
-#giving stations more reasonable names
-mn$loc <- recode(mn$loc, "DENAIR 3 NNE, CA US"='denair', 
-                "OAKDALE WOODWARD DAM, CA US"='oakdale',
-                "TRACY CARBONA, CA US"='tracy',
-                "STOCKTON METROPOLITAN AIRPORT, CA US"='stockton',
-                "MODESTO CITY CO AIRPORT, CA US"='modesto',
-                "TURLOCK NUMBER 2, CA US"='turlock')
-
-#checking for missing dates
-tscd <- timeSeriesCheck(mn[mn$loc=='modesto', ], 
-                        start="1926-01-01 23:00:00 PDT", 
-                        end="2018-10-31 23:00:00 PST", hours = FALSE,
-                        datename='date')
-
-#creating year variable
-mn$year <- year(mn$date)
-
-#selecting only data after 1930 due to data missingness
-mn <- mn[mn$year >= 1930, ]
-
-#Setting temps to NA where min temp > max temp
-mn[which(mn$tmin > mn$tmax), 'tmin'] <- NA
-mn[which(mn$tmin > mn$tmax), 'tmax'] <- NA
-
-#Setting temps to NA if they were outside of historical extrema
-mn[which(mn$tmax>46.1 | mn$tmax<=-4), 'tmax'] <- NA
-mn[which(mn$tmin<=-9.0), 'tmin'] <- NA
-
-#note turlock should really start at 1985
-#tapply(mn$date, mn$loc, range)
-
-#filling in data between 1930 and 49
-mn25 <- mn[which(mn$date>='1930-01-01' & mn$date<'1949-10-01'),]
-mndmin25 <- fillinTemps(mn25,'tmin', c('denair','oakdale'), 'modesto')
-mndmax25 <- fillinTemps(mn25,'tmax', c('denair','oakdale'), 'modesto')
-
-#filling in data between 49 and 68
-mn49 <- mn[which(mn$date>='1949-10-01' & mn$date<'1968-01-01'),]
-mndmin49 <- fillinTemps(mn49,'tmin', c('denair','oakdale','stockton'), 
-                        'modesto')
-mndmax49 <- fillinTemps(mn49,'tmax', c('denair','oakdale', 'stockton'), 
-                        'modesto')
-
-#filling in data between 68 and 84
-mn68 <-  mn[which(mn$date>='1968-01-01' & mn$date<'1984-07-01'),]
-mndmin68 <- fillinTemps(mn68,'tmin', c('denair','stockton'), 
-                        'modesto')
-mndmax68 <- fillinTemps(mn68,'tmax', c('denair','stockton'), 
-                        'modesto')
-
-#filling in data after 1984
-mn84 <-  mn[which(mn$date>='1984-07-01' & mn$date<='2018-10-31'),]
-mndmin84 <- fillinTemps(mn84,'tmin', c('stockton','turlock'), 
-                        'modesto')
-mndmax84 <- fillinTemps(mn84,'tmax', c('stockton','turlock'), 
-                        'modesto')
-
-#combining all the filled in data
-mndmin <- do.call(rbind, list(mndmin25,mndmin49,mndmin68,mndmin84))
-mndmax <- do.call(rbind, list(mndmax25,mndmax49,mndmax68,mndmax84))
-
-mnd <- merge(mndmin, mndmax)
-
-#checking to see if there are any missing dates
-tscd <- timeSeriesCheck(mnd, 
-                        start="1930-01-01 23:00:00 PDT", 
-                        end="2018-10-31 23:00:00 PST", hours = FALSE,
-                        datename='date')
-
-#creating year and julian day variables
-mnd$year <- year(mnd$date)
-mnd$day <- yday(mnd$date)
-
-#saving data
-write.csv(mnd, file=file.path(datapath, 'clean/noaamodesto.csv'),
-          row.names = FALSE)
-
 # Manteca-CIMIS -----------------------------------------------------------
 
 #importing CIMIS data for manteca
@@ -493,9 +402,8 @@ extremerows <- which(cman$qc=='R' | cman$temp<= -8 | cman$temp > 45 |
 cman[extremerows, 'temp'] <- NA
 
 #selecting only data from the primary station
-cman <- cman[which(cman$date>='1987-11-20 00:00:00' & 
+cman <- cman[which(cman$date>='1988-01-01 00:00:00' & 
                        cman$date<='2018-10-31 23:00:00'), ]
-cm <- cman[which(cman$name=='Manteca'),]
 
 #fill in data from before 1999
 cm80 <- cman[which(cman$date<'1999-08-23 00:00:00'), ] 
