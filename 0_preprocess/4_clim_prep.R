@@ -535,8 +535,7 @@ cm15d <- fillinTemps(cm15, 'temp',
 #merging all of the filled in data
 cimman <- do.call(rbind, list(cm80d, cm10d, cm00d, cm05d, cm15d))
 
-dim(cimman[which(is.na(cimman$temp)), ])
-
+#missing date times that can be easily filled in
 missingDatetimes <- data.frame(date=c("1988-11-12 19:00:00", 
                                       "1990-12-22 07:00:00", 
                                       "1994-01-03 15:00:00", 
@@ -548,24 +547,29 @@ missingDatetimes <- data.frame(date=c("1988-11-12 19:00:00",
                                       "2017-08-04 03:00:00"),
                                len=c(2,1,1,1,2,2,1,1,1))
 
+#filling in the short sections of missing temperature data
 for (i in 1:nrow(missingDatetimes)) {
     cimman <- seqTemp(cimman, missingDatetimes[i, 'date'], 
                       missinglength = missingDatetimes[i, 'len'])
 }
 
+
+#dates with a lot of missing data
 MinMaxDates <- list(as.Date(c("2010-04-22", "2010-04-24")), 
                       as.Date(c("2006-07-22", "2006-07-24")),
                       as.Date("2017-06-18"),
                       as.Date(c("2017-06-18", "2017-06-20")))
 
+#creating a data only column (not datetime)
 cimman$dateOnly <- as.Date(cimman$date-hours(7))
 
+#getting daily min and max values for the days that have missing temps
 manMinMax <- ldply(MinMaxDates, function(dts) {
     extractMinMax(cimman, dts, 'dateOnly','temp')
 })
 
 #Manteca CIMIS station latitude 37.834822
-
+#using the not very good interpolation to interpolate the temperatures
 manbackfill <- ldply(1:nrow(manMinMax), function(i) {
     backfillTemps(37.834822, as.POSIXct(manMinMax[i, 'date'])+hours(7), 
                   manMinMax[i, 'tmin'], manMinMax[i, 'tmax'])
@@ -573,11 +577,12 @@ manbackfill <- ldply(1:nrow(manMinMax), function(i) {
 
 missingDatetimes2 <- cimman[which(is.na(cimman$temp)), 'date']
 
+#filling in missing data with interpolated temperatures.
 for (dt in missingDatetimes2) {
     cimman[which(cimman$date==dt), 'temp'] <- manbackfill[which(manbackfill$date==dt), 'temp']
 }
 
-
+#checking to see if we missed any NAs
 missingDatetimes3 <- cimman[which(is.na(cimman$temp)), 'date']
 
 #checking to see if there are any dates missing
@@ -591,34 +596,47 @@ write.csv(cimman, file.path(datapath, 'clean/cimismanteca.csv'),
 
 
 
-# NOAA - Manteca ----------------------------------------------------------
+# Manteca-NOAA ----------------------------------------------------------
 
 #importing modesto noaa data
-mn1 <- read.csv(file.path(datapath, 'raw/climate/noaamodesto.csv'))
-mn2 <- read.csv(file.path(datapath, 'raw/climate/noaamodesto2.csv'))
+mn1 <- read.csv(file.path(datapath, 'raw/climate/noaamanteca.csv'))
+mn2 <- read.csv(file.path(datapath, 'raw/climate/noaamanteca2.csv'))
+mn3 <- read.csv(file.path(datapath, 'raw/climate/noaamanteca3.csv'))
+cimman <- read.csv(file.path(datapath, 'clean/cimismanteca.csv'))
+
 
 #merging 2 data frames
-mn <- rbind(mn1, mn2)
+mn3 <- rbind(mn1, mn2)
 
 #converting date string to Date class
-mn$DATE <- as.Date(mn$DATE)
+mn3$DATE <- as.Date(mn3$DATE)
+cimman$date <- as.POSIXct(cimman$date)
+cimman$dateOnly <- as.Date(cimman$dateOnly)
 
 #selecting and renaming columns
-mn <- mn %>% select('loc'='NAME','date'='DATE', 'tmax'='TMAX', 'tmin'='TMIN')
+mn3 <- mn3 %>% select('loc'='NAME','date'='DATE', 'tmax'='TMAX', 'tmin'='TMIN')
 
 #giving stations more reasonable names
-mn$loc <- recode(mn$loc, "DENAIR 3 NNE, CA US"='denair', 
+mn3$loc <- recode(mn3$loc, "DENAIR 3 NNE, CA US"='denair', 
                  "OAKDALE WOODWARD DAM, CA US"='oakdale',
                  "TRACY CARBONA, CA US"='tracy',
                  "STOCKTON METROPOLITAN AIRPORT, CA US"='stockton',
                  "MODESTO CITY CO AIRPORT, CA US"='modesto',
                  "TURLOCK NUMBER 2, CA US"='turlock')
 
-#checking for missing dates
-tscd <- timeSeriesCheck(mn[mn$loc=='modesto', ], 
-                        start="1926-01-01 23:00:00 PDT", 
-                        end="2018-10-31 23:00:00 PST", hours = FALSE,
-                        datename='date')
+
+#creating daily tmin tmax values for manteca
+mn0 <- data.frame(loc='manteca',
+                  date=names(tapply(cimman$temp, cimman$dateOnly, min)),
+                  tmin=as.numeric(unname(tapply(cimman$temp, cimman$dateOnly, 
+                                            min))),
+                  tmax=as.numeric(unname(tapply(cimman$temp, cimman$dateOnly, 
+                                            max))))
+
+mn0$date <- as.Date(mn0$date)
+
+#merging manteca temps with the rest of the temps
+mn <- rbind(mn0, mn3)
 
 #creating year variable
 mn$year <- year(mn$date)
@@ -634,38 +652,14 @@ mn[which(mn$tmin > mn$tmax), 'tmax'] <- NA
 mn[which(mn$tmax>46.1 | mn$tmax<=-4), 'tmax'] <- NA
 mn[which(mn$tmin<=-9.0), 'tmin'] <- NA
 
-#note turlock should really start at 1985
-#tapply(mn$date, mn$loc, range)
 
-#filling in data between 1930 and 49
-mn25 <- mn[which(mn$date>='1930-01-01' & mn$date<'1949-10-01'),]
-mndmin25 <- fillinTemps(mn25,'tmin', c('denair','oakdale'), 'modesto')
-mndmax25 <- fillinTemps(mn25,'tmax', c('denair','oakdale'), 'modesto')
 
-#filling in data between 49 and 68
-mn49 <- mn[which(mn$date>='1949-10-01' & mn$date<'1968-01-01'),]
-mndmin49 <- fillinTemps(mn49,'tmin', c('denair','oakdale','stockton'), 
-                        'modesto')
-mndmax49 <- fillinTemps(mn49,'tmax', c('denair','oakdale', 'stockton'), 
-                        'modesto')
 
-#filling in data between 68 and 84
-mn68 <-  mn[which(mn$date>='1968-01-01' & mn$date<'1984-07-01'),]
-mndmin68 <- fillinTemps(mn68,'tmin', c('denair','stockton'), 
-                        'modesto')
-mndmax68 <- fillinTemps(mn68,'tmax', c('denair','stockton'), 
-                        'modesto')
-
-#filling in data after 1984
-mn84 <-  mn[which(mn$date>='1984-07-01' & mn$date<='2018-10-31'),]
-mndmin84 <- fillinTemps(mn84,'tmin', c('stockton','turlock'), 
-                        'modesto')
-mndmax84 <- fillinTemps(mn84,'tmax', c('stockton','turlock'), 
-                        'modesto')
-
-#combining all the filled in data
-mndmin <- do.call(rbind, list(mndmin25,mndmin49,mndmin68,mndmin84))
-mndmax <- do.call(rbind, list(mndmax25,mndmax49,mndmax68,mndmax84))
+#filling in the missing data
+mndmin <- fillinTemps(mn,'tmin', c('stockton','turlock', 'modesto'), 
+                        'manteca')
+mndmax <- fillinTemps(mn,'tmax', c('stockton','turlock','modesto'), 
+                        'manteca')
 
 mnd <- merge(mndmin, mndmax)
 
