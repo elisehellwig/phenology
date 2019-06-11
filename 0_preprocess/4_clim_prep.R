@@ -606,23 +606,26 @@ cimman <- read.csv(file.path(datapath, 'clean/cimismanteca.csv'))
 
 
 #merging 2 data frames
-mn3 <- rbind(mn1, mn2)
+mn4 <- do.call(rbind, list(mn1, mn2, mn3))
 
 #converting date string to Date class
-mn3$DATE <- as.Date(mn3$DATE)
+mn4$DATE <- as.Date(mn4$DATE)
 cimman$date <- as.POSIXct(cimman$date)
 cimman$dateOnly <- as.Date(cimman$dateOnly)
 
 #selecting and renaming columns
-mn3 <- mn3 %>% select('loc'='NAME','date'='DATE', 'tmax'='TMAX', 'tmin'='TMIN')
+mn4 <- mn4 %>% select('loc'='NAME','date'='DATE', 'tmax'='TMAX', 'tmin'='TMIN')
 
 #giving stations more reasonable names
-mn3$loc <- recode(mn3$loc, "DENAIR 3 NNE, CA US"='denair', 
+mn4$loc <- recode(mn4$loc, "DENAIR 3 NNE, CA US"='denair', 
                  "OAKDALE WOODWARD DAM, CA US"='oakdale',
                  "TRACY CARBONA, CA US"='tracy',
                  "STOCKTON METROPOLITAN AIRPORT, CA US"='stockton',
                  "MODESTO CITY CO AIRPORT, CA US"='modesto',
-                 "TURLOCK NUMBER 2, CA US"='turlock')
+                 "TURLOCK NUMBER 2, CA US"='turlock',
+                 "MANTECA, CA US"='manteca',
+                 "STOCKTON FIRE STATION 4, CA US" = 'stocktonfire',
+                 "LODI, CA US" = 'lodi')
 
 
 #creating daily tmin tmax values for manteca
@@ -636,7 +639,7 @@ mn0 <- data.frame(loc='manteca',
 mn0$date <- as.Date(mn0$date)
 
 #merging manteca temps with the rest of the temps
-mn <- rbind(mn0, mn3)
+mn <- rbind(mn0, mn4)
 
 #creating year variable
 mn$year <- year(mn$date)
@@ -653,12 +656,14 @@ mn[which(mn$tmax>46.1 | mn$tmax<=-4), 'tmax'] <- NA
 mn[which(mn$tmin<=-9.0), 'tmin'] <- NA
 
 
-
+tapply(mn$date, mn$loc, range, na.rm=TRUE)
 
 #filling in the missing data
-mndmin <- fillinTemps(mn,'tmin', c('stockton','turlock', 'modesto'), 
+mndmin <- fillinTemps(mn,'tmin', c('lodi', 'modesto', 'stockton', 
+                                   'stocktonfire', 'tracy'), 
                         'manteca')
-mndmax <- fillinTemps(mn,'tmax', c('stockton','turlock','modesto'), 
+mndmax <- fillinTemps(mn,'tmax', c('lodi', 'modesto', 'stockton', 
+                                   'stocktonfire', 'tracy'), 
                         'manteca')
 
 mnd <- merge(mndmin, mndmax)
@@ -674,7 +679,7 @@ mnd$year <- year(mnd$date)
 mnd$day <- yday(mnd$date)
 
 #saving data
-write.csv(mnd, file=file.path(datapath, 'clean/noaamodesto.csv'),
+write.csv(mnd, file=file.path(datapath, 'clean/noaamanteca.csv'),
           row.names = FALSE)
 
 
