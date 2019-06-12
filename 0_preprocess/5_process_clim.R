@@ -25,14 +25,14 @@ options(stringsAsFactors = FALSE)
 #cleaned NOAA data
 nchico <- read.csv(file=file.path(datapath,'clean/noaachico.csv') )
 ndavis <- read.csv(file=file.path(datapath, 'clean/noaadavis.csv'))
-nmod <- read.csv(file=file.path(datapath, 'clean/noaamodesto.csv'))
+nmanteca <- read.csv(file=file.path(datapath, 'clean/noaamanteca.csv'))
 nparlier <- read.csv(file=file.path(datapath, 'clean/noaaparlier.csv'))
 nshafter <- read.csv(file=file.path(datapath, 'clean/noaashafter.csv'))
 
 #cleaned CIMIS data
 cdavis <- read.csv(file.path(datapath, 'clean/cimisdavis.csv'))
 cchico <- read.csv(file.path(datapath, 'clean/cimischicodurham.csv'))
-cmod <- read.csv(file.path(datapath, 'clean/cimismodesto.csv'))
+cmanteca <- read.csv(file.path(datapath, 'clean/cimismanteca.csv'))
 cparlier <- read.csv(file.path(datapath, 'clean/cimisparlier.csv'))
 cshafter <- read.csv(file.path(datapath, 'clean/cimisshafter.csv'))
 
@@ -44,7 +44,7 @@ cshafter <- read.csv(file.path(datapath, 'clean/cimisshafter.csv'))
 
 davisInterp <- InterpTemp(ndavis, cdavis, 'Davis', 1930, 2017)
 chicoInterp <- InterpTemp(nchico, cchico, 'Chico', 1930, 2017)
-modestoInterp <- InterpTemp(nmod, cmod, 'Modesto', 1930, 2017)
+mantecaInterp <- InterpTemp(nmanteca, cmanteca, 'Manteca', 1930, 2017)
 parlierInterp <- InterpTemp(nparlier, cparlier, 'Parlier', 1930, 2017)
 shafterInterp <- InterpTemp(nshafter, cshafter, 'Shafter', 1940, 2017)
 
@@ -53,21 +53,31 @@ shafterInterp <- InterpTemp(nshafter, cshafter, 'Shafter', 1940, 2017)
 
 davisfinal <- mergeDailyHourly(ndavis, cdavis, davisInterp)
 chicofinal <- mergeDailyHourly(nchico, cchico, chicoInterp)
-modestofinal <- mergeDailyHourly(nmod, cmod, modestoInterp)
+mantecafinal <- mergeDailyHourly(nmanteca, cmanteca, mantecaInterp)
 parlierfinal <- mergeDailyHourly(nparlier, cparlier, parlierInterp)
 shafterfinal <- mergeDailyHourly(nshafter, cshafter, shafterInterp)
 
+la <- sapply(shafterfinal$temp, function(tmp) length(tmp))
+
+shafterfinal$temp <- unlist(shafterfinal$temp)
 
  # Combine -----------------------------------------------------------------
 
 davisfinal$loc <- 'Davis'
 chicofinal$loc <- 'Chico'
-modestofinal$loc <- 'Modesto'
+mantecafinal$loc <- 'Manteca'
 parlierfinal$loc <- 'Parlier'
 shafterfinal$loc <- 'Shafter'
 
-dailyhourlytemps <- do.call(rbind, list(davisfinal, chicofinal, modestofinal,
-                                        parlierfinal,shafterfinal)) 
+#davisfinal <- read.csv(file.path(datapath, 'clean/dailyhourlytempdavis.csv'))
+#chicofinal <- read.csv(file.path(datapath, 'clean/dailyhourlytempchico.csv'))
+#mantecafinal <- read.csv(file.path(datapath, 'clean/dailyhourlytempmanteca.csv'))
+#parlierfinal <- read.csv(file.path(datapath, 'clean/dailyhourlytempparlier.csv'))
+#shafterfinal <- read.csv(file.path(datapath, 'clean/cimisshafter.csv'))
+
+
+dailyhourlytemps <- do.call(rbind, list(davisfinal, chicofinal, mantecafinal,
+                                        parlierfinal, shafterfinal)) 
 
 
 # Save data ---------------------------------------------------------------
@@ -76,9 +86,11 @@ write.csv(davisfinal, file.path(datapath, 'clean/dailyhourlytempdavis.csv'),
           row.names = FALSE)
 write.csv(chicofinal, file.path(datapath, 'clean/dailyhourlytempchico.csv'),
           row.names = FALSE)
-write.csv(modestofinal, file.path(datapath, 'clean/dailyhourlytempmodesto.csv'),
+write.csv(mantecafinal, file.path(datapath, 'clean/dailyhourlytempmanteca.csv'),
           row.names = FALSE)
 write.csv(parlierfinal, file.path(datapath, 'clean/dailyhourlytempparlier.csv'),
+          row.names = FALSE)
+write.csv(shafterfinal, file.path(datapath, 'clean/dailyhourlytempshafter.csv'),
           row.names = FALSE)
 
 write.csv(dailyhourlytemps, file.path(datapath, 
