@@ -659,6 +659,7 @@ cimshaft[which(cimshaft$date=='2015-02-06 11:00:00'),'temp'] <- (cimshaft[which(
 cimshaft[which(cimshaft$date=='1998-09-04 04:00:00'),'temp'] <- (cimshaft[which(cimshaft$date=='1998-09-04 03:00:00'), 'temp'] + cimshaft[which(cimshaft$date=='1998-09-04 05:00:00'), 'temp'])/2
 
 naRows <- which(is.na(cimshaft$temp))
+naDTs <- cimshaft[naRows, 'date']
 naDates <- unique(as.Date(cimshaft[naRows,'date']))
 fillTemps <- sn1[which(sn1$date %in% naDates), ]
 wascoDates <- naDates[2:5]
@@ -677,16 +678,20 @@ backfilldf <- ldply(1:nrow(dtf), function(i) {
     backfillTemps(dtf[i, 'lat'], dti, dtf[i,'tmin'], dtf[i, 'tmax'])
 })
 
-cimshaft <- cimshaft %>% 
-    merge(backfilldf, all=TRUE) %>% 
+keepRows <- which(backfilldf$date %in% naDTs)
+
+cimshaft2 <- cimshaft %>% 
+    merge(backfilldf[keepRows, ], all=TRUE) %>% 
     drop_na()
+
+
 
 
 tsc <- timeSeriesCheck(cimshaft, start="1983-01-01 00:00:00 PDT", 
                        end="2018-10-31 23:00:00 PDT", hours = TRUE,
                        datename='date')
 
-write.csv(cimshaft, file.path(datapath, 'clean/cimisshafter.csv'),
+write.csv(cimshaft2, file.path(datapath, 'clean/cimisshafter.csv'),
           row.names=FALSE)
 
 
