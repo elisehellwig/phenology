@@ -1,15 +1,16 @@
-drivepath <- '/Users/echellwig/Drive/Phenology'
+drivepath <- '/Volumes/GoogleDrive/My Drive/Phenology'
 library(phenoclim)
 library(plyr)
+library(dplyr)
 source('functions/helperfunctions.R')
 
 #load temperature data (from NOAA)
-temps <- read.csv(file.path(drivepath, 
-                            'data/walnutdata/davisdailyhourlytemp.csv'),
+temps <- read.csv(file.path(drivepath, 'data/phenology/dailyhourlytemp.csv'),
                   stringsAsFactors = FALSE) 
+temps <- filter(temps, loc=="Davis")
 
 #load phenology data (from walnuts)
-w <- read.csv(file.path(drivepath, 'data/walnutdata/walnutclean.csv'))
+w <- read.csv(file.path(drivepath, 'data/prediction/walnutclean.csv'))
 ###################################################
 
 vars <- levels(w$cultivar) #vector of all the walnut cultivars
@@ -42,9 +43,9 @@ tpm <- lapply(vars, function(v) {
 names(tpm) <- vars #giving the models names
 
 #saving the DT plant model
-saveRDS(tpm, file.path(drivepath, 'data/walnutdata/DTplantmodel.RDS'))
+saveRDS(tpm, file.path(drivepath, 'Resutls/prediction/DTplantmodel.RDS'))
 tpm <- readRDS(file.path(drivepath, 
-                         'Results/walnutpaper/DTplantmodel.RDS'))
+                         'Results/prediction/DTplantmodel.RDS'))
 
 
 #crossvalidating the DT plant model
@@ -57,7 +58,7 @@ names(tpmCV) <-vars
 
 #saving the crossvalidation
 saveRDS(tpmCV, file.path(drivepath, 
-                         'Results/walnutpaper/DTplantmodelCV.RDS'))
+                         'Results/prediction/DTplantmodelCV.RDS'))
 
 ####################
 #DT simple
@@ -77,7 +78,7 @@ tpms <- lapply(vars, function(v) {
 names(tpms) <-vars
 
 saveRDS(tpms, file.path(drivepath, 
-                        'Results/walnutpaper/DTsimpleplantmodel.RDS'))
+                        'Results/prediction/DTsimpleplantmodel.RDS'))
 
 ######################
 #TTT complex
@@ -98,9 +99,9 @@ dpm <- lapply(vars, function(v) {
 names(dpm) <-vars
 
 #saving the TTT plant models
-saveRDS(dpm, file.path(drivepath, 'Results/walnutpaper/TTTplantmodel.RDS'))
+saveRDS(dpm, file.path(drivepath, 'Results/prediction/TTTplantmodel.RDS'))
 
-dpm <- readRDS(file.path(drivepath, 'Results/walnutpaper/TTTplantmodel.RDS'))
+dpm <- readRDS(file.path(drivepath, 'Results/prediction/TTTplantmodel.RDS'))
 
 
 #Running crossvalidation on the TTT plant models
@@ -115,7 +116,7 @@ names(dpmCV) <- vars
 
 #saving the crossvalidation results
 saveRDS(dpmCV, file.path(drivepath,
-                         'Results/walnutpaper/TTTplantmodelCV.RDS'))
+                         'Results/prediction/TTTplantmodelCV.RDS'))
 
 
 ######################
@@ -138,10 +139,10 @@ names(dpms) <-vars
 
 #saving simplified TTT plant models
 saveRDS(dpms, file.path(drivepath,
-                        'Results/walnutpaper/TTTsimpleplantmodel.RDS'))
+                        'Results/prediction/TTTsimpleplantmodel.RDS'))
 
 dpms <- readRDS(file.path(drivepath, 
-                          'Results/walnutpaper/TTTsimpleplantmodel.RDS'))
+                          'Results/prediction/TTTsimpleplantmodel.RDS'))
     
     
 dpmsCV <- lapply(1:length(vars), function(i) {
@@ -152,7 +153,7 @@ dpmsCV <- lapply(1:length(vars), function(i) {
 names(dpmsCV) <-vars
 
 saveRDS(dpmsCV, file.path(drivepath, 
-                         'Results/walnutpaper/TTTsimpleplantmodelCV.RDS'))
+                         'Results/prediction/TTTsimpleplantmodelCV.RDS'))
 
 ###################################################
 
