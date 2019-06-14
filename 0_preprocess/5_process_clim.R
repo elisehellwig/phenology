@@ -57,9 +57,6 @@ mantecafinal <- mergeDailyHourly(nmanteca, cmanteca, mantecaInterp)
 parlierfinal <- mergeDailyHourly(nparlier, cparlier, parlierInterp)
 shafterfinal <- mergeDailyHourly(nshafter, cshafter, shafterInterp)
 
-la <- sapply(shafterfinal$temp, function(tmp) length(tmp))
-
-shafterfinal$temp <- unlist(shafterfinal$temp)
 
  # Combine -----------------------------------------------------------------
 
@@ -69,11 +66,11 @@ mantecafinal$loc <- 'Manteca'
 parlierfinal$loc <- 'Parlier'
 shafterfinal$loc <- 'Shafter'
 
-#davisfinal <- read.csv(file.path(datapath, 'clean/dailyhourlytempdavis.csv'))
-#chicofinal <- read.csv(file.path(datapath, 'clean/dailyhourlytempchico.csv'))
-#mantecafinal <- read.csv(file.path(datapath, 'clean/dailyhourlytempmanteca.csv'))
-#parlierfinal <- read.csv(file.path(datapath, 'clean/dailyhourlytempparlier.csv'))
-#shafterfinal <- read.csv(file.path(datapath, 'clean/cimisshafter.csv'))
+# davisfinal <- read.csv(file.path(datapath, 'clean/dailyhourlytempdavis.csv'))
+# chicofinal <- read.csv(file.path(datapath, 'clean/dailyhourlytempchico.csv'))
+# mantecafinal <- read.csv(file.path(datapath, 'clean/dailyhourlytempmanteca.csv'))
+# parlierfinal <- read.csv(file.path(datapath, 'clean/dailyhourlytempparlier.csv'))
+# shafterfinal <- read.csv(file.path(datapath, 'clean/dailyhourlytempshafter.csv'))
 
 
 dailyhourlytemps <- do.call(rbind, list(davisfinal, chicofinal, mantecafinal,
