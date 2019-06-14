@@ -65,7 +65,7 @@ saveRDS(ppmDT, file.path(historypath, 'SLpruneDTanderson.RDS'))
 
 asub <- a %>% 
     filter(cultivar %in% c('Nonpareil','Mission','Sonora'),
-           source=='RAVT', loc != 'Shafter') 
+           source=='RAVT') 
 
 asub$loc <- recode(asub$loc, "Modesto"="Manteca")
 
@@ -88,7 +88,7 @@ almondDT <- lapply(c('asymcur'), function(form) {
                   simple=FALSE,
                   ff=form,
                   ct=list(c(4,25,36)), 
-                  modelthreshold=c(1000),
+                  modelthreshold=c(30),
                   start=c(0),
                   varyingparameters=c('start','threshold'),
                   optimized=c('threshold'),
@@ -98,7 +98,7 @@ almondDT <- lapply(c('asymcur'), function(form) {
 apmDT <- lapply(seq_along(almondData), function(i) {
     print(i)
     plantmodel(almondData[[i]], temp, almondDT, 0, 270, cores=4L,
-               iterations=200)
+               iterations=300)
 })
 
 
