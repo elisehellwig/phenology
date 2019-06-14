@@ -120,7 +120,7 @@ a <- rbind(a1, a2, a3)
 a$year <- as.numeric(a$year)
 
 #renaming locations
-a$loc <- recode(a$loc, 'Manteca'='Modesto')
+a$loc <- recode(a$loc, 'Modesto'='Manteca')
 a$cultivar <- recode(a$cultivar, 'Mission '='Mission')
 
 #a <- unique(a)
