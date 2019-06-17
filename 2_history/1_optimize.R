@@ -79,7 +79,7 @@ acc <- ac[complete.cases(ac),]
 vars <- c('Mission','Nonpareil','Sonora')
 
 almondData <- lapply(vars, function(cv) {
-    filter(acc, cultivar==cv)
+    filter(acc, cultivar==cv) #, loc!='Shafter'
 })
 
 almondDT <- lapply(c('asymcur'), function(form) {
@@ -103,3 +103,4 @@ apmDT <- lapply(seq_along(almondData), function(i) {
 
 
 saveRDS(apmDT, file.path(historypath, 'SLalmondDTanderson.RDS'))
+#saveRDS(apmDTss, file.path(historypath, 'SLalmondDTandersonNotShafter.RDS'))
