@@ -31,11 +31,12 @@ temp$dt <- as.POSIXct(temp$dt, format="%Y-%m-%d %H:%M:%OS")
 
 
 # Extract model thresholds ------------------------------------------------
-locVar <- expand.grid('almond', c('Chico','Modesto'), 
-                      c('Mission','Nonpareil'))
+locVar <- expand.grid('almond', c('Chico','Modesto','Shafter'), 
+                      c('Mission','Nonpareil', 'Sonora'))
 names(locVar) <- c('crop','loc','cultivar')
 
-locVar$threshold <- sapply(1:4, function(i) round(unlist(threshold(amod[[i]]))))
+almondthresh <- sapply(1:3, function(i) round(unlist(threshold(amod[[i]]))))
+locVar$threshold <- rep(almondthresh, each=3)
 
 pruneThreshold <- round(unlist(threshold(pmod)))
 
