@@ -19,11 +19,11 @@ header-includes:
   - \usepackage{threeparttable}
   - \usepackage[normalem]{ulem}
 output:
-  pdf_document:
-    fig_caption: yes
   word_document:
     fig_caption: yes
     reference_docx: phenologytemplate.docx
+  pdf_document:
+    fig_caption: yes
   html_document:
     fig_caption: yes
 bibliography: phenology.bib
