@@ -100,6 +100,7 @@ calcThermalTime <- function(events, temperatures, step, modtype, form,
     } 
     
     years <- eventsC[,'year'] #years for which we have data
+    yrlocs <- eventsC[,c('year','loc')]
     
     if (step=='harvest') { #for harvest step
         #print(4)
@@ -118,7 +119,7 @@ calcThermalTime <- function(events, temperatures, step, modtype, form,
         }
         
         #calculate the thermal sum
-        result <- thermalsum(cardinal, years, temperatures, modtype, form,
+        result <- thermalsum(cardinal, yrlocs, temperatures, modtype, form,
                              startdates, threshvalues, varying, 'PlantModel',
                              startdays)
         
