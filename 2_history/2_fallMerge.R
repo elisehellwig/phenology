@@ -61,23 +61,24 @@ locVar <- rbind(locVar, locVar2)
 
 
 ah <- a %>% 
-    filter(source=='RAVT', loc %in% c('Chico','Modesto'),
+    filter(source=='RAVT', loc %in% c('Chico','Modesto','Shafter'),
                     cultivar %in% c('Nonpareil','Mission','Sonora'))
 
-aLocVar <- filter(locVar, crop=='almond')
+aLocVar <- locVar %>% 
+    filter(crop=='almond') %>% 
+    select(c(cultivar,threshold)) %>% 
+    unique
 
 aslopt <- ldply(1:nrow(aLocVar), function(i) {
     calcThermalTime(ah, temp, 'harvest', 'DT', 'asymcur', c(4,25,36), 0, 
                     aLocVar[i, 'threshold'], c('start','threshold'), 
-                    location = aLocVar[i,'loc'], var=aLocVar[i,'cultivar'],
-                    predictor='thermal')
-
+                    var=aLocVar[i,'cultivar'], predictor='thermal')
 })
+
 
 asl30 <- ldply(1:nrow(aLocVar), function(i) {
     calcThermalTime(ah, temp, 'harvest', 'DT', 'asymcur', c(4,25,36), 0, 
-                    30, c('start','threshold'), 
-                    location = aLocVar[i,'loc'], var=aLocVar[i,'cultivar'],
+                    30, c('start','threshold'), var=aLocVar[i,'cultivar'],
                     predictor='thermal30')
 })
 
