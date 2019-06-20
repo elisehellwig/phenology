@@ -158,8 +158,8 @@ wf$crop <- 'walnut'
 af$event1 <- NULL
 
 fruits <- rbind(af, pf, wf)
-spring <- inner_join(fruits, precip, by=c('year', 'loc'='location'))
+#spring <- inner_join(fruits, precip, by=c('year', 'loc'='location'))
 
-write.csv(spring, file.path(historypath, 'spring.csv'), row.names = FALSE)
+write.csv(fruits, file.path(historypath, 'spring.csv'), row.names = FALSE)
 
 
