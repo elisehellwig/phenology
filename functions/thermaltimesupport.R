@@ -102,6 +102,7 @@ calcThermalTime <- function(events, temperatures, step, modtype, form,
     years <- eventsC[,'year'] #years for which we have data
     yrlocs <- eventsC[,c('year','loc')]
     
+    #print(0)
     if (step=='harvest') { #for harvest step
         #print(4)
         
@@ -128,8 +129,9 @@ calcThermalTime <- function(events, temperatures, step, modtype, form,
     } else if (step=='flowering') {
         
         #convert start day to dates
+        #print(1)
         startdates <- dayToDate(years, start, 'FlowerModel', varying)
-        
+        #print(2)
         #add a day on the years with leap year
         startdates <- ifelse(leap_year(startdates) & start>59,
                              startdates + ddays(1),
@@ -141,7 +143,7 @@ calcThermalTime <- function(events, temperatures, step, modtype, form,
         
         #print(startdates)
         #calculate thermal sums
-        sums <- thermalsum(cardinal, years, temperatures, 'TTT', form,
+        sums <- thermalsum(cardinal, yrlocs, temperatures, 'TTT', form,
                            startdates, thresh, varying, 'FlowerModel',
                            start)
         
