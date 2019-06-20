@@ -31,7 +31,7 @@ temp$dt <- as.POSIXct(temp$dt, format="%Y-%m-%d %H:%M:%OS")
 
 
 # Extract model thresholds ------------------------------------------------
-locVar <- expand.grid('almond', c('Chico','Modesto','Shafter'), 
+locVar <- expand.grid('almond', c('Chico','Manteca','Shafter'), 
                       c('Mission','Nonpareil', 'Sonora'))
 names(locVar) <- c('crop','loc','cultivar')
 
