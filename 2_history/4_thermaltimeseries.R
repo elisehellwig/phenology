@@ -27,7 +27,8 @@ temp$dt <- as.POSIXct(temp$dt, format="%Y-%m-%d %H:%M:%OS")
 
 # Almonds -----------------------------------------------------------------
 
-aLocVar <- filter(locVar, crop=='almond', cultivar != 'Sonora')
+aLocVar <- locVar %>% 
+    filter(crop=='almond')
 
 a <- spring %>% 
     filter(crop=='almond', event=='event1') %>% 
@@ -41,9 +42,10 @@ a <- spring %>%
 
 
 asl <- ldply(1:nrow(aLocVar), function(i) {
+    print(aLocVar[i,])
     calcThermalTime(a, temp, 'harvest', 'DT', 'asymcur', c(4,25,36), 0, 
                     aLocVar[i, 'threshold'], c('start','threshold'), 
-                    location = aLocVar[i,'loc'], var=aLocVar[i,'cultivar'],
+                    var=aLocVar[i,'cultivar'], location=aLocVar[i, 'loc'],
                     predictor='thermal')
     
 })
