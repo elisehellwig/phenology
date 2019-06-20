@@ -47,20 +47,27 @@ locVar <- read.csv(file.path(historypath, 'SeasonLengthParameters.csv'),
 
 # Almonds -----------------------------------------------------------------
 #almond cultivars of interest
-acults <- c('Nonpareil','Mission')
+acults <- c('Nonpareil','Mission','Sonora')
 
 #extracting only the almond data we want
-a <- filter(a, cultivar %in% acults, loc %in% c('Chico','Modesto'),
-            source=='FF')
+a <- filter(a, cultivar %in% acults, 
+            (loc %in% c('Chico','Manteca') & source=='FF') |
+                 loc=='Shafter',
+            event=='event1') 
+a$event1 <- a$day
 
 #selecting only almond parameters
 aLocVar <- filter(locVar, crop=='almond')
+    
 
 #calculating when we meet chill portion requirement starting at november 1
 #accumulating 22 chill portions
 af1 <- ldply(1:nrow(aLocVar), function(i) {
-    calcThermalTime(a, temp, 'flowering', 'TTT', 'chillPortions', NA, 305,
-                          22, NA, aLocVar[i,'loc'], aLocVar[i, 'cultivar'])
+    #print(aLocVar[i, ])
+    calcThermalTime(events=a, temperatures=temp, step='flowering', 
+                    modtype='TTT', form='chillPortions', cardinal=NA, 
+                    start=305, thresh=22, varying=NA, 
+                    location=aLocVar[i, 'loc'], var=aLocVar[i, 'cultivar'])
 })
 
 #calculating when to start accumulating heat
@@ -149,6 +156,7 @@ wf$crop <- 'walnut'
 
 # Merge and write ---------------------------------------------------------
 
+af$event1 <- NULL
 
 fruits <- rbind(af, pf, wf)
 spring <- inner_join(fruits, precip, by=c('year', 'loc'='location'))
