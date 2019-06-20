@@ -51,8 +51,7 @@ acults <- c('Nonpareil','Mission','Sonora')
 
 #extracting only the almond data we want
 a <- filter(a, cultivar %in% acults, 
-            (loc %in% c('Chico','Manteca') & source=='FF') |
-                 loc=='Shafter',
+            (loc %in% c('Chico','Manteca') & source=='FF') | loc=='Shafter',
             event=='event1') 
 a$event1 <- a$day
 
