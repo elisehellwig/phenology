@@ -41,7 +41,7 @@ extractLM <- function(mod, col.names=c('coef','pval'), intname='intercept',
 }
 
 formatLM <- function(df, lmlist, cols=c('coef', 'pval','r2'), crop=NA,
-                     dropIntercept=TRUE) {
+                     dropIntercept=TRUE, loc=TRUE) {
     #df - data.frame, contains location ('loc') and cultivar labels for each
         #model in the lmlist
     #lmlist - list, a list of 'lm' or 'summary.lm' objects the data will be
@@ -52,17 +52,37 @@ formatLM <- function(df, lmlist, cols=c('coef', 'pval','r2'), crop=NA,
     #dropIntercept logical, should the intercept be dropped from the
         #coefficients returned
     
-    
-    #extract the information from each lm object
-    if (class(lmlist)=='lm') {
-        moddf <- extractLM(lmlist, loc=df[1,'loc'], cultivar=df[1,'cultivar'])
+    if (!loc) {
+        
+        if (class(lmlist)=='lm') {
+            moddf <- extractLM(lmlist, loc=NA, 
+                               cultivar=df[1,'cultivar'])
+            
+        } else {
+            moddf <- ldply(1:nrow(df), function(i) {
+                extractLM(lmlist[[i]], loc=NA, 
+                          cultivar=df[i,'cultivar'])
+            })
+            
+        }
         
     } else {
-        moddf <- ldply(1:nrow(df), function(i) {
-            extractLM(lmlist[[i]], loc=df[i,'loc'], cultivar=df[i,'cultivar'])
-        })
         
+        if (class(lmlist)=='lm') {
+            moddf <- extractLM(lmlist, loc=df[1,'loc'], 
+                               cultivar=df[1,'cultivar'])
+            
+        } else {
+            moddf <- ldply(1:nrow(df), function(i) {
+                extractLM(lmlist[[i]], loc=df[i,'loc'], 
+                          cultivar=df[i,'cultivar'])
+            })
+            
+        }
     }
+    
+    #extract the information from each lm object
+    
     
     #remove intercept if it is not needed
     if (dropIntercept) {
@@ -72,7 +92,12 @@ formatLM <- function(df, lmlist, cols=c('coef', 'pval','r2'), crop=NA,
     }
    
     #create columns of interest
-    coi <- c('loc','cultivar', cols)
+    if (!loc) {
+        coi <- c('cultivar', cols)
+    } else {
+        coi <- c('loc','cultivar', cols)
+    }
+    
     
     #select only columns of interest
     newdf <- moddf[,coi]
