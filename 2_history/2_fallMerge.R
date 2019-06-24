@@ -61,7 +61,7 @@ locVar <- rbind(locVar, locVar2)
 
 
 ah <- a %>% 
-    filter(source=='RAVT', loc %in% c('Chico','Modesto','Shafter'),
+    filter(source=='RAVT', loc %in% c('Chico','Manteca','Shafter'),
                     cultivar %in% c('Nonpareil','Mission','Sonora'))
 
 aLocVar <- locVar %>% 
@@ -135,8 +135,8 @@ wsl$crop <- 'walnut'
 # Combine harvest ---------------------------------------------------------
 
 harvest <- rbind(asl, psl, wsl)
-harvestprecip <- merge(harvest, precip, by.x=c('loc','year'), 
-                       by.y=c('location','year'))
+#harvestprecip <- merge(harvest, precip, by.x=c('loc','year'), 
+                      # by.y=c('location','year'))
 
 
 # Write data --------------------------------------------------------------
@@ -144,4 +144,4 @@ harvestprecip <- merge(harvest, precip, by.x=c('loc','year'),
 
 write.csv(locVar, file.path(historypath, 'SeasonLengthParameters.csv'),
           row.names=FALSE)
-saveRDS(harvestprecip, file.path(historypath, 'harvest.RDS'))
+saveRDS(harvest, file.path(historypath, 'harvest.RDS'))
