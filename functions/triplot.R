@@ -83,7 +83,8 @@ triplot <- function(df, variety, loc=FALSE, threshold=NA, pointcolor='black',
     if (!is.na(alims[1]))  aplot <- aplot + xlim(alims)
     
     if (asmooth) {
-        aplot <- aplot + geom_smooth(method=lm, se=FALSE, color=smoothcol[1])
+        aplot <- aplot + geom_smooth(aes(x=x, y=y),
+                                     method=lm, se=FALSE, color=smoothcol[1])
     }
         
     bplot <- ggplot(data=tridf[tridf$groupvar=='B', ]) +
@@ -94,7 +95,8 @@ triplot <- function(df, variety, loc=FALSE, threshold=NA, pointcolor='black',
     if (!is.na(blims[1])) bplot <- bplot + xlim(blims)
     
     if (bsmooth) {
-        bplot <- bplot + geom_smooth(method=lm, se=FALSE, color=smoothcol[2])
+        bplot <- bplot + geom_smooth(aes(x=x, y=y), method=lm, se=FALSE, 
+                                     color=smoothcol[2])
     }
     
     cplot <- ggplot(data=tridf[tridf$groupvar=='C', ]) +
@@ -104,9 +106,9 @@ triplot <- function(df, variety, loc=FALSE, threshold=NA, pointcolor='black',
     if (!is.na(clims[1])) cplot <- cplot + xlim(clims)
     
     if (csmooth) {
-        cplot <- cplot + geom_smooth(method=lm, se=FALSE, color=smoothcol[3])
+        cplot <- cplot + geom_smooth(aes(x=x, y=y),
+                                     method=lm, se=FALSE, color=smoothcol[3])
     }
-    
     
     
     if (loc) {
