@@ -47,11 +47,23 @@ formatPlotData <- function(df, variety=NA) {
 
 
 triplot <- function(df, variety, loc=FALSE, threshold=NA, alims=NA, blims=NA,
-                    clims=NA, asmooth=NA, bsmooth=NA, csmooth=NA) {
+                    clims=NA, asmooth=FALSE, bsmooth=FALSE, csmooth=FALSE,
+                    scol=rep('black',3)) {
+    require(grid)
+    require(gridExtra)
+    ### A = season length ~ year
+    ### B = season length ~ thermal sum
+    ### C = thermal sum ~ year
     # df - data.frame, needs to have columns: cultivar, loc, year, thermal,
     #length1, 
     # varity - character, name of the cultivar to plot data from
-    #loc - 
+    #loc - logical, should points be coded by location?
+    #threshold - numeric/character, length of thermal time accumulation, for
+        #axis labeling
+    #alims, blims, clims - numeric (length 2), specifies the x axis limits for
+        #the a, b, and c plots respectively
+    #asmooth, bsmooth, csmooth - logical, should the linear model be included?
+    #scol - character (length 3), the color to plot the linear models
     
     require(ggplot2)
     
@@ -67,25 +79,33 @@ triplot <- function(df, variety, loc=FALSE, threshold=NA, alims=NA, blims=NA,
         geom_point(aes(x=x, y=y, shape=loc)) + theme_classic() +
         labs(x="Year", y='Season Length (days)') + guides(shape=FALSE)
     
-    if (!is.na(alims[1])) {
-        aplot <- aplot + xlim(alims)
-    }
+    if (!is.na(alims[1]))  aplot <- aplot + xlim(alims)
     
+    if (asmooth) {
+        aplot <- aplot + geom_smooth(method=lm, se=FALSE, color=scol[1])
+    }
+        
     bplot <- ggplot(data=tridf[tridf$groupvar=='B', ]) +
         geom_point(aes(x=x, y=y, shape=loc)) + theme_classic() +
         labs(x=tslab, y='Season Length (days)') + guides(shape=FALSE)
     
-    if (!is.na(blims[1])) {
-        bplot <- bplot + xlim(blims)
+    if (!is.na(blims[1])) bplot <- bplot + xlim(blims)
+    
+    if (bsmooth) {
+        bplot <- bplot + geom_smooth(method=lm, se=FALSE, color=scol[2])
     }
     
     cplot <- ggplot(data=tridf[tridf$groupvar=='C', ]) +
         geom_point(aes(x=x, y=y, shape=loc)) + theme_classic() +
         labs(x="Year", y=tslab) + guides(shape=FALSE)
     
-    if (!is.na(clims[1])) {
-        cplot <- cplot + xlim(clims)
+    if (!is.na(clims[1])) cplot <- cplot + xlim(clims)
+    
+    if (csmooth) {
+        cplot <- cplot + geom_smooth(method=lm, se=FALSE, color=scol[3])
     }
+    
+    
     
     if (loc) {
         legplot <- ggplot(data=tridf) + geom_point(aes(x=x, y=y, shape=loc)) +
