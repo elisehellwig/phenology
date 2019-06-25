@@ -46,9 +46,9 @@ formatPlotData <- function(df, variety=NA) {
 }
 
 
-triplot <- function(df, variety, loc=FALSE, threshold=NA, alims=NA, blims=NA,
-                    clims=NA, asmooth=FALSE, bsmooth=FALSE, csmooth=FALSE,
-                    scol=rep('black',3)) {
+triplot <- function(df, variety, loc=FALSE, threshold=NA, pointcolor='black',
+                    alims=NA, blims=NA, clims=NA, asmooth=FALSE, bsmooth=FALSE,
+                    csmooth=FALSE, smoothcol=rep('black',3)) {
     require(grid)
     require(gridExtra)
     ### A = season length ~ year
@@ -76,33 +76,35 @@ triplot <- function(df, variety, loc=FALSE, threshold=NA, alims=NA, blims=NA,
     }
     
     aplot <- ggplot(data=tridf[tridf$groupvar=='A', ]) +
-        geom_point(aes(x=x, y=y, shape=loc)) + theme_classic() +
-        labs(x="Year", y='Season Length (days)') + guides(shape=FALSE)
+        geom_point(aes(x=x, y=y, shape=loc), color=pointcolor) + 
+        theme_classic() + labs(x="Year", y='Season Length (days)') + 
+        guides(shape=FALSE)
     
     if (!is.na(alims[1]))  aplot <- aplot + xlim(alims)
     
     if (asmooth) {
-        aplot <- aplot + geom_smooth(method=lm, se=FALSE, color=scol[1])
+        aplot <- aplot + geom_smooth(method=lm, se=FALSE, color=smoothcol[1])
     }
         
     bplot <- ggplot(data=tridf[tridf$groupvar=='B', ]) +
-        geom_point(aes(x=x, y=y, shape=loc)) + theme_classic() +
-        labs(x=tslab, y='Season Length (days)') + guides(shape=FALSE)
+        geom_point(aes(x=x, y=y, shape=loc), color=pointcolor) +
+        theme_classic() + labs(x=tslab, y='Season Length (days)') +
+        guides(shape=FALSE)
     
     if (!is.na(blims[1])) bplot <- bplot + xlim(blims)
     
     if (bsmooth) {
-        bplot <- bplot + geom_smooth(method=lm, se=FALSE, color=scol[2])
+        bplot <- bplot + geom_smooth(method=lm, se=FALSE, color=smoothcol[2])
     }
     
     cplot <- ggplot(data=tridf[tridf$groupvar=='C', ]) +
-        geom_point(aes(x=x, y=y, shape=loc)) + theme_classic() +
-        labs(x="Year", y=tslab) + guides(shape=FALSE)
+        geom_point(aes(x=x, y=y, shape=loc), color=pointcolor) +
+        theme_classic() + labs(x="Year", y=tslab) + guides(shape=FALSE)
     
     if (!is.na(clims[1])) cplot <- cplot + xlim(clims)
     
     if (csmooth) {
-        cplot <- cplot + geom_smooth(method=lm, se=FALSE, color=scol[3])
+        cplot <- cplot + geom_smooth(method=lm, se=FALSE, color=smoothcol[3])
     }
     
     
