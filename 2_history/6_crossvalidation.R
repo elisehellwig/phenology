@@ -16,14 +16,17 @@ phenologypath <- '/Volumes/GoogleDrive/My Drive/Phenology/data/phenology'
 
 harv <- readRDS(file.path(historypath, 'harvestfit.RDS'))
 tts <- readRDS(file.path(historypath, 'ThermalTimeSeries.RDS'))
-locVar <- read.csv(file.path(historypath, 'SeasonLengthParameters.csv'))
+fullLocVar <- read.csv(file.path(historypath, 'SeasonLengthParameters.csv'))
 
 
 # Errors ------------------------------------------------------------------
 
+locVar <- fullLocVar %>% 
+    select(crop, cultivar, threshold) %>% 
+    unique
+
 datalist <- lapply(1:nrow(locVar), function(i) {
-    filter(harv, crop==locVar[i,'crop'], loc==locVar[i, 'loc'], 
-           cultivar==locVar[i, 'cultivar'])
+    filter(harv, crop==locVar[i,'crop'], cultivar==locVar[i, 'cultivar'])
 })
 
 locVar$RMSE <- sapply(1:nrow(locVar), function(i) {
