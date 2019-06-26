@@ -87,6 +87,9 @@ write.csv(nd, file=file.path(datapath, 'clean/noaadavis.csv'),
 #import data
 cdavis <- importCIMIS(file.path(datapath, 'raw/climate/cimis/davis'))
 
+#cdavis$year <- year(cdavis$date)
+#tapply(cdavis$year, cdavis$name, range, na.rm=TRUE)
+
 #rename a location so no spaces in it
 cdavis[which(cdavis$name=="Bryte (experimental)"), 'name'] <- 'Bryte'
 
@@ -592,112 +595,6 @@ write.csv(mnd, file=file.path(datapath, 'clean/noaamanteca.csv'),
 
 
 
-# Shafter - CIMIS ---------------------------------------------------------
-
-cshafter <- importCIMIS(file.path(datapath, 'raw/climate/cimis/shafter'))
-sn1 <- read.csv(file.path(datapath, 'raw/climate/noaashafter.csv'))
-
-sn1$DATE <- as.Date(sn1$DATE)
-sn1 <- select(sn1, 'loc'='NAME','date'='DATE', 'tmax'='TMAX', 'tmin'='TMIN')
-
-sn1$loc <- recode(sn1$loc, "BUTTONWILLOW, CA US"='buttonwillow',
-                  "BAKERSFIELD AIRPORT, CA US"='bakersfieldAirport',
-                  "BAKERSFIELD 5 NW, CA US"='bakersfield5',
-                  "BAKERSFIELD 6.1 WSW, CA US"='bakersfield6',
-                  "WASCO, CA US"='wasco', "SHAFTER 6 E, CA US"='shafter6')
-
-cshafter$name <- recode(cshafter$name, "Arvin-Edison"="arvin",
-                        "Blackwells Corner"="blackwell",
-                        "McFarland/Kern Farms"="mcfarland",
-                        "Shafter"="shafter",
-                        "Lamont"="lamont",
-                        "Bakersfield/Bonanza"='bonanza',
-                        "Bakersfield/Greenlee"='greenlee',
-                        "Lost Hills"='losthills',
-                        "Belridge"='belridge',
-                        "Delano"='delano',
-                        "Famoso"='famoso',
-                        "Tehachapi"='tehachapi',
-                        "Stratford"='stratford',
-                        "Porterville"='porterville',
-                        "Visalia"='visalia')
-
-
-extremerows <- which(cshafter$qc=='R' | cshafter$temp<= -11 | 
-                         cshafter$temp > 44 |
-                         month(cshafter$date)!=12 & cshafter$temp<=(-8) |
-                         month(cshafter$date) %in% 5:9 & cshafter$temp<=0 )
-cshafter[extremerows, 'temp'] <- NA
-
-#identifyNAs 
-
-
-cs80 <- cshafter[which(cshafter$date>='1983-01-01 00:00:00' &
-                           cshafter$date<'1986-10-01 00:00:00'), ] 
-cs80d <- fillinTemps(cs80, 'temp',c('lamont','losthills','greenlee','bonanza',
-                                    'mcfarland', 'stratford', 'visalia'),
-                     'shafter','name')
-
-
-cs90 <- cshafter[which(cshafter$date>='1986-10-01 00:00:00' &
-                       cshafter$date<'1994-10-03 00:00:00' ), ] 
-cs90d <- fillinTemps(cs90, 'temp',c('blackwell','mcfarland', 'lamont',
-                                    'stratford', 'visalia'),
-                     'shafter','name')
-
-cs00 <- cshafter[which(cshafter$date>='1994-10-03 00:00:00' &
-                           cshafter$date<"2018-11-01 00:00:00"), ] 
-cs00d <- fillinTemps(cs00, 'temp',c('arvin','blackwell','delano','famoso',
-                                    'belridge', 'stratford', 'porterville'),
-                     'shafter','name')
-
-cimshaft <- do.call(rbind, list(cs80d, cs90d, cs00d))
-
-#Filling in singleton missing hours
-cimshaft[which(cimshaft$date=='2015-02-06 11:00:00'),'temp'] <- (cimshaft[which(cimshaft$date=='2015-02-06 10:00:00'), 'temp'] + cimshaft[which(cimshaft$date=='2015-02-06 12:00:00'), 'temp'])/2
-
-cimshaft[which(cimshaft$date=='1998-09-04 04:00:00'),'temp'] <- (cimshaft[which(cimshaft$date=='1998-09-04 03:00:00'), 'temp'] + cimshaft[which(cimshaft$date=='1998-09-04 05:00:00'), 'temp'])/2
-
-naRows <- which(is.na(cimshaft$temp))
-naDTs <- cimshaft[naRows, 'date']
-naDates <- unique(as.Date(cimshaft[naRows,'date']))
-fillTemps <- sn1[which(sn1$date %in% naDates), ]
-wascoDates <- naDates[2:5]
-
-dtf <- cimshaft %>% 
-    filter(is.na(temp)) %>% 
-    transmute(date=as.Date(date)) %>% 
-    unique() %>% 
-    merge(fillTemps, by='date') %>% 
-    filter(loc=='shafter6'| (date %in% wascoDates & loc=='wasco') )
-
-dtf$lat <- c(rep(35.5941, 4), rep(35.5005, 2))
-
-backfilldf <- ldply(1:nrow(dtf), function(i) {
-    dti <- toPOSIX(paste(dtf[i,'date'], "00:00:00"))
-    backfillTemps(dtf[i, 'lat'], dti, dtf[i,'tmin'], dtf[i, 'tmax'])
-})
-
-keepRows <- which(backfilldf$date %in% naDTs)
-
-cimshaft2 <- cimshaft %>% 
-    merge(backfilldf[keepRows, ], all=TRUE) %>% 
-    drop_na()
-
-
-
-
-tsc <- timeSeriesCheck(cimshaft, start="1983-01-01 00:00:00 PDT", 
-                       end="2018-10-31 23:00:00 PDT", hours = TRUE,
-                       datename='date')
-
-write.csv(cimshaft2, file.path(datapath, 'clean/cimisshafter.csv'),
-          row.names=FALSE)
-
-
-
-
-
 # Shafter - NOAA ----------------------------------------------------------
 
 sn1 <- read.csv(file.path(datapath, 'raw/climate/noaashafter.csv'))
@@ -772,5 +669,111 @@ snd$year <- year(snd$date)
 
 write.csv(snd, file=file.path(datapath, 'clean/noaashafter.csv'),
           row.names = FALSE)
+
+
+
+# Shafter - CIMIS ---------------------------------------------------------
+
+cshafter <- importCIMIS(file.path(datapath, 'raw/climate/cimis/shafter'))
+sn1 <- read.csv(file.path(datapath, 'raw/climate/noaashafter.csv'))
+
+sn1$DATE <- as.Date(sn1$DATE)
+sn1 <- select(sn1, 'loc'='NAME','date'='DATE', 'tmax'='TMAX', 'tmin'='TMIN')
+
+sn1$loc <- recode(sn1$loc, "BUTTONWILLOW, CA US"='buttonwillow',
+                  "BAKERSFIELD AIRPORT, CA US"='bakersfieldAirport',
+                  "BAKERSFIELD 5 NW, CA US"='bakersfield5',
+                  "BAKERSFIELD 6.1 WSW, CA US"='bakersfield6',
+                  "WASCO, CA US"='wasco', "SHAFTER 6 E, CA US"='shafter6')
+
+cshafter$name <- recode(cshafter$name, "Arvin-Edison"="arvin",
+                        "Blackwells Corner"="blackwell",
+                        "McFarland/Kern Farms"="mcfarland",
+                        "Shafter"="shafter",
+                        "Lamont"="lamont",
+                        "Bakersfield/Bonanza"='bonanza',
+                        "Bakersfield/Greenlee"='greenlee',
+                        "Lost Hills"='losthills',
+                        "Belridge"='belridge',
+                        "Delano"='delano',
+                        "Famoso"='famoso',
+                        "Tehachapi"='tehachapi',
+                        "Stratford"='stratford',
+                        "Porterville"='porterville',
+                        "Visalia"='visalia')
+
+
+extremerows <- which(cshafter$qc=='R' | cshafter$temp<= -11 | 
+                         cshafter$temp > 44 |
+                         month(cshafter$date)!=12 & cshafter$temp<=(-8) |
+                         month(cshafter$date) %in% 5:9 & cshafter$temp<=0 )
+cshafter[extremerows, 'temp'] <- NA
+
+#identifyNAs 
+
+
+cs80 <- cshafter[which(cshafter$date>='1983-01-01 00:00:00' &
+                           cshafter$date<'1986-10-01 00:00:00'), ] 
+cs80d <- fillinTemps(cs80, 'temp',c('lamont','losthills','greenlee','bonanza',
+                                    'mcfarland', 'stratford', 'visalia'),
+                     'shafter','name')
+
+
+cs90 <- cshafter[which(cshafter$date>='1986-10-01 00:00:00' &
+                           cshafter$date<'1994-10-03 00:00:00' ), ] 
+cs90d <- fillinTemps(cs90, 'temp',c('blackwell','mcfarland', 'lamont',
+                                    'stratford', 'visalia'),
+                     'shafter','name')
+
+cs00 <- cshafter[which(cshafter$date>='1994-10-03 00:00:00' &
+                           cshafter$date<"2018-11-01 00:00:00"), ] 
+cs00d <- fillinTemps(cs00, 'temp',c('arvin','blackwell','delano','famoso',
+                                    'belridge', 'stratford', 'porterville'),
+                     'shafter','name')
+
+cimshaft <- do.call(rbind, list(cs80d, cs90d, cs00d))
+
+#Filling in singleton missing hours
+cimshaft[which(cimshaft$date=='2015-02-06 11:00:00'),'temp'] <- (cimshaft[which(cimshaft$date=='2015-02-06 10:00:00'), 'temp'] + cimshaft[which(cimshaft$date=='2015-02-06 12:00:00'), 'temp'])/2
+
+cimshaft[which(cimshaft$date=='1998-09-04 04:00:00'),'temp'] <- (cimshaft[which(cimshaft$date=='1998-09-04 03:00:00'), 'temp'] + cimshaft[which(cimshaft$date=='1998-09-04 05:00:00'), 'temp'])/2
+
+naRows <- which(is.na(cimshaft$temp))
+naDTs <- cimshaft[naRows, 'date']
+naDates <- unique(as.Date(cimshaft[naRows,'date']))
+fillTemps <- sn1[which(sn1$date %in% naDates), ]
+wascoDates <- naDates[2:5]
+
+dtf <- cimshaft %>% 
+    filter(is.na(temp)) %>% 
+    transmute(date=as.Date(date)) %>% 
+    unique() %>% 
+    merge(fillTemps, by='date') %>% 
+    filter(loc=='shafter6'| (date %in% wascoDates & loc=='wasco') )
+
+dtf$lat <- c(rep(35.5941, 4), rep(35.5005, 2))
+
+backfilldf <- ldply(1:nrow(dtf), function(i) {
+    dti <- toPOSIX(paste(dtf[i,'date'], "00:00:00"))
+    backfillTemps(dtf[i, 'lat'], dti, dtf[i,'tmin'], dtf[i, 'tmax'])
+})
+
+keepRows <- which(backfilldf$date %in% naDTs)
+
+cimshaft2 <- cimshaft %>% 
+    merge(backfilldf[keepRows, ], all=TRUE) %>% 
+    drop_na()
+
+
+
+
+tsc <- timeSeriesCheck(cimshaft, start="1983-01-01 00:00:00 PDT", 
+                       end="2018-10-31 23:00:00 PDT", hours = TRUE,
+                       datename='date')
+
+write.csv(cimshaft2, file.path(datapath, 'clean/cimisshafter.csv'),
+          row.names=FALSE)
+
+
 
 
