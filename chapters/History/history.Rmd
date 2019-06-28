@@ -10,20 +10,21 @@ header-includes:
   - \usepackage{longtable}
   - \usepackage{array}
   - \usepackage{multirow}
-  - \usepackage[table]{xcolor}
   - \usepackage{wrapfig}
   - \usepackage{float}
   - \usepackage{colortbl}
   - \usepackage{pdflscape}
   - \usepackage{tabu}
   - \usepackage{threeparttable}
+  - \usepackage{threeparttablex}
   - \usepackage[normalem]{ulem}
+  - \usepackage{makecell}
 output:
+  pdf_document:
+    fig_caption: yes
   word_document:
     fig_caption: yes
     reference_docx: phenologytemplate.docx
-  pdf_document:
-    fig_caption: yes
   html_document:
     fig_caption: yes
 bibliography: phenology.bib
@@ -32,6 +33,7 @@ bibliography: phenology.bib
 
 ```{r, env_setup, echo=FALSE, message=FALSE, warning=FALSE, cache=FALSE}
 #This is the set-up block of code, it loads all of the required libraries
+options(kableExtra.latex.load_packages = FALSE)
 
 library(tidyverse)
 library(plyr)
@@ -43,7 +45,7 @@ library(segmented)
 library(kableExtra)
 #library(qdap, warn.conflicts = FALSE)
 library(mgsub)
-library(kableExtra)
+library(gridExtra)
 
 opts_chunk$set(tidy.opts=list(width.cutoff=60), 
                stringsAsFactors=FALSE,
@@ -73,28 +75,31 @@ historypath <- '/Volumes/GoogleDrive/My Drive/Phenology/data/history'
 
 source(file.path(sourcepath, 'multiplot.R'))
 source(file.path(sourcepath, 'reportfunctions.R'))
+source(file.path(sourcepath, 'triplot.R'))
 
 
 
 #data
-weather <- read.csv(file.path(data2, 'weatherlocations.csv'))
+weather <- read.csv(file.path(historypath, 'weatherlocations.csv'))
 ctemps <- read.csv(file.path(data1,'switchday.csv'))
 fp <- readRDS(file.path(data1, 'floweringpredictors.RDS'))
 slp <- readRDS(file.path(data1, 'seasonlengthpredictors.RDS'))
 
 
 am <- read.csv(file.path(data2, 'annualtemperatures.csv'))
+am$loc <- recode(am$loc, 'Modesto'='Manteca')
 #am <- read.csv(file.path(data1, 'data/annualtemperatures.csv'))
 
 amlabs <- read.csv(file.path(data2, 'temptrendlabels.csv'))
 names(amlabs)[2] <- 'loc'
 
 mtc <- read.csv(file.path(data2, 'monthlytemperatures.csv'))
+mtc$loc <- recode(mtc$loc, 'Modesto'='Manteca')
 mtcAvg <- dcast(mtc[,c('loc', 'year', 'nmonth', 'tavg')],
                 loc + year ~ nmonth, value.var = 'tavg')
 
 harvest <- readRDS(file.path(historypath, 'harvest.RDS'))
-asl <- filter(harvest, crop=='almond', cultivar!='Sonora')
+asl <- filter(harvest, crop=='almond')
 psl <- filter(harvest, crop=='prune')
 wsl <- filter(harvest, crop=='walnut')
 tts <- readRDS(file.path(historypath, 'ThermalTimeSeries.RDS'))
@@ -132,7 +137,7 @@ walnutmod <- modtable %>%
     spread(var, coef) 
 
 
-locations <- c('Chico', 'Modesto', 'Parlier', 'Davis')
+locations <- c('Chico', 'Manteca', 'Parlier', 'Davis')
 mos <- 1:12
 
 
@@ -156,7 +161,7 @@ This paper documents temperature changes in California over the past century and
 
 ### Climate Data
 
-Climate data for each of the focal orchard sites was obtained from the National Climatic Data Center (NCDC, Menne and Houston 2015) and from California Irrigation Management Information System (CIMIS, California Department of Water Resources 2015). The NCDC provided daily minumum and maxiumum temperature data going back to the early 1900s, and CIMIS provided hourly data back to 1983. A number of climate stations were chosen for each orchard location to ensure there would be data for every day in the time span of the orchard datasets for each location (Table 1). The closest station to the site with at least 85% completeness was chosen as the primary station. Temperature data from other stations was related to temperature data from the primary station via a linear regression. This model was then used to fill in gaps in the primary station’s data. In cases where there were nearby NCDC and CIMIS weather stations, one primary station was chosen for each data source.
+Climate data for each of the focal orchard sites was obtained from the National Climatic Data Center (NCDC, Menne and Houston 2015) and from California Irrigation Management Information System (CIMIS, California Department of Water Resources 2015). The NCDC provided daily minumum and maxiumum temperature data going back to the early 1900s, and CIMIS provided hourly data back to 1983. A number of climate stations were chosen for each orchard location to ensure there would be data for every day in the time span of the orchard datasets for each location (Appendix Table 1). The closest station to the site with at least 85% completeness was chosen as the primary station. Temperature data from other stations was related to temperature data from the primary station via a linear regression. This model was then used to fill in gaps in the primary station’s data. In cases where there were nearby NCDC and CIMIS weather stations, one primary station was chosen for each data source.
 
 ### Phenological Data
 
@@ -169,18 +174,6 @@ Almond bloom and harvest records came from the University of California (UC) Reg
 
 All analysis was completed in R Statistical Programming Environment [@r2018] using the 'phenoclim' package (citation) to estimate thermal time accumulation parameters. 
 
-
-```{r weatherlocs}
-
-kable(weather, booktabs = TRUE, 
-      col.names = c('Source', 'Location', 'Orchard Location','Start','End', ''),
-      caption = 'NCDC and CIMIS weather station information by orchard
-                    location.')
-
-
-```
-
-
 Season lengths for almonds and prunes started at full bloom, while walnut season length began at leaf-out. Maturity for almonds and walnuts was counted at hull-split while prunes were considered mature at 3-4 lbs of pressure. All phenological data were analyzed separately by location and cultivar using ordinary linear regression. 
 
 Thermal time was calculated using the asymcur model described by [@anderson1986]. We used the 'phenoclim' package to determine the optimal number of days of thermal time accumulation after bloom or leaf-out to use for predicting season length for each cultivar using 'phenoclim' package. Mean season length (null model) as well as thermal time accumulation 30 days after full bloom (GDH30) were also calculated as a comparison as these are the most commonly used methods for predicting season length [@day2007; @tombesi2010; @ruml2011; @pope2014]. Because latitude can effect phenological requirements (citation), we also separated data by location.
@@ -192,18 +185,18 @@ Thermal time accumulation was then calculated for each year with full bloom or l
 
 ## Model Optimization
 
-Length of optimized thermal time accumulation varied significantly between crop, location and cultivar (Table 2). Accumulation lengths varied from 35 days for Mission almonds in Modesto to 74 days for prunes in Parlier. The optimized models consistently performed better than both the GDH30 models and the null model, by an average of `r round(mean(locVar$RMSE30cv - locVar$RMSEcv),2)` days and  `r round(mean(locVar$RMSEnullcv - locVar$RMSEcv),2)` days respectively.
+Length of optimized thermal time accumulation varied significantly between crop, location and cultivar (Table 1). Accumulation lengths varied from 36 days for Franquette walnuts to 103 days for Sonora Almonds. The optimized models consistently performed better than both the GDH30 models and the null model, by an average of `r round(mean(locVar$RMSE30cv - locVar$RMSEcv),2)` days and  `r round(mean(locVar$RMSEnullcv - locVar$RMSEcv),2)` days respectively.
 
 ```{r locVarTable}
 
-kable(locVar[,c(1:4,8:10)], booktabs = TRUE,
-      col.names = c('Crop', 'Location', 'Cultivar','Days', 'Opt. GDH', 
+kable(locVar[,c(1:3,7:9)], booktabs = TRUE,
+      col.names = c('Crop', 'Cultivar','Days', 'Opt. GDH', 
                     'GDH30', 'NULL'),
       caption = 'Optimized length of thermal time accumulation in days for
-      predicting season length, by crop, location and cultivar, and a
+      predicting season length, by crop and cultivar, and a
       comparison of 5-fold crossvalidated RMSE values for the optimized GDH
       models, GDH30 models, and mean season length.') %>% 
-    add_header_above(c(" " = 4, "RMSE"=3))
+    add_header_above(c(" " = 3, "RMSE"=3))
 
 ```
 
@@ -211,10 +204,10 @@ kable(locVar[,c(1:4,8:10)], booktabs = TRUE,
 ## Almonds
 
 
-Mean almond season lengths did not appear to decrease over the 10 years of the Regional Almond Variety Trials. (Figure 3). However because the time series are so short, we cannot make any longterm predictions based on this. Almond season lengths respond fairly well to optimized thermal time accumulation (Figure 4, Table 7), with GDH explaining between 30% and 65% of season length variation.   Despite this, the model relating thermal time accumulation for Nonpareil Almonds to season length in Modesto was not strongly significant. 
+Mean almond season lengths did not appear to decrease over the 10 years of the Regional Almond Variety Trials. (Figure 3-5). However because the time series are so short, we cannot make any longterm predictions based on this. Almond season lengths respond fairly well to optimized thermal time accumulation (Figure 4, Table 7), with GDH explaining between 30% and 65% of season length variation.   Despite this, the model relating thermal time accumulation for Nonpareil Almonds to season length in Modesto was not strongly significant. 
 
 
-```{r almond_harvest_year, fig.cap='Almond season lengths over 10 years in Chico, California.', warning=FALSE, echo=FALSE, fig.height=4}
+```{r almond_Mission, fig.cap='Almond season lengths over 10 years in Chico, California.', warning=FALSE, echo=FALSE, fig.height=4}
 
 amy <- ggplot(data=asl) + facet_grid(loc~cultivar) + theme_bw() +
     geom_point(aes(x=year, y=length1), size=1.5, color=almondcol) +
@@ -452,5 +445,37 @@ Both 'Chandler' and 'Franquette' walnuts saw very marginal gain from optimizatio
 
 Overall, season lengths in California seem to be getting shorter. This may decrease the risk of precipitation during post-harvest drying, especially for walnuts. However, it will also likely to decrease fruit and nut size [@warrington1999] For prunes, this is problematic because fruit size strongly impacts the price farmers get for their crop. In nut crops, size is also at a premium, however there is an additional complication. Post harvest processing requires specialized equipment that is calibrated to a certain size of nut. Shorter season lengths may result in sub-optimal nut cracking, which also reduces nut quality. In many fruit crops, farmers will thin the crop to produce larger fruits. This is not common in nuts, but may become necessary as the climate warms.
 
+# Appendix A
+
+
+```{r }
+
+weathertab <- weather %>% 
+    select(Location, Start, End, Source) 
+    
+primaryrows <- which(weather$primary)
+
+
+kable(weathertab, booktabs = TRUE, escape=FALSE, longtable=TRUE,
+      col.names = c( 'Location','Start','End','Source'),
+      caption = 'NCDC and CIMIS weather station information by orchard
+                    location. Italics indicates the weather station used as
+                    the primary weather station for the given orchard.') %>% 
+    kable_styling(latex_options = c("repeat_header")) %>% 
+    group_rows("Chico", 1, 9) %>%
+    group_rows("Davis", 10, 18) %>%
+    group_rows("Manteca", 19, 40) %>%
+    group_rows("Parlier", 41, 51) %>% 
+    group_rows("Shafter", 52, 72) %>% 
+    row_spec(primaryrows, italic=TRUE)
+
+
+
+```
+
+
+
 #References
+
+#
 
