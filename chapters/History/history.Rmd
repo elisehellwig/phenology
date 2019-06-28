@@ -50,7 +50,7 @@ library(gridExtra)
 opts_chunk$set(tidy.opts=list(width.cutoff=60), 
                stringsAsFactors=FALSE,
                knitr.table.format = "latex",
-               cache=TRUE,
+               cache=FALSE,
                echo = FALSE)
 options(warn=0)
 #this makes it so numbers aren't put into scientific notation
@@ -207,10 +207,10 @@ kable(locVar[,c(1:3,7:9)], booktabs = TRUE,
 ## Almonds
 
 
-Mean almond season lengths did not appear to decrease over the 10 years of the Regional Almond Variety Trials. (Figure 3-5). However because the time series are so short, we cannot make any longterm predictions based on this. Almond season lengths respond fairly well to optimized thermal time accumulation (Figure 4, Table 7), with GDH explaining between 30% and 65% of season length variation.   Despite this, the model relating thermal time accumulation for Nonpareil Almonds to season length in Modesto was not strongly significant. 
+Mean almond season lengths did not appear to decrease over the 10 years of the Regional Almond Variety Trials. (Figure 3-5A). However because the time series are so short, we cannot make any longterm predictions based on this. Almond season lengths respond fairly well to optimized thermal time accumulation (Figure 4, Table 7), with GDH explaining between 30% and 65% of season length variation.   Despite this, the model relating thermal time accumulation for Nonpareil Almonds to season length in Modesto was not strongly significant. 
 
 
-```{r almond_Nonpareil, fig.cap='Nonpareil almond models in California.', warning=FALSE, echo=FALSE, fig.height=7}
+```{r almond_Nonpareil, fig.cap='Nonpareil almond models in California.', warning=FALSE, echo=FALSE, fig.height=7, cache=FALSE}
 
 triplot(asl, 'Nonpareil', loc=TRUE, threshold=56, alims=c(1995, 2006), 
         bsmooth=TRUE, csmooth=TRUE)
@@ -263,7 +263,7 @@ triplot(psl, 'French', loc=TRUE, threshold=74, asmooth=TRUE,
 ```{r pruneModelTable}
 
 kable(ptab, booktabs = TRUE, 
-      col.names = c('Location', 'Cultivar', 'Predictor', 'Response',
+      col.names = c( 'Cultivar', 'Predictor', 'Response',
                     'Coefficient','p-value', 'R2'),
       caption = 'Summary of linear regression models relating
       year, season length and thermal time accumulation in prunes.', digits=3)
