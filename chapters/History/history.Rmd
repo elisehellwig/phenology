@@ -99,10 +99,13 @@ mtcAvg <- dcast(mtc[,c('loc', 'year', 'nmonth', 'tavg')],
                 loc + year ~ nmonth, value.var = 'tavg')
 
 harvest <- readRDS(file.path(historypath, 'harvest.RDS'))
-asl <- filter(harvest, crop=='almond')
-psl <- filter(harvest, crop=='prune')
-wsl <- filter(harvest, crop=='walnut')
 tts <- readRDS(file.path(historypath, 'ThermalTimeSeries.RDS'))
+
+sl <- merge(harvest, tts, all=TRUE, by=c('cultivar','loc','year','event1',
+                                         'crop','thermal'))
+asl <- filter(sl, crop=='almond')
+psl <- filter(sl, crop=='prune')
+wsl <- filter(sl, crop=='walnut')
 locVar <- read.csv(file.path(historypath, 'SeasonLengthErrors.csv'))
 
 
@@ -207,27 +210,18 @@ kable(locVar[,c(1:3,7:9)], booktabs = TRUE,
 Mean almond season lengths did not appear to decrease over the 10 years of the Regional Almond Variety Trials. (Figure 3-5). However because the time series are so short, we cannot make any longterm predictions based on this. Almond season lengths respond fairly well to optimized thermal time accumulation (Figure 4, Table 7), with GDH explaining between 30% and 65% of season length variation.   Despite this, the model relating thermal time accumulation for Nonpareil Almonds to season length in Modesto was not strongly significant. 
 
 
-```{r almond_Mission, fig.cap='Almond season lengths over 10 years in Chico, California.', warning=FALSE, echo=FALSE, fig.height=4}
+```{r almond_Nonpareil, fig.cap='Nonpareil almond models in California.', warning=FALSE, echo=FALSE, fig.height=7}
 
-amy <- ggplot(data=asl) + facet_grid(loc~cultivar) + theme_bw() +
-    geom_point(aes(x=year, y=length1), size=1.5, color=almondcol) +
-    labs(x='year',y='Season Length (days)')
-
-amy
+triplot(asl, 'Nonpareil', loc=TRUE, threshold=56, alims=c(1995, 2006), 
+        bsmooth=TRUE, csmooth=TRUE)
 
 ```
 
 
-```{r almond_harvestthermal, fig.cap='Almond season length by heat sum in Chico, California.', warning=FALSE, echo=FALSE, fig.height=4}
+```{r almond_Mission, fig.cap='Mission almond models in California.', warning=FALSE, echo=FALSE, fig.height=8}
 
-AHeatLength <- filter(almondmod, predictor!='Year', response=='Season Length')
-
-amat <- ggplot(data=asl) + facet_grid(loc~cultivar, scales='free_x') +
-    geom_point(aes(x=thermal, y=length1), size=1.5, color=almondcol) +
-    labs(x='Heat Sum',y='Season Length (days)') + theme_bw() +
-    geom_abline(aes(intercept=intercept, slope=beta), data=AHeatLength)
-
-amat
+triplot(asl, 'Mission', loc=TRUE, threshold=74, alims=c(1995, 2006), 
+        bsmooth=TRUE, csmooth=TRUE)
 
 ```
 
@@ -238,8 +232,10 @@ In Chico, thermal time accumulation increased by 22 GDH per year for Mission alm
 
 ```{r almondModelTable}
 
+atab2 <- atab[order(atab$cultivar), ]
+
 kable(atab, booktabs = TRUE, 
-      col.names = c('Location', 'Cultivar', 'Predictor', 'Response',
+      col.names = c('Cultivar', 'Predictor', 'Response',
                     'Coefficient','p-value', 'R2'),
       caption = 'Summary of linear regression models relating
       year, season length and thermal time accumulation in almonds.', digits=3)
@@ -249,70 +245,15 @@ kable(atab, booktabs = TRUE,
 
 
 
-```{r almond_gdhtime, fig.cap='Almond heat sums over 80 years in Chico and Modesto, California.', warning=FALSE, echo=FALSE, fig.height=4}
-atts <- filter(tts, crop=='almond')
-AHeatYear <- filter(almondmod, predictor=='Year', response!='Season Length')
-
-agdh <- ggplot(data=atts) + facet_grid(loc~cultivar) + theme_bw() +
-    geom_point(aes(x=year, y=thermal), size=1.5, color=almondcol) +
-    geom_abline(aes(intercept=intercept, slope=beta), data=AHeatYear) +
-    labs(x='year',y='Heat Sum')
-
-agdh
-
-```
-
-
-
 ## Prunes
 
 French Prune season lengths in Parlier shortened by an average of 0.49 days per year over the past 25 years, with a p-value of 0.041 and an adjusted R-squared of 0.160 (Figure 6, Table 8). Prune season length responded strongly to the optimized thermal time accumulation (Figure 7). Additionally, thermal time accumulated in the first 74 days after bloom showed a statistically significant increasing trend over time (Figure 8). However, this trend accounted for less variation than modeling season length over time (Table 8).
 
 
+```{r prune, fig.cap='Improved French prune models in California.', warning=FALSE, echo=FALSE, fig.height=8}
 
-```{r prune_harvest_year, fig.cap='Prune season lengths over 25 years in Parlier, California.', warning=FALSE, echo=FALSE, fig.height=2.5, fig.width=4}
-
-PYearLength <- filter(prunemod, predictor=='Year', response=='Season Length')
-
-
-pmy <- ggplot(data=psl) + theme_bw() +
-    geom_point(aes(x=year, y=length1), size=1.5, color=prunecol) +
-    labs(x='year',y='Season Length (days)') +
-    geom_abline(aes(intercept=intercept, slope=beta), data=PYearLength)
-
-pmy
-
-```
-
-
-
-```{r prune_harvest, fig.cap='Prune season lengths by heat sum in Parlier, CA.', warning=FALSE, echo=FALSE, fig.height=2.5, fig.width=4}
-
-PLengthHeat <- filter(prunemod, predictor=='GDH74', response=='Season Length')
-
-pmat <- ggplot(data=psl) + theme_bw() + 
-    geom_point(aes(x=thermal, y=length1), size=1.5, color=prunecol) +
-    labs(x='Scaled Heat Sum',y='Season Length (days)') +
-    geom_abline(aes(intercept=intercept, slope=beta), data=PLengthHeat)
-
-pmat
-
-```
-
-
-
-```{r prune_heatsumtime,  fig.cap='Prune heat sum over 25 years in Parlier, CA.', warning=FALSE, echo=FALSE, fig.height=2.5, fig.width=4}
-
-ptts <- filter(tts, crop=='prune')
-PYearHeat <- filter(prunemod, predictor=='Year', response=='GDH74')
-
-
-pghd <- ggplot(data=psl) + theme_bw() + 
-    geom_point(aes(x=year, y=thermal), size=1.5, color=prunecol) +
-    labs(x='Year',y='Heat Sum') +
-    geom_abline(aes(intercept=intercept, slope=beta), data=PYearHeat)
-
-pghd
+triplot(psl, 'French', loc=TRUE, threshold=74, asmooth=TRUE,
+        bsmooth=TRUE, csmooth=TRUE)
 
 ```
 
@@ -340,71 +281,19 @@ Mean season length in Payne walnuts decreased an average of 0.24 days per year o
 Thermal time accumulation values for all three cultivars appear to be increasing over time, meaning decreasing season lengths. However, the confidence in those trends is fairly low for Chandler and Franquette cultivars. Hopefully a longer time series will either reinforce or remove those trends. 
 
 
-```{r walnut_harvest_year, fig.cap='Walnut season lengths over the past 60 years for Chandler, Franquette and Payne Cultivars.', warning=FALSE, echo=FALSE, fig.height=2.5}
+```{r walnut_chandler, fig.cap='Chandler walnut models in California.', warning=FALSE, echo=FALSE, fig.height=7}
 
-WYearLength <- filter(walnutmod, predictor=='Year', response=='Season Length')
-WYearLength[1:2, 'beta'] <- 0
-
-
-wmy <- ggplot(data=wsl) + facet_wrap(~cultivar) + theme_bw() +
-    geom_point(aes(x=year, y=length1), size=1.5, color=walnutcol) +
-    geom_abline(aes(intercept=intercept, slope=beta), data=WYearLength) + 
-    labs(x='year',y='Season Length (days)')
-
-wmy
+triplot(wsl, 'Chandler', loc=FALSE, threshold=49, bsmooth=TRUE, csmooth=TRUE)
 
 ```
-
-
-
-
-```{r walnut_harvest, fig.cap='Heat sum correlation with walnut season lengths over the past 60 years in Davis.', warning=FALSE, echo=FALSE, fig.height=2.5}
-
-
-WHeatLength <- filter(walnutmod, predictor!='Year', response=='Season Length')
-
-wmat <- ggplot(data=wsl) + facet_wrap(~cultivar, scales='free_x') + theme_bw() +
-    geom_point(aes(x=thermal, y=length1), size=1.5, color=walnutcol) +
-    geom_abline(aes(intercept=intercept, slope=beta), data=WHeatLength) +
-    labs(x='Scaled Heat Sum',y='Season Length (days)')
-
-wmat
-
-
-
-```
-
-
-
-
-```{r walnut_heatsumtime, fig.cap='Walnut heat sums over the past 80 years.', warning=FALSE, echo=FALSE, fig.height=6, fig.width=5}
-
-wtts <- filter(tts, crop=='walnut')
-WHeatYear <- filter(walnutmod, predictor=='Year', response!='Season Length')
-WHeatYear$signif <- c('0.1','0.1', '0.05')
-
-
-wgdh <- ggplot(data=wsl) + facet_wrap(~cultivar, scale='free_y',nrow=3) +
-    geom_point(aes(x=year, y=thermal), size=1.5, color=walnutcol) +
-    geom_abline(aes(intercept=intercept, slope=beta, color=signif),
-                data=WHeatYear) +
-    scale_color_manual(values=c("#000000", "#8c8c8c"), name='') +
-    labs(x='Year',y='Scaled Heat Sum') +  theme_bw() 
-
-wgdh
-
-
-
-```
-
-
 
 
 
 ```{r walnutModelTable}
 
+
 kable(wtab, booktabs = TRUE, 
-      col.names = c('Location', 'Cultivar', 'Predictor', 'Response',
+      col.names = c('Cultivar', 'Predictor', 'Response',
                     'Coefficient','p-value', 'R2'),
       caption = 'Summary of linear regression models relating
       year, season length and thermal time accumulation in walnuts', digits=3)
