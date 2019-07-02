@@ -7,6 +7,24 @@ getlegend<-function(gplot){
     return(legend)
 }
 
+locateLabel <- function(plt, alims) {
+    
+    if (!is.na(alims[1])) {
+        xrange <- alims
+    } else {
+        xrange <- layer_scales(plt)$x$range$range
+    }
+    
+    xval <- xrange[1] - (xrange[2]-xrange[1])/10
+    
+    yrange <- layer_scales(plt)$y$range$range
+    
+    yval <- yrange[2] + (yrange[2]-yrange[1])/9
+    
+    df <- data.frame(x=xval, y=yval)
+    
+    return(df)
+}
 
 
 formatPlotData <- function(df, variety=NA) {
@@ -46,9 +64,10 @@ formatPlotData <- function(df, variety=NA) {
 }
 
 
-triplot <- function(df, variety, loc=FALSE, threshold=NA, pointcolor='black',
-                    alims=NA, blims=NA, clims=NA, asmooth=FALSE, bsmooth=FALSE,
-                    csmooth=FALSE, smoothcol=rep('black',3)) {
+triplot <- function(df, variety, moddf, loc=FALSE, threshold=NA, 
+                    pointcolor='black', alims=NA, blims=NA, clims=NA, 
+                    asmooth=FALSE, bsmooth=FALSE, csmooth=FALSE, 
+                    smoothcol=rep('black',3)) {
     require(grid)
     require(gridExtra)
     ### A = season length ~ year
@@ -57,6 +76,7 @@ triplot <- function(df, variety, loc=FALSE, threshold=NA, pointcolor='black',
     # df - data.frame, needs to have columns: cultivar, loc, year, thermal,
     #length1, 
     # varity - character, name of the cultivar to plot data from
+    # moddf - data.frame containing linear model parameters and metrics
     #loc - logical, should points be coded by location?
     #threshold - numeric/character, length of thermal time accumulation, for
         #axis labeling
@@ -75,41 +95,78 @@ triplot <- function(df, variety, loc=FALSE, threshold=NA, pointcolor='black',
         tslab <- 'GDH'
     }
     
+    ##################### Season length ~ Year plot #####################
+    
     aplot <- ggplot(data=tridf[tridf$groupvar=='A', ]) +
         geom_point(aes(x=x, y=y, shape=loc), color=pointcolor) + 
         theme_classic() + labs(x="Year", y='Season Length (days)') + 
         guides(shape=FALSE)
     
-    if (!is.na(alims[1]))  aplot <- aplot + xlim(alims)
+    
+    Alab <- locateLabel(aplot, alims)
+    Alab$name <- 'A)'
+    
+    if (!is.na(alims[1]))  {
+        aplot <- aplot + xlim(alims)
+        Alab$x <- alims[1]
+    }
+    
     
     if (asmooth) {
         aplot <- aplot + geom_smooth(aes(x=x, y=y),
                                      method=lm, se=FALSE, color=smoothcol[1])
     }
+    
+    
+    
+    aplot <- aplot + geom_text(data=Alab, aes(x=x, y=y, label=name), size=6) +
+        coord_cartesian(clip='off')
+    
+    ########### Season length ~ GDH plot ###################
         
     bplot <- ggplot(data=tridf[tridf$groupvar=='B', ]) +
         geom_point(aes(x=x, y=y, shape=loc), color=pointcolor) +
         theme_classic() + labs(x=tslab, y='Season Length (days)') +
-        guides(shape=FALSE)
+        guides(shape=FALSE) 
     
-    if (!is.na(blims[1])) bplot <- bplot + xlim(blims)
+    Blab <- locateLabel(bplot, blims)
+    Blab$name <- 'B)'
+    
+    if (!is.na(blims[1]))  {
+        bplot <- bplot + xlim(blims)
+        Blab$x <- blims[1]
+    }
     
     if (bsmooth) {
         bplot <- bplot + geom_smooth(aes(x=x, y=y), method=lm, se=FALSE, 
                                      color=smoothcol[2])
     }
     
+    bplot <- bplot + geom_text(data=Blab, aes(x=x, y=y, label=name), size=6) +
+        coord_cartesian(clip='off')
+    
+    ############### GDH ~ Year Plot ####################
+    
     cplot <- ggplot(data=tridf[tridf$groupvar=='C', ]) +
         geom_point(aes(x=x, y=y, shape=loc), color=pointcolor) +
         theme_classic() + labs(x="Year", y=tslab) + guides(shape=FALSE)
     
-    if (!is.na(clims[1])) cplot <- cplot + xlim(clims)
+    Clab <- locateLabel(cplot, clims)
+    Clab$name <- 'C)'
+    
+    if (!is.na(clims[1]))  {
+        cplot <- cplot + xlim(clims)
+        Clab$x <- clims[1]
+    }
     
     if (csmooth) {
         cplot <- cplot + geom_smooth(aes(x=x, y=y),
                                      method=lm, se=FALSE, color=smoothcol[3])
     }
     
+    cplot <- cplot + geom_text(data=Clab, aes(x=x, y=y, label=name), size=6) +
+        coord_cartesian(clip='off')
+    ############# Adding a legend #######################
     
     if (loc) {
         legplot <- ggplot(data=tridf) + geom_point(aes(x=x, y=y, shape=loc)) +
@@ -119,6 +176,7 @@ triplot <- function(df, variety, loc=FALSE, threshold=NA, pointcolor='black',
     }
     
     
+    ###########Putting it all together ###############
     
     triplots <- arrangeGrob(aplot,bplot,cplot, nrow=3)
     
