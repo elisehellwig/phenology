@@ -118,7 +118,7 @@ pLocVar <- filter(locVar, crop=='prune')
 pLocVar30 <- mutate(pLocVar, threshold=30)
 
 #filtering out prune data
-p <- filter(harv, crop=='prune')
+p <- filter(harv, crop=='prune', loc=='Parlier')
 
 #modeling GDH over time
 PThermalTimeMod <- lm(thermal ~ year, data=p)
